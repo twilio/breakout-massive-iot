@@ -40,7 +40,7 @@ typedef struct {
 #define STRDEF(_string_, _value_) ((_string_).s = (_value_), (_string_).len = strlen(_value_))
 
 #define STRDECL(_value_)                                                                                               \
-  { .s = (_value_), .len = strlen(_value_) }
+  { .s = (char*) (_value_), .len = (int) strlen(_value_) }
 
 
 

@@ -75,7 +75,8 @@ void dtls_set_log_level(log_t level);
  * set_log_level(). */
 #ifdef WITH_ARDUINO
 
-#include "../BreakoutSDK/utils/utils.h"
+#include "../../src/utils/utils.h"
+#include "../../src/platform/platform.h"
 
 #define dsrv_log(level, format, args...)                                     \
   do {                                                                       \

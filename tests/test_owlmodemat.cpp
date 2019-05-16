@@ -1,3 +1,5 @@
+#ifndef ARDUINO // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "BreakoutSDK/modem/OwlModemAT.h"
@@ -269,3 +271,5 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
 
   REQUIRE(std::string(response.s, response.len) == "");
 }
+
+#endif // ARDUINO

@@ -28,5 +28,6 @@
 #include "time.h"
 #include "mem.h"
 #include "power.h"
+#include "random.h"
 
 #endif

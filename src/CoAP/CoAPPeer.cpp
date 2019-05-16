@@ -25,6 +25,7 @@
 #include <math.h>
 
 #include "../utils/lists.h"
+#include "../platform/platform.h"
 
 
 CoAPPeer **CoAPPeer::instances = 0;
@@ -34,9 +35,8 @@ int CoAPPeer::instances_cnt    = 0;
 
 CoAPPeer::CoAPPeer(OwlModemRN4 *modem, uint16_t local_port, str remote_ip, uint16_t remote_port)
     : transport_type(CoAP_Transport__plaintext), owlModem(modem), local_port(local_port), remote_port(remote_port) {
-  randomSeed(random(0xffffff) + millis());  // randomizing again, just in case the ANALOG_RND_PIN was connected
-  last_message_id = random(0xFFFFu);
-  last_token      = random(0xFFFFFF);
+  last_message_id = owl_random(0xFFFFu);
+  last_token      = owl_random(0xFFFFFF);
   str_dup(this->remote_ip, remote_ip);
   if (!CoAPPeer::addInstance(this)) {
     LOG(L_ERR, "Error adding instance in list\r\n");
@@ -54,9 +54,8 @@ CoAPPeer::CoAPPeer(OwlModemRN4 *modem, str psk_id, str psk_key, uint16_t local_p
       local_port(local_port),
       remote_ip(remote_ip),
       remote_port(remote_port) {
-  randomSeed(random(0xffffff) + millis());  // randomizing again, just in case the ANALOG_RND_PIN was connected
-  last_message_id = random(0xFFFFu);
-  last_token      = random(0xFFFFFF);
+  last_message_id = owl_random(0xFFFFu);
+  last_token      = owl_random(0xFFFFFF);
   str_dup(this->remote_ip, remote_ip);
   str_dup(this->psk_id, psk_id);
   str_dup(this->psk_key, psk_key);
@@ -779,7 +778,7 @@ int CoAPPeer::putClientTransactionCON(coap_message_id_t message_id, str message,
   WL_NEW(t, coap_client_transaction_list_t);
   t->message_id              = message_id;
   t->type                    = CoAP_Type__Confirmable;
-  t->retransmission_interval = ACK_TIMEOUT * 1000 + random((float)ACK_TIMEOUT * 1000.0 * ACK_RANDOM_FACTOR);
+  t->retransmission_interval = ACK_TIMEOUT * 1000 + owl_random((float)ACK_TIMEOUT * 1000.0 * ACK_RANDOM_FACTOR);
   t->expires                 = owl_time() + t->retransmission_interval;
   t->retransmissions_left    = MAX_RETRANSMIT;
   str_dup(t->message, message);

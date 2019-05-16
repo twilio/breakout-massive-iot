@@ -56,7 +56,7 @@ dtls_ticks(dtls_tick_t *t) {
 #ifdef WITH_ARDUINO
 dtls_tick_t dtls_clock_offset;
 
-#include "../BreakoutSDK/utils/utils.h"
+#include "../../src/utils/utils.h"
 
 void
 dtls_clock_init(void) {

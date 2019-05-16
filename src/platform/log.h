@@ -122,7 +122,7 @@ int owl_log_is_printable(log_level_t level);
  * @param format - printf format
  * @param ... - parameters for the printf format
  */
-void owl_log(log_level_t, char *format, ...);
+void owl_log(log_level_t, const char *format, ...);
 
 /**
  * Log something out, without the time/level/etc prefix. Use the LOGE() macros instead, to also get the function and
@@ -131,7 +131,7 @@ void owl_log(log_level_t, char *format, ...);
  * @param format - printf format
  * @param ... - parameters for the printf format
  */
-void owl_log_empty(log_level_t level, char *format, ...);
+void owl_log_empty(log_level_t level, const char *format, ...);
 
 /**
  * Log a binary str in a nice binary dump format. Use the LOGSTR() macro instead, to also get the function and
