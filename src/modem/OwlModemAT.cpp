@@ -89,6 +89,11 @@ void OwlModemAT::spinProcessTime() {
         command_data_.s += to_send;
 
         if (command_data_.len == 0) {
+	  if (command_data_term_ != 0xFFFF) {
+	    char term_byte = (char) (command_data_term_ & 0xFF);
+	    str term = {.s = &term_byte, .len = 1};
+            sendData(term);
+	  }
           command_started_     = owl_time();
           response_buffer_.len = 0;
           state_               = modem_state_t::wait_result;
