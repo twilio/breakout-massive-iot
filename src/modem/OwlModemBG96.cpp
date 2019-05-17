@@ -80,7 +80,7 @@ void OwlModemBG96::initCheckPIN(str message) {
   }
 }
 
-int OwlModemBG96::initModem(const char* apn) {
+int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e cops_format) {
   at_result_code_e rc;
   OwlModem_PINHandler_f saved_handler = 0;
 
@@ -88,12 +88,12 @@ int OwlModemBG96::initModem(const char* apn) {
     return 0;
   }
 
-#if defined(COPS_OVERRIDE_LONG) || defined(COPS_OVERRIDE_SHORT) || defined(COPS_OVERRIDE_NUMERIC)
-  // deregister from the network before the modem hangs
-  if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
-    LOG(L_ERR, "Potential deregistering from network\r\n");
+  if (cops != nullptr) {
+    // deregister from the network before the modem hangs
+    if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
+      LOG(L_ERR, "Potential deregistering from network\r\n");
+    }
   }
-#endif
 
   // TODO: skip if modem is already in the desired state. Writing some magic number to a file maybe?
   if (true) {
@@ -138,47 +138,25 @@ int OwlModemBG96::initModem(const char* apn) {
       return 0;
     }
 
-#if defined(COPS_OVERRIDE_LONG) || defined(COPS_OVERRIDE_SHORT) || defined(COPS_OVERRIDE_NUMERIC)
-    // deregister from the network before the modem hangs
-    if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
-      LOG(L_ERR, "Potential deregistering from network\r\n");
+    if (cops != nullptr) {
+      // deregister from the network before the modem hangs
+      if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
+        LOG(L_ERR, "Potential deregistering from network\r\n");
+      }
     }
-#endif
   }
 
 
-#if defined(COPS_OVERRIDE_LONG)
-  at_cops_format_e cops_format = AT_COPS__Format__Long_Alphanumeric;
-  at_cops_act_e cops_act       = AT_COPS__Access_Technology__LTE_NB_S1;
-  str oper                     = STRDECL(COPS_OVERRIDE_LONG);
+  if (cops != nullptr) {
+    at_cops_act_e cops_act       = AT_COPS__Access_Technology__LTE_NB_S1;
+    str oper                     = STRDECL(cops);
 
-  LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", COPS_OVERRIDE_LONG);
-  if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
-    LOG(L_ERR, "Error selecting mobile operator\r\n");
-    return 0;
+    LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", cops);
+    if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
+      LOG(L_ERR, "Error selecting mobile operator\r\n");
+      return 0;
+    }
   }
-#elif defined(COPS_OVERRIDE_SHORT)
-  at_cops_format_e cops_format = AT_COPS__Format__Short_Alphanumeric;
-  at_cops_act_e cops_act       = AT_COPS__Access_Technology__LTE_NB_S1;
-  str oper                     = STRDECL(COPS_OVERRIDE_SHORT);
-
-  LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", COPS_OVERRIDE_SHORT);
-  if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
-    LOG(L_ERR, "Error selecting mobile operator\r\n");
-    return 0;
-  }
-#elif defined(COPS_OVERRIDE_NUMERIC)
-  at_cops_format_e cops_format = AT_COPS__Format__Numeric;
-  at_cops_act_e cops_act       = AT_COPS__Access_Technology__LTE_NB_S1;
-  str oper                     = STRDECL(COPS_OVERRIDE_NUMERIC);
-
-  LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", COPS_OVERRIDE_NUMERIC);
-  if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
-    LOG(L_ERR, "Error selecting mobile operator\r\n");
-    return 0;
-  }
-#endif
-
 
   if (AT.doCommandBlocking("AT+CSCS=\"GSM\"", 1000, nullptr) != AT_Result_Code__OK) {
     LOG(L_WARN, "Potential error setting character set to GSM\r\n");
