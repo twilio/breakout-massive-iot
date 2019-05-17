@@ -152,7 +152,7 @@ class OwlModemAT {
                                      str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF);
   at_result_code_e doCommandBlocking(char *command, owl_time_t timeout_millis, str *out_response,
                                      str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF) {
-    return doCommandBlocking({.s = command, .len = strlen(command)}, timeout_millis, out_response, command_data,
+    return doCommandBlocking(STRDECL(command), timeout_millis, out_response, command_data,
                              data_term);
   }
 
