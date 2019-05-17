@@ -91,7 +91,7 @@ class OwlModemBG96 {
   OwlModemInformation information;
 
   /** Method to get information and interact with the SIM card */
-  OwlModemSIM SIM;
+  OwlModemSIM sim;
 
   /** Network Registration and Management */
   OwlModemNetwork network;

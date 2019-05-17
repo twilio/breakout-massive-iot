@@ -27,7 +27,7 @@ OwlModemBG96::OwlModemBG96(IOwlSerial *modem_port_in)
     : modem_port(modem_port_in),
       AT(modem_port),
       information(&AT),
-      SIM(&AT),
+      sim(&AT),
       network(&AT),
       pdn(&AT),
       ssl(&AT),
@@ -177,8 +177,8 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
         "events\r\n");
   }
 
-  if (SIM.handler_cpin) saved_handler = SIM.handler_cpin;
-  SIM.setHandlerPIN(initCheckPIN);
+  if (sim.handler_cpin) saved_handler = sim.handler_cpin;
+  sim.setHandlerPIN(initCheckPIN);
   if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != AT_Result_Code__OK) {
     LOG(L_WARN, "Error checking PIN status\r\n");
   }
