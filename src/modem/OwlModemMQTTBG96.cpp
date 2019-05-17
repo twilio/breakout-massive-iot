@@ -335,6 +335,16 @@ void OwlModemMQTTBG96::processURCQmtrecv(str data) {
 bool OwlModemMQTTBG96::openConnection(const char* host_addr, uint16_t port) {
   char buffer[64];
 
+  if (use_tls_) {
+    if (atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,1,0", 1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
+  } else {
+    if (atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,0,0", 1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
+  }
+
   snprintf(buffer, 64, "AT+QMTOPEN=0,\"%s\",%d", host_addr, (int)port);
 
   wait_for_command_[qmtopen] = true;
@@ -348,11 +358,7 @@ bool OwlModemMQTTBG96::openConnection(const char* host_addr, uint16_t port) {
     return false;
   }
 
-  if (use_tls_) {
-    return atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,1,0", 1 * 1000, nullptr) == AT_Result_Code__OK;
-  } else {
-    return atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,0,0", 1 * 1000, nullptr) == AT_Result_Code__OK;
-  }
+  return true;
 }
 
 bool OwlModemMQTTBG96::closeConnection() {
