@@ -26,5 +26,6 @@
 
 #include "str.h"
 #include "bin_t.h"
+#include "log.h"
 
 #endif

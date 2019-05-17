@@ -2,7 +2,7 @@
  * log.h
  * Twilio Breakout SDK
  *
- * Copyright (c) 2018 Twilio, Inc.
+ * Copyright (c) 2019 Twilio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,16 @@
  */
 
 /**
- * \file log.g - logging utilities
+ * \file log.h - declarations of platform-specific logging functions
  */
 
-#ifndef __OWL_UTILS_LOG_H__
-#define __OWL_UTILS_LOG_H__
+#ifndef __OWL_PLATFORM_LOG_H__
+#define __OWL_PLATFORM_LOG_H__
 
 #include <stdint.h>
 
 #include "../utils/str.h"
 #include "../utils/bin_t.h"
-
-
-/*
- * Parameters for logging - change here to disable logging or colors
- */
-#define LOG_DISABLED 0
-#define LOG_NO_ANSI_COLORS 0
-#define LOG_WITH_TIME 1
-#define LOG_LINE_MAX_LEN 1024
-#define LOG_OUTPUT SerialDebugPort
-
 
 /*
  * Log levels
@@ -55,45 +44,15 @@
 #define L_DBG 5
 #define L_MEM 6
 
-
-
-#if LOG_DISABLED == 0
-
-#define IS_PRINTABLE(level) (level <= debug_level || level == L_CLI)
-
-#define LOG(level, format, ...) owl_log(level, "%s():%d " format, __func__, __LINE__, ##__VA_ARGS__)
-#define LOGE(level, format, ...) owl_log_empty(level, format, ##__VA_ARGS__)
-#define LOGF(level, format, ...) owl_log(level, format, ##__VA_ARGS__)
-#define LOGSTR(level, x) owl_log_str(level, x)
-#define LOGBIN(level, x) owl_log_bin_t(level, x)
-
-#else
-
-#define IS_PRINTABLE(level) 0
-
-#define LOG(level, format, args...)
-#define LOGE(level, format, args...)
-#define LOGF(level, format, args...)
-#define LOGSTR(level, x)
-#define LOGBIN(level, x)
-
-#endif
-
-#define GOTOERR(label)                                                                                                 \
-  do {                                                                                                                 \
-    LOG(L_ERR, "Going to label " #label "\r\n");                                                                       \
-    goto label;                                                                                                        \
-  } while (0)
-
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
 typedef int8_t log_level_t;
 
+/**
+ * Functions declared below are to be implemented in ports
+ */
 
 /**
  * Retrieve the current log level
@@ -112,7 +71,6 @@ void owl_log_set_level(log_level_t level);
  * @return 1 if it will be printed, 0 if not
  */
 int owl_log_is_printable(log_level_t level);
-
 
 /**
  * Log something out. Use the LOG() macros instead, to also get the function and line information from the code. If you
