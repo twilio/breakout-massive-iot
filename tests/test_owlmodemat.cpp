@@ -2,7 +2,7 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "BreakoutSDK/modem/OwlModemAT.h"
+#include "modem/OwlModemAT.h"
 
 std::vector<std::string> received_strings;
 

@@ -28,9 +28,8 @@ set(SDK_SOURCES
 	src/CoAP/CoAPOption.cpp
 	src/CoAP/CoAPPeer.cpp
 	src/CoAP/enums.cpp
-
-	src/Breakout/Breakout.cpp
 	)
 
 add_library(twilio_massive_sdk ${SDK_SOURCES})
 
+add_subdirectory(tests)

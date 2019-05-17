@@ -1,7 +1,7 @@
 #ifndef ARDUINO // arduino tries to compile everything in src directory, but this is not intended for the target
 
-#include "BreakoutSDK/utils/log.h"
-#include "BreakoutSDK/utils/time.h"
+#include "platform/log.h"
+#include "platform/time.h"
 
 #include <stdarg.h>
 #include <string>
@@ -11,7 +11,7 @@
 
 static time_t initial_time = time(NULL);
 
-void owl_log(log_level_t, char* format, ...) {
+void owl_log(log_level_t, const char* format, ...) {
   char buf[2048];
 
   va_list ap;
