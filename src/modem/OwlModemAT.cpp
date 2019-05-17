@@ -415,7 +415,9 @@ at_result_code_e OwlModemAT::getLastCommandResponse(str *out_response) {
     return AT_Result_Code__unknown;
   } else {
     state_        = modem_state_t::idle;
-    *out_response = response_buffer_;
+    if (out_response) {
+      *out_response = response_buffer_;
+    }
     return last_response_code_;
   }
 }
