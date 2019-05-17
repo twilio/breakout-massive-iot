@@ -36,8 +36,8 @@ static str s_cgpaddr = STRDECL("+CGPADDR: ");
 int OwlModemPDN::getAPNIPAddress(uint8_t cid, uint8_t ipv4[4], uint8_t ipv6[16]) {
   int cnt   = 0;
   str token = {0};
-  if (ipv4) bzero(ipv4, 4);
-  if (ipv6) bzero(ipv6, 16);
+  if (ipv4) memset(ipv4, 0, 4);
+  if (ipv6) memset(ipv6, 0, 16);
   char buf[64];
   snprintf(buf, 64, "AT+CGPADDR=%d", cid);
   int result = atModem_->doCommandBlocking(buf, 3000, &pdn_response) == AT_Result_Code__OK;

@@ -1,7 +1,7 @@
 #ifndef __I_OWL_SERIAL_H__
 #define __I_OWL_SERIAL_H__
 
-#include <cstdint>
+#include <stdint.h>
 
 class IOwlSerial {
  public:
