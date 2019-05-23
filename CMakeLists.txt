@@ -3,6 +3,8 @@ project(twilio-massive-sdk)
 
 set(CMAKE_CXX_STANDARD 14)
 
+option(BUILD_SAMPLE "Build MQTT sample" OFF)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src)
 
 add_definitions(-DBUILD_FOR_TEST)
@@ -28,8 +30,14 @@ set(SDK_SOURCES
 	src/CoAP/CoAPOption.cpp
 	src/CoAP/CoAPPeer.cpp
 	src/CoAP/enums.cpp
+
+	src/utils/str.c
 	)
 
 add_library(twilio_massive_sdk ${SDK_SOURCES})
 
 add_subdirectory(tests)
+
+if (BUILD_SAMPLE)
+  add_subdirectory(native/sample)
+endif(BUILD_SAMPLE)
