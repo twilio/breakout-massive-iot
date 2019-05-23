@@ -59,6 +59,8 @@ int main(int argc, const char** argv) {
   const char* cert_path   = nullptr;
   const char* pkey_path   = nullptr;
   bool use_tls            = false;
+  bool connected = false;
+  bool logged_in = false;
 
   str tls_cert;
   str tls_pkey;
@@ -188,11 +190,19 @@ int main(int argc, const char** argv) {
       unsigned long int port = strtoul(tok_argv[2], NULL, 10);
       if (!bg96.mqtt.openConnection(tok_argv[1], port)) {
         fprintf(stderr, "Failed to open connection to MQTT broker\n");
+      } else {
+        connected = true;
       }
     } else if (strcmp(tok_argv[0], "login") == 0) {
       if (tok_argc != 2 && tok_argc != 4) {
         fprintf(stderr, "Usage: login <client_id> [<login> <password>]\n");
         continue;
+      }
+
+      if (!connected) {
+        fprintf(stderr, "Please open the connection first\n");
+        fprintf(stderr, "    > open <broker_addr> <broker_port>\n");
+	continue;
       }
 
       const char* login    = NULL;
@@ -204,11 +214,25 @@ int main(int argc, const char** argv) {
 
       if (!bg96.mqtt.login(tok_argv[1], login, password)) {
         fprintf(stderr, "Failed to login to MQTT broker\n");
+      } else {
+        logged_in = true;
       }
     } else if (strcmp(tok_argv[0], "pub") == 0) {
       if (tok_argc != 3) {
         fprintf(stderr, "Usage: pub <topic> <message>\n");
         continue;
+      }
+
+      if (!connected) {
+        fprintf(stderr, "Please open the connection first\n");
+        fprintf(stderr, "    > open <broker_addr> <broker_port>\n");
+	continue;
+      }
+
+      if (!logged_in) {
+        fprintf(stderr, "Please login first\n");
+        fprintf(stderr, "    > login <client_id> [<login> <password>]\n");
+	continue;
       }
 
       str to_publish = STRDECL(tok_argv[2]);
@@ -220,6 +244,18 @@ int main(int argc, const char** argv) {
       if (tok_argc != 2) {
         fprintf(stderr, "Usage: sub <topic>\n");
         continue;
+      }
+
+      if (!connected) {
+        fprintf(stderr, "Please open the connection first\n");
+        fprintf(stderr, "    > open <broker_addr> <broker_port>\n");
+	continue;
+      }
+
+      if (!logged_in) {
+        fprintf(stderr, "Please login first\n");
+        fprintf(stderr, "    > login <client_id> [<login> <password>]\n");
+	continue;
       }
 
       bg96.mqtt.setMessageCallback(print_message);
