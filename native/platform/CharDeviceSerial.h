@@ -40,13 +40,11 @@ class CharDeviceSerial : public IOwlSerial {
 
   int32_t read(uint8_t *buf, uint32_t count) {
     ssize_t res = ::read(fd, buf, count);  // Standard library call
-    fprintf(stderr, "READ: %.*s\n", res, buf);
     return res;
   }
 
   int32_t write(const uint8_t *buf, uint32_t count) {
     ssize_t res = ::write(fd, buf, count);  // Standard library call
-    fprintf(stderr, "WRITE: %.*s\n", res, buf);
     return res;
   }
 

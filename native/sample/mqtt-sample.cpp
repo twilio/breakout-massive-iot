@@ -229,6 +229,13 @@ int main(int argc, const char** argv) {
       }
     } else if (strcmp(tok_argv[0], "exit") == 0) {
       break;
+    } else {
+        fprintf(stderr, "Usage:\n"
+			"    open <broker_addr> <broker_port>\n"
+			"    login <client_id> [<login> <password>]\n"
+			"    pub <topic> <message>\n"
+			"    sub <topic>\n"
+			"    exit\n");
     }
   }
 
