@@ -23,7 +23,7 @@
 
 #include "OwlModemBG96.h"
 
-OwlModemBG96::OwlModemBG96(IOwlSerial *modem_port_in)
+OwlModemBG96::OwlModemBG96(IOwlSerial* modem_port_in)
     : modem_port(modem_port_in),
       AT(modem_port),
       information(&AT),
@@ -43,7 +43,6 @@ OwlModemBG96::~OwlModemBG96() {
 }
 
 int OwlModemBG96::powerOn() {
-  
   owlPowerOn(OWL_POWER_BG96);
 
   owl_time_t timeout = owl_time() + 10 * 1000;
@@ -98,35 +97,44 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
   // TODO: skip if modem is already in the desired state. Writing some magic number to a file maybe?
   if (true) {
     /* A modem reset is required */
-    if (!network.setModemFunctionality(AT_CFUN__FUN__Minimum_Functionality, 0))
+    if (!network.setModemFunctionality(AT_CFUN__FUN__Minimum_Functionality, 0)) {
       LOG(L_WARN, "Error turning modem off\r\n");
+    }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"nwscanseq\",03,1", 5000, nullptr) != AT_Result_Code__OK)
+    if (AT.doCommandBlocking("AT+QCFG=\"nwscanseq\",03,1", 5000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error setting RAT priority to NB1\r\n");
+    }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"nwscanmode\",3,1", 5000, nullptr) != AT_Result_Code__OK)
+    if (AT.doCommandBlocking("AT+QCFG=\"nwscanmode\",3,1", 5000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error setting RAT technology to LTE\r\n");
+    }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"iotopmode\",1,1", 5000, nullptr) != AT_Result_Code__OK)
+    if (AT.doCommandBlocking("AT+QCFG=\"iotopmode\",1,1", 5000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error setting network node to NB1\r\n");
+    }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"band\",0,0,A0E189F,1", 5000, nullptr) != AT_Result_Code__OK)
+    if (AT.doCommandBlocking("AT+QCFG=\"band\",0,0,A0E189F,1", 5000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error setting NB bands to \"all bands\"\r\n");
+    }
 
     // TODO: celevel and servicedomain
 
-    if (AT.doCommandBlocking("AT+QURCCFG=\"urcport\",\"uart1\"", 5000, nullptr) != AT_Result_Code__OK)
+    if (AT.doCommandBlocking("AT+QURCCFG=\"urcport\",\"uart1\"", 5000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error directing URCs to the main UART\r\n");
+    }
 
     char buf[64];
     snprintf(buf, 64, "AT+QICSGP=1,1,\"%s\"", apn);
-    if (AT.doCommandBlocking(buf, 1000, nullptr) != AT_Result_Code__OK)
+    if (AT.doCommandBlocking(buf, 1000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error setting custom APN\r\n");
+    }
 
 
     // at_cfun_rst_e rst = AT_CFUN__RST__Modem_and_SIM_Silent_Reset;
     // NOTE: BG96 seens to go to power down instead of resetting
-    if (!network.setModemFunctionality(AT_CFUN__FUN__Full_Functionality, 0)) LOG(L_WARN, "Error resetting modem\r\n");
+    if (!network.setModemFunctionality(AT_CFUN__FUN__Full_Functionality, 0)) {
+      LOG(L_WARN, "Error resetting modem\r\n");
+    }
 
     // wait for the modem to come back
     while (!isPoweredOn()) {
@@ -148,8 +156,8 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
 
 
   if (cops != nullptr) {
-    at_cops_act_e cops_act       = AT_COPS__Access_Technology__LTE_NB_S1;
-    str oper                     = STRDECL(cops);
+    at_cops_act_e cops_act = AT_COPS__Access_Technology__LTE_NB_S1;
+    str oper               = STRDECL(cops);
 
     LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", cops);
     if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
@@ -184,6 +192,11 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
   }
 
   AT.doCommandBlocking("AT+QIACT=1", 5000, nullptr);  // ignore the result, which will be an error if already activated
+
+  if (AT.doCommandBlocking("AT+QIDNSCFG=1,\"8.8.8.8\"", 2000, nullptr) != AT_Result_Code__OK) {
+    LOG(L_WARN, "Potential error setting DNS server\n");
+  }
+
   LOG(L_DBG, "Modem correctly initialized\r\n");
   return 1;
 }
