@@ -67,6 +67,9 @@ void operator delete[](void *ptr, const char *file, const char *func, unsigned i
 #endif
 
 #else
+
+#include <stdlib.h>
+
 #define owl_malloc(s) malloc((s))
 #define owl_realloc(p, s) realloc((p), (s))
 #define owl_free(p) free((p))

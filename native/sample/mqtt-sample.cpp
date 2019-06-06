@@ -1,3 +1,5 @@
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #include <histedit.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -59,8 +61,8 @@ int main(int argc, const char** argv) {
   const char* cert_path   = nullptr;
   const char* pkey_path   = nullptr;
   bool use_tls            = false;
-  bool connected = false;
-  bool logged_in = false;
+  bool connected          = false;
+  bool logged_in          = false;
 
   str tls_cert;
   str tls_pkey;
@@ -202,7 +204,7 @@ int main(int argc, const char** argv) {
       if (!connected) {
         fprintf(stderr, "Please open the connection first\n");
         fprintf(stderr, "    > open <broker_addr> <broker_port>\n");
-	continue;
+        continue;
       }
 
       const char* login    = NULL;
@@ -226,13 +228,13 @@ int main(int argc, const char** argv) {
       if (!connected) {
         fprintf(stderr, "Please open the connection first\n");
         fprintf(stderr, "    > open <broker_addr> <broker_port>\n");
-	continue;
+        continue;
       }
 
       if (!logged_in) {
         fprintf(stderr, "Please login first\n");
         fprintf(stderr, "    > login <client_id> [<login> <password>]\n");
-	continue;
+        continue;
       }
 
       str to_publish = STRDECL(tok_argv[2]);
@@ -249,13 +251,13 @@ int main(int argc, const char** argv) {
       if (!connected) {
         fprintf(stderr, "Please open the connection first\n");
         fprintf(stderr, "    > open <broker_addr> <broker_port>\n");
-	continue;
+        continue;
       }
 
       if (!logged_in) {
         fprintf(stderr, "Please login first\n");
         fprintf(stderr, "    > login <client_id> [<login> <password>]\n");
-	continue;
+        continue;
       }
 
       bg96.mqtt.setMessageCallback(print_message);
@@ -266,12 +268,13 @@ int main(int argc, const char** argv) {
     } else if (strcmp(tok_argv[0], "exit") == 0) {
       break;
     } else {
-        fprintf(stderr, "Usage:\n"
-			"    open <broker_addr> <broker_port>\n"
-			"    login <client_id> [<login> <password>]\n"
-			"    pub <topic> <message>\n"
-			"    sub <topic>\n"
-			"    exit\n");
+      fprintf(stderr,
+              "Usage:\n"
+              "    open <broker_addr> <broker_port>\n"
+              "    login <client_id> [<login> <password>]\n"
+              "    pub <topic> <message>\n"
+              "    sub <topic>\n"
+              "    exit\n");
     }
   }
 
@@ -289,3 +292,5 @@ int main(int argc, const char** argv) {
 void spinProcessLineTestpoint(str line) {
   return;
 }
+
+#endif  // ARDUINO

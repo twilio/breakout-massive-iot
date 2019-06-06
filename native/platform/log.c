@@ -1,3 +1,5 @@
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #include "platform/log.h"
 
 #include <stdio.h>
@@ -18,3 +20,5 @@ void owl_log(log_level_t loglevel, const char *format, ...) {
   va_start(ap, format);
   vfprintf(stderr, format, ap);
 }
+
+#endif  // ARDUINO
