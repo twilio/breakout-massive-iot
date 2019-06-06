@@ -89,11 +89,11 @@ void OwlModemAT::spinProcessTime() {
         command_data_.s += to_send;
 
         if (command_data_.len == 0) {
-	  if (command_data_term_ != 0xFFFF) {
-	    char term_byte = (char) (command_data_term_ & 0xFF);
-	    str term = {.s = &term_byte, .len = 1};
+          if (command_data_term_ != 0xFFFF) {
+            char term_byte = (char)(command_data_term_ & 0xFF);
+            str term       = {.s = &term_byte, .len = 1};
             sendData(term);
-	  }
+          }
           command_started_     = owl_time();
           response_buffer_.len = 0;
           state_               = modem_state_t::wait_result;
@@ -328,7 +328,8 @@ bool OwlModemAT::startATCommand(str command, owl_time_t timeout_ms, str data, ui
   }
 
   // don't append what we've got so far to the result
-  ignore_first_line_ = (line_state_ != line_state_t::idle || serial_->available() != 0);
+  ignore_first_line_   = (line_state_ != line_state_t::idle || serial_->available() != 0);
+  response_buffer_.len = 0;
 
   if (!sendData(command)) {
     LOG(L_ERR, "sendCommand [%.*s] failed: writing to serial device failed\r\n", command.len, command.s);
@@ -414,7 +415,7 @@ at_result_code_e OwlModemAT::getLastCommandResponse(str *out_response) {
   if (state_ != modem_state_t::response_ready) {
     return AT_Result_Code__unknown;
   } else {
-    state_        = modem_state_t::idle;
+    state_ = modem_state_t::idle;
     if (out_response) {
       *out_response = response_buffer_;
     }

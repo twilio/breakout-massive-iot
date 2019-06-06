@@ -1,4 +1,4 @@
-#ifndef ARDUINO // arduino tries to compile everything in src directory, but this is not intended for the target
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
 
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
@@ -220,6 +220,75 @@ TEST_CASE("OwlModemAT processes URC while command is running", "[command-urc]") 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 }
 
+TEST_CASE("Command response data is not affected by previous responses", "[command-reponse-clean]") {
+  INFO("Veryfying that response data is clean");
+
+  TestSerial serial;
+  OwlModemAT modem(&serial);
+
+  test_urcs.clear();
+
+  REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::idle);
+
+  for (int i = 0; i < 5; i++) {
+    // spin for a while
+    modem.spin();
+  }
+
+  str command = STRDECL("AT+COPS?");
+  REQUIRE(modem.startATCommand(command, 1000));
+  REQUIRE(serial.te_to_mt == "AT+COPS?\r\n");
+  serial.te_to_mt = "";
+
+  REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_result);
+
+  for (int i = 0; i < 5; i++) {
+    // spin for a while
+    modem.spin();
+  }
+
+  REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_result);
+
+  serial.mt_to_te += "\r\n+COPS: 1\r\n\r\nOK\r\n";
+
+  for (int i = 0; i < 5; i++) {
+    // spin for a while
+    modem.spin();
+  }
+
+  REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
+
+  str response;
+  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+
+  REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
+
+  REQUIRE(modem.startATCommand(command, 1000));
+  REQUIRE(serial.te_to_mt == "AT+COPS?\r\n");
+
+  REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_result);
+
+  for (int i = 0; i < 5; i++) {
+    // spin for a while
+    modem.spin();
+  }
+
+  REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_result);
+
+  serial.mt_to_te += "\r\n+COPS: 1\r\n\r\nOK\r\n";
+
+  for (int i = 0; i < 5; i++) {
+    // spin for a while
+    modem.spin();
+  }
+
+  REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
+
+  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+
+  REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
+}
+
 TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
   INFO("Testing command with data");
 
@@ -272,4 +341,4 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
   REQUIRE(std::string(response.s, response.len) == "");
 }
 
-#endif // ARDUINO
+#endif  // ARDUINO
