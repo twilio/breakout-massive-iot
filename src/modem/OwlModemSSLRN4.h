@@ -37,7 +37,7 @@ class OwlModemSSLRN4 {
   bool setDevicePkey(str pkey, bool force = false);
   bool setServerCA(str ca, bool force = false);
 
-  bool initContext(uint8_t ssl_context_slot = 0);
+  bool initContext(uint8_t ssl_context_slot = 0, usecprf_cipher_suite_e cipher_suite = USECPREF_CIPHER_SUITE_TLS_RSA_WITH_AES_256_CBC_SHA256);
 
  private:
   OwlModemAT* atModem_;

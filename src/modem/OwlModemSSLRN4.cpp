@@ -10,7 +10,7 @@ static str s_key_name = STRDECL("Key");
 
 //static str s_qfopen = STRDECL("+QFOPEN: ");
 
-bool OwlModemSSLRN4::initContext(uint8_t ssl_context_slot) {
+bool OwlModemSSLRN4::initContext(uint8_t ssl_context_slot, usecprf_cipher_suite_e cipher_suite) {
   char buffer[64];
 
   snprintf(buffer, 64, "AT+USECPRF=%d,%d,%d", ssl_context_slot, USECPRF_OP_CODE_Certificate_Validation_Level, USECPRF_VALIDATION_LEVEL_No_Validation);
@@ -29,6 +29,11 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_context_slot) {
   }
 
   snprintf(buffer, 64, "AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot, USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
+  if (atModem_->doCommandBlocking(buffer, 1 * 1000, nullptr) != AT_Result_Code__OK) {
+    return false;
+  }
+
+  snprintf(buffer, 64, "AT+USECPRF=%d,%d,%d", ssl_context_slot, USECPRF_OP_CODE_Cipher_Suite, cipher_suite);
   if (atModem_->doCommandBlocking(buffer, 1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }

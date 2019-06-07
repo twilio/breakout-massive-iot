@@ -369,7 +369,6 @@ int OwlModemMQTTRN4::setSecureMode(at_mqtt_secure_e secure, uint8_t profile) {
   }
   char buf[64];
   snprintf(buf, 64, "AT+UMQTT=%u,%u,%u", AT_MQTT__Config_Op_Code__Secure, secure, profile);
-  LOGF(L_CLI, "cmd: %.*s\r\n", buf.len, buf.s);
   int result = (owlModem->doCommandBlocking(buf, 30 * 1000, &mqtt_response) == AT_Result_Code__OK);
   if (!result) return 0;
   owlModem->filterResponse(s_umqtt, mqtt_response, &mqtt_response);
@@ -503,10 +502,10 @@ int OwlModemMQTTRN4::disconnect() {
 int OwlModemMQTTRN4::connect() {
   char buf[32];
   snprintf(buf, 32, "AT+UMQTTC=%u", AT_MQTT__Client_Op_Code__Connect);
-  int result = (owlModem->doCommandBlocking(buf, 60 * 1000, &mqtt_response) == AT_Result_Code__OK);
+  int result = (owlModem->doCommandBlocking(buf, 120 * 1000, &mqtt_response) == AT_Result_Code__OK);
   if (!result) return 0;
   owlModem->filterResponse(s_umqttc, mqtt_response, &mqtt_response);
-  result &= evaluateMQTTResponse(mqtt_response);
+  result &= evaluateMQTTResponse(mqtt_response); // this indicates if the connection is attempting
 
   return result;
 }
