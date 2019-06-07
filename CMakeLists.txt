@@ -22,14 +22,6 @@ set(SDK_SOURCES
 	src/modem/OwlModemSIM.cpp
 	src/modem/OwlModemSocket.cpp
 	src/modem/OwlModemSSLBG96.cpp
-	
-	src/DTLS/enums.cpp
-	src/DTLS/OwlDTLSClient.cpp
-
-	src/CoAP/CoAPMessage.cpp
-	src/CoAP/CoAPOption.cpp
-	src/CoAP/CoAPPeer.cpp
-	src/CoAP/enums.cpp
 
 	src/utils/str.c
 	)
