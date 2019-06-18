@@ -381,7 +381,9 @@ int OwlModemSocket::open(at_uso_protocol_e protocol, uint16_t local_port, uint8_
   socket = str_to_uint32_t(socket_response, 10);
   if (out_socket) *out_socket = socket;
 
-  this->status[socket].setOpened(protocol);
+  if (socket < MODEM_MAX_SOCKETS) {
+    this->status[socket].setOpened(protocol);
+  }
 
   return result;
 }
@@ -407,6 +409,33 @@ int OwlModemSocket::close(uint8_t socket) {
   this->status[socket].setClosed();
 
   return result;
+}
+
+int OwlModemSocket::enableTLS(uint8_t socket, int tls_id) {
+  if (socket >= MODEM_MAX_SOCKETS) {
+    LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
+    return 0;
+  }
+
+  if (tls_id > 4 || tls_id < 0) {
+    LOG(L_ERR, "Bad TLS profile id %d\r\n", tls_id);
+    return 0;
+  }
+
+  char buf[16];
+  snprintf(buf, 16, "AT+USOSEC=%u,1,%d", socket, tls_id);
+  return (atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK);
+}
+
+int OwlModemSocket::disableTLS(uint8_t socket) {
+  if (socket >= MODEM_MAX_SOCKETS) {
+    LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
+    return 0;
+  }
+
+  char buf[16];
+  snprintf(buf, 16, "AT+USOSEC=%u,0", socket);
+  return (atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK);
 }
 
 static str s_usoer = STRDECL("+USOER: ");
@@ -444,7 +473,7 @@ int OwlModemSocket::connect(uint8_t socket, str remote_ip, uint16_t remote_port,
       LOG(L_ERR, "Socket %d has unsupported protocol %d\r\n", this->status[socket].protocol);
       return 0;
   }
-  int result = atModem_->doCommandBlocking(buf, 120 * 1000, &socket_response) == AT_Result_Code__OK;
+  int result = (atModem_->doCommandBlocking(buf, 120 * 1000, &socket_response) == AT_Result_Code__OK);
   if (!result) return 0;
   this->status[socket].is_connected         = 1;
   this->status[socket].handler_SocketClosed = cb;
@@ -606,8 +635,10 @@ int OwlModemSocket::receive(uint8_t socket, uint16_t len, str *out_data, int max
   if (out_data) out_data->len = 0;
   char buf[64];
   snprintf(buf, 64, "AT+USORD=%u,%u", socket, len);
-  int result = atModem_->doCommandBlocking(buf, 1000, &socket_response) == AT_Result_Code__OK;
-  if (!result) return 0;
+  int result = (atModem_->doCommandBlocking(buf, 1000, &socket_response) == AT_Result_Code__OK);
+  if (!result) {
+    return 0;
+  }
   OwlModemAT::filterResponse(s_usord, socket_response, &socket_response);
   str token             = {0};
   str sub               = {0};
@@ -642,6 +673,7 @@ int OwlModemSocket::receive(uint8_t socket, uint16_t len, str *out_data, int max
           out_data->len = hex_to_str(out_data->s, max_data_len, sub);
           if (!out_data->len) goto error;
         }
+        LOGSTR(L_ERR, *out_data);
         break;
       default:
         break;
@@ -733,7 +765,7 @@ int OwlModemSocket::receiveFromUDP(uint8_t socket, uint16_t len, str *out_remote
   }
   char buf[64];
   snprintf(buf, 64, "AT+USORF=%u,%u", socket, len);
-  int result = atModem_->doCommandBlocking(buf, 1000, &socket_response) == AT_Result_Code__OK;
+  int result = (atModem_->doCommandBlocking(buf, 1000, &socket_response) == AT_Result_Code__OK);
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usorf, socket_response, &socket_response);
   str token             = {0};
@@ -807,7 +839,7 @@ int OwlModemSocket::listenUDP(uint8_t socket, uint16_t local_port, OwlModem_UDPD
   }
   char buf[64];
   snprintf(buf, 64, "AT+USOLI=%u,%u", socket, local_port);
-  int result = atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK;
+  int result = (atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK);
   if (!result) return 0;
 
   this->status[socket].handler_UDPData = cb;
