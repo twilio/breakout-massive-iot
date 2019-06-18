@@ -32,6 +32,7 @@
 #include "OwlModemSIM.h"
 #include "OwlModemSocket.h"
 #include "OwlModemGNSS.h"
+#include "OwlModemSSLRN4.h"
 
 /*
  * Constants and Parameters
@@ -153,6 +154,9 @@ class OwlModemRN4 {
 
   /** APN Management */
   OwlModemPDN pdn;
+  
+  /** TLS set up */
+  OwlModemSSLRN4 ssl;
 
   /** TCP/UDP communication over sockets */
   OwlModemSocket socket;
