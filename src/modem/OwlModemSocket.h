@@ -133,6 +133,21 @@ class OwlModemSocket {
   int close(uint8_t socket);
 
   /**
+   * Enable TLS encryption on socket.
+   * @param socket - socket id. Should be open before calling this function.
+   * @param tls_id - TLS profile ID. Should be created with OwlModemSSLRN4::createTLSProfile
+   * @return 1 on success, 0 on failure
+   */
+  int enableTLS(uint8_t socket, int tls_id);
+
+  /**
+   * Disable TLS encryption on socket.
+   * @param socket - socket id. Should be open before calling this function.
+   * @return 1 on success, 0 on failure
+   */
+  int disableTLS(uint8_t socket);
+
+  /**
    * Retrieve code of last socket error
    * @param socket - socket id
    * @param out_error - output error
