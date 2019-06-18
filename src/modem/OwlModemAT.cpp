@@ -122,31 +122,21 @@ void OwlModemAT::spinProcessInput() {
   do {
     switch (line_state_) {
       case line_state_t::idle: {
-        const char *cr_pos = (char *)memchr(input_buffer_slice.s, '\r', input_buffer_slice.len);
+        const char *lf_pos = (char *)memchr(input_buffer_slice.s, '\n', input_buffer_slice.len);
 
-        if (cr_pos == nullptr) {
+        if (lf_pos == nullptr) {
           return;  // not in a a string and no string begginning here, ignore
         }
 
-        int tail = (int)(cr_pos - input_buffer_slice.s +
+        int tail = (int)(lf_pos - input_buffer_slice.s +
                          1);  // should not be larger than input_buffer_slice.len according to memchr contract
         input_buffer_slice.s += tail;
         input_buffer_slice.len -= tail;
-        line_state_ = line_state_t::idle_expect_lf;
+        line_buffer_.len = 0;
+        line_state_      = line_state_t::in_line;
         continue;
       }
 
-      case line_state_t::idle_expect_lf: {
-        if (input_buffer_slice.s[0] != '\n') {
-          line_state_ = line_state_t::idle;
-        } else {
-          line_state_ = line_state_t::in_line;
-          input_buffer_slice.s++;
-          input_buffer_slice.len--;
-          line_buffer_.len = 0;
-        }
-        continue;
-      }
       case line_state_t::in_line: {
         // Special case: current command is expecting input prompt, and we get '>' symbol in the
         //   beginning of the line. In this case no line end delimiter ("\r\n") is expected
@@ -160,16 +150,19 @@ void OwlModemAT::spinProcessInput() {
 
         // General case: normal input string delimited by "\r\n" from both ends
 
-        const char *cr_pos = (char *)memchr(input_buffer_slice.s, '\r', input_buffer_slice.len);
+        const char *lf_pos = (char *)memchr(input_buffer_slice.s, '\n', input_buffer_slice.len);
 
-        // NOTE: simplified parsing: consider \r end of line, ignore the following \n.
-        //         should be fixed if causes problems
         int chunk_len;
 
-        if (cr_pos == nullptr) {
+        if (lf_pos == nullptr) {
           chunk_len = input_buffer_slice.len;
         } else {
-          chunk_len = (int)(cr_pos - input_buffer_slice.s);
+          // try to be liberal and allow both "\r\n" and plain "\n" line endings
+          if ((lf_pos != input_buffer_slice.s) && (*(lf_pos - 1) == '\r')) {
+            chunk_len = (int)(lf_pos - 1 - input_buffer_slice.s);
+          } else {
+            chunk_len = (int)(lf_pos - input_buffer_slice.s);
+          }
         }
 
         if (line_buffer_.len + chunk_len > AT_LINE_BUFFER_SIZE) {
@@ -184,7 +177,7 @@ void OwlModemAT::spinProcessInput() {
           input_buffer_slice.len -= chunk_len;
         }
 
-        if (cr_pos != nullptr) {
+        if (lf_pos != nullptr) {
           // end of line found, process the line
           if (line_buffer_.len == 0) {
             // empty line means we're run into "\r\n\r\n" sequence. Probably
@@ -400,6 +393,7 @@ void OwlModemAT::filterResponse(str prefix, str response, str *filtered) {
 bool OwlModemAT::sendData(str data) {
   int32_t written = 0;
   int32_t cnt;
+
   do {
     cnt = serial_->write((const uint8_t *)data.s + written, data.len - written);
     if (cnt <= 0) {

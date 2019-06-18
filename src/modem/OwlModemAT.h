@@ -169,7 +169,6 @@ class OwlModemAT {
  private:
   enum class line_state_t {
     idle,
-    idle_expect_lf,
     in_line,
   };
 
