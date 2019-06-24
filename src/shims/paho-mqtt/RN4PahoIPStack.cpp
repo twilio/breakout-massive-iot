@@ -30,6 +30,13 @@ bool RN4PahoIPStack::connect(const char* hostname, int port, bool use_tls, int t
   return true;
 }
 
+int RN4PahoIPStack::disconnect() {
+  open_ = false;
+  modem_->close(socket_id_);
+  socket_id_ = 0;
+  return 0;
+}
+
 void RN4PahoIPStack::socketCloseHandler(uint8_t socket, void* priv) {
   RN4PahoIPStack* instance = (RN4PahoIPStack*)priv;
   instance->open_          = false;

@@ -9,6 +9,7 @@ class RN4PahoIPStack {
   }
 
   bool connect(const char* hostname, int port, bool use_tls = true, int tls_id = 0);
+  int disconnect();
 
   int read(unsigned char* buffer, int len, int timeout_ms);
   int write(unsigned char* buffer, int len, int timeoout_ms);
