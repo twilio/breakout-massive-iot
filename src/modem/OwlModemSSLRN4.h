@@ -33,11 +33,83 @@ class OwlModemSSLRN4 {
  public:
   OwlModemSSLRN4(OwlModemAT* atModem);
 
-  bool setDeviceCert(str cert, bool force = false);
-  bool setDevicePkey(str pkey, bool force = false);
-  bool setServerCA(str ca, bool force = false);
+  /**
+   * Populate a device certificate to the TLS system on a SARA-R410/SARA-N410 modem.
+   *
+   * The module supports loading either a DER or PEM formatted certificate but stores
+   * in DER format.  To assist the library in only writing to the module's NVM when
+   * needed, please provide a DER encoded input so the MD5 hash can be compared.
+   *
+   * The data must be presented as a hex encoded str object, for example,
+   * "48656C6C6F20576F726C64" (equivalent to "Hello World").  One way to accomplish this
+   * in a unix shell for a DER encoded item is:
+   *
+   *   cat ca.der | xxd -p -u -c 10000
+   *
+   * For a pem encoded item:
+   *
+   *   cat ca.pem | openssl x509 -outform der | xxd -p -u -c 10000
+   *
+   * @param cert_hex - Certificate in DER form, hex encoded string
+   * @param force - Skips checking the MD5 of any existing item and instead always replaces
+   * @return success status
+   */
+  bool setDeviceCert(str cert_hex, bool force = false);
 
-  bool initContext(uint8_t ssl_context_slot            = 0,
+  /**
+   * Populate a device private key to the tls system on a sara-r410/sara-n410 modem.
+   *
+   * the module supports loading either a der or pem formatted certificate but stores
+   * in der format.  to assist the library in only writing to the module's nvm when
+   * needed, please provide a der encoded input so the md5 hash can be compared.
+   *
+   * the data must be presented as a hex encoded str object, for example,
+   * "48656c6c6f20576f726c64" (equivalent to "hello world").  one way to accomplish this
+   * in a unix shell for a der encoded item is:
+   *
+   *   cat key.der | xxd -p -u -c 10000
+   *
+   * for a pem encoded item:
+   *
+   *   cat key.pem | openssl x509 -outform der | xxd -p -u -c 10000
+   *
+   * @param pkey_hex - certificate in der form, hex encoded string
+   * @param force - skips checking the md5 of any existing item and instead always replaces
+   * @return success status
+   */
+  bool setDevicePkey(str pkey_hex, bool force = false);
+
+  /**
+   * Populate a trusted root CA to the tls system on a sara-r410/sara-n410 modem.
+   *
+   * the module supports loading either a der or pem formatted certificate but stores
+   * in der format.  to assist the library in only writing to the module's nvm when
+   * needed, please provide a der encoded input so the md5 hash can be compared.
+   *
+   * the data must be presented as a hex encoded str object, for example,
+   * "48656c6c6f20576f726c64" (equivalent to "hello world").  one way to accomplish this
+   * in a unix shell for a der encoded item is:
+   *
+   *   cat ca.der | xxd -p -u -c 10000
+   *
+   * for a pem encoded item:
+   *
+   *   cat ca.pem | openssl x509 -outform der | xxd -p -u -c 10000
+   *
+   * @param ca_hex - certificate in der form, hex encoded string
+   * @param force - skips checking the md5 of any existing item and instead always replaces
+   * @return success status
+   */
+  bool setServerCA(str ca_hex, bool force = false);
+
+  /**
+   * Initialize TLS subsystem.
+   *
+   * @param ssl_profile_slot - profile slot to use - valid values are 0 - 4 (default: 0)
+   * @param cipher_suite - cipher suite to use when negotiating the connection (default: USECPREF_CIPHER_SUITE_TLS_RSA_WITH_AES_256_CBC_SHA256)
+   * @return success status
+   */
+  bool initContext(uint8_t ssl_profile_slot            = 0,
                    usecprf_cipher_suite_e cipher_suite = USECPREF_CIPHER_SUITE_TLS_RSA_WITH_AES_256_CBC_SHA256);
 
  private:

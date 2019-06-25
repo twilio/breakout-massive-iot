@@ -10,32 +10,32 @@ static str s_ca_name   = STRDECL("CA");
 static str s_cert_name = STRDECL("Cert");
 static str s_key_name  = STRDECL("Key");
 
-bool OwlModemSSLRN4::initContext(uint8_t ssl_context_slot, usecprf_cipher_suite_e cipher_suite) {
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_context_slot, USECPRF_OP_CODE_Certificate_Validation_Level,
+bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_e cipher_suite) {
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_profile_slot, USECPRF_OP_CODE_Certificate_Validation_Level,
                            USECPRF_VALIDATION_LEVEL_No_Validation);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot,
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
                            USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot,
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
                            USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot,
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
                            USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_context_slot, USECPRF_OP_CODE_Cipher_Suite, cipher_suite);
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_profile_slot, USECPRF_OP_CODE_Cipher_Suite, cipher_suite);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
@@ -43,8 +43,16 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_context_slot, usecprf_cipher_suite_
   return true;
 }
 
-bool OwlModemSSLRN4::setDeviceCert(str cert, bool force) {
+bool OwlModemSSLRN4::setDeviceCert(str cert_hex, bool force) {
   bool write_cert = true;
+
+  char cert_buf[2048];
+  str cert = { .s = cert_buf, .len = 0 };
+  cert.len = hex_to_str(cert.s, 2048, cert_hex);
+  if (cert.len == 0) {
+    LOG(L_ERR, "error converting certificate to binary");
+    return false;
+  }
 
   if (!force) {
     write_cert = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name, cert);
@@ -62,8 +70,16 @@ bool OwlModemSSLRN4::setDeviceCert(str cert, bool force) {
   return true;
 }
 
-bool OwlModemSSLRN4::setDevicePkey(str pkey, bool force) {
+bool OwlModemSSLRN4::setDevicePkey(str pkey_hex, bool force) {
   bool write_pkey = true;
+
+  char pkey_buf[2048];
+  str pkey = { .s = pkey_buf, .len = 0 };
+  pkey.len = hex_to_str(pkey.s, 2048, pkey_hex);
+  if (pkey.len == 0) {
+    LOG(L_ERR, "Error converting key to binary");
+    return false;
+  }
 
   if (!force) {
     write_pkey = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Key, s_key_name, pkey);
@@ -81,8 +97,16 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey, bool force) {
   return true;
 }
 
-bool OwlModemSSLRN4::setServerCA(str ca, bool force) {
+bool OwlModemSSLRN4::setServerCA(str ca_hex, bool force) {
   bool write_ca = true;
+
+  char ca_buf[2048];
+  str ca = { .s = ca_buf, .len = 0 };
+  ca.len = hex_to_str(ca.s, 2048, ca_hex);
+  if (ca.len == 0) {
+    LOG(L_ERR, "Error converting ca to binary");
+    return false;
+  }
 
   if (!force) {
     write_ca = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name, ca);
@@ -137,4 +161,4 @@ bool OwlModemSSLRN4::shouldWriteCertificate(usecmng_certificate_type_e type, str
   }
 
   return should_write;
- }
+}
