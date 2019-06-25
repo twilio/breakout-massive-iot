@@ -48,6 +48,7 @@
 #define AT_INPUT_BUFFER_SIZE 64
 #define AT_LINE_BUFFER_SIZE 256
 #define AT_RESPONSE_BUFFER_SIZE 1024
+#define AT_COMMAND_BUFFER_SIZE 1200
 
 /*
  * Core class the OwlModem group. Every OwlModem* class is using it.
@@ -115,7 +116,11 @@ class OwlModemAT {
    * @param data_term - optional terminating symbol appended to the sent data
    * @return false if command could not be sent. In that case the state of the modem remains unchanged
    */
-  bool startATCommand(str command, owl_time_t timeout_ms, str data = {nullptr, 0}, uint16_t data_term = 0xFFFF);
+  bool startATCommand(owl_time_t timeout_ms, str data = {nullptr, 0}, uint16_t data_term = 0xFFFF);
+  bool startATCommand(const char* command, owl_time_t timeout_ms, str data = {nullptr, 0}, uint16_t data_term = 0xFFFF) {
+    commandStrcpy (command);
+    return startATCommand(timeout_ms, data, data_term);
+  }
 
   /*
    * Get the current state of the modem
@@ -138,9 +143,9 @@ class OwlModemAT {
   void registerResponseHandler(ResponseHandler handler, void *priv);
 
   /**
-   * Execute one AT command. Blockingly sleeps until some result is there. Only
-   *   use in trivial cases when this default behaviour is good enough for your application
-   * @param command - command to send
+   * Execute one AT command. Command buffer should be populated in advance with commandStrcpy/commandSprintf.
+   * Blockingly sleeps until some result is there. Only use in trivial cases when this default behaviour is good enough
+   * for your application. 
    * @param timeout_millis - timeout for the command in milliseconds - consult the modem manual for maximum timeouts
    * for each command
    * @param out_response - optional str object to return response slice. The data itself is not copied over.
@@ -148,13 +153,32 @@ class OwlModemAT {
    * @return the AT result code, or AT_Result_Code__failure on failure to send the data, or AT_Result_Code__timeout in
    * case of timeout while waiting for one of the standard AT result codes.
    */
-  at_result_code_e doCommandBlocking(str command, owl_time_t timeout_millis, str *out_response,
+  at_result_code_e doCommandBlocking(owl_time_t timeout_millis, str *out_response,
                                      str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF);
-  at_result_code_e doCommandBlocking(char *command, owl_time_t timeout_millis, str *out_response,
+  at_result_code_e doCommandBlocking(const char *command, owl_time_t timeout_millis, str *out_response,
                                      str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF) {
-    return doCommandBlocking(STRDECL(command), timeout_millis, out_response, command_data,
-                             data_term);
+    commandStrcpy (command);
+    return doCommandBlocking(timeout_millis, out_response, command_data, data_term);
   }
+
+  /**
+   * sprintf to the command buffer before issuing startATCommand/doCommandBlocking
+   */
+  void commandSprintf(const char* format, ...);
+
+ /**
+   * strcpy to the command buffer before issuing startATCommand/doCommandBlocking
+   */
+  void commandStrcpy(const char* command);
+
+  /*
+   * Append zero-terminated string to command buffer
+   */
+  void commandStrcat(const char* data);
+  /*
+   * Append to command buffer converting the data to HEX representation
+   */
+  void commandAppendHex(str data);
 
   /**
    * Utility function to filter out of the response for a command, lines which do not start with a certain prefix.
@@ -164,6 +188,7 @@ class OwlModemAT {
    * @param filtered - str object to return the filtered slice to
    */
   static void filterResponse(str prefix, str response, str *filtered);
+
 
 
  private:
@@ -185,6 +210,9 @@ class OwlModemAT {
   bool ignore_first_line_{false};
 
   at_result_code_e last_response_code_{AT_Result_Code__unknown};
+
+  char command_buffer_c_[AT_COMMAND_BUFFER_SIZE];
+  str command_buffer_ = {.s = command_buffer_c_, .len = 0};
 
   char input_buffer_c_[AT_INPUT_BUFFER_SIZE];
   str input_buffer_ = {.s = input_buffer_c_, .len = 0};

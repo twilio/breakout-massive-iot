@@ -303,12 +303,11 @@ int OwlModemNetwork::getModemFunctionality(at_cfun_power_mode_e *out_power_mode,
 }
 
 int OwlModemNetwork::setModemFunctionality(at_cfun_fun_e fun, at_cfun_rst_e *reset) {
-  char buffer[64];
   if (!reset)
-    snprintf(buffer, 64, "AT+CFUN=%d", fun);
+    atModem_->commandSprintf("AT+CFUN=%d", fun);
   else
-    snprintf(buffer, 64, "AT+CFUN=%d,%d", fun, *reset);
-  return atModem_->doCommandBlocking(buffer, 3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
+    atModem_->commandSprintf("AT+CFUN=%d,%d", fun, *reset);
+  return atModem_->doCommandBlocking(3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
 }
 
 
@@ -325,9 +324,8 @@ int OwlModemNetwork::getModemMNOProfile(at_umnoprof_mno_profile_e *out_profile) 
 }
 
 int OwlModemNetwork::setModemMNOProfile(at_umnoprof_mno_profile_e profile) {
-  char buffer[64];
-  snprintf(buffer, 64, "AT+UMNOPROF=%d", profile);
-  return atModem_->doCommandBlocking(buffer, 3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+UMNOPROF=%d", profile);
+  return atModem_->doCommandBlocking(3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
 }
 
 
@@ -380,17 +378,16 @@ int OwlModemNetwork::setOperatorSelection(at_cops_mode_e mode, at_cops_format_e 
     LOG(L_ERR, " - when opt_act is specific, opt_format and opt_oper must be also specified\r\n");
     return 0;
   }
-  char buf[64];
   if (opt_oper) {
     if (opt_act) {
-      snprintf(buf, 64, "AT+COPS=%d,%d,\"%.*s\",%d", mode, *opt_format, opt_oper->len, opt_oper->s, *opt_act);
+      atModem_->commandSprintf("AT+COPS=%d,%d,\"%.*s\",%d", mode, *opt_format, opt_oper->len, opt_oper->s, *opt_act);
     } else {
-      snprintf(buf, 64, "AT+COPS=%d,%d,\"%.*s\"", mode, *opt_format, opt_oper->len, opt_oper->s);
+      atModem_->commandSprintf("AT+COPS=%d,%d,\"%.*s\"", mode, *opt_format, opt_oper->len, opt_oper->s);
     }
   } else {
-    snprintf(buf, 64, "AT+COPS=%d", mode);
+    atModem_->commandSprintf("AT+COPS=%d", mode);
   }
-  return atModem_->doCommandBlocking(buf, 3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
+  return atModem_->doCommandBlocking(3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
 }
 
 int OwlModemNetwork::getOperatorList(str *out_response) {
@@ -422,9 +419,8 @@ int OwlModemNetwork::getNetworkRegistrationStatus(at_creg_n_e *out_n, at_creg_st
 }
 
 int OwlModemNetwork::setNetworkRegistrationURC(at_creg_n_e n) {
-  char buf[64];
-  snprintf(buf, 64, "AT+CREG=%d", n);
-  return atModem_->doCommandBlocking(buf, 180000, nullptr) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+CREG=%d", n);
+  return atModem_->doCommandBlocking(180 * 1000, nullptr) == AT_Result_Code__OK;
 }
 
 void OwlModemNetwork::setHandlerNetworkRegistrationURC(OwlModem_NetworkRegistrationStatusChangeHandler_f cb) {
@@ -453,9 +449,8 @@ int OwlModemNetwork::getGPRSRegistrationStatus(at_cgreg_n_e *out_n, at_cgreg_sta
 }
 
 int OwlModemNetwork::setGPRSRegistrationURC(at_cgreg_n_e n) {
-  char buf[64];
-  snprintf(buf, 64, "AT+CGREG=%d", n);
-  return atModem_->doCommandBlocking(buf, 180000, nullptr) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+CGREG=%d", n);
+  return atModem_->doCommandBlocking(180 * 1000, nullptr) == AT_Result_Code__OK;
 }
 
 void OwlModemNetwork::setHandlerGPRSRegistrationURC(OwlModem_GPRSRegistrationStatusChangeHandler_f cb) {
@@ -486,9 +481,8 @@ int OwlModemNetwork::getEPSRegistrationStatus(at_cereg_n_e *out_n, at_cereg_stat
 }
 
 int OwlModemNetwork::setEPSRegistrationURC(at_cereg_n_e n) {
-  char buf[64];
-  snprintf(buf, 64, "AT+CEREG=%d", n);
-  return atModem_->doCommandBlocking(buf, 180000, nullptr) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+CEREG=%d", n);
+  return atModem_->doCommandBlocking(180 * 1000, nullptr) == AT_Result_Code__OK;
 }
 
 void OwlModemNetwork::setHandlerEPSRegistrationURC(OwlModem_EPSRegistrationStatusChangeHandler_f cb) {

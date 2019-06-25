@@ -123,9 +123,8 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
       LOG(L_WARN, "Error directing URCs to the main UART\r\n");
     }
 
-    char buf[64];
-    snprintf(buf, 64, "AT+QICSGP=1,1,\"%s\"", apn);
-    if (AT.doCommandBlocking(buf, 1000, nullptr) != AT_Result_Code__OK) {
+    AT.commandSprintf("AT+QICSGP=1,1,\"%s\"", apn);
+    if (AT.doCommandBlocking(1000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error setting custom APN\r\n");
     }
 

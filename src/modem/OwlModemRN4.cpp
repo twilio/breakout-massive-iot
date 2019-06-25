@@ -143,9 +143,8 @@ int OwlModemRN4::initModem(int testing_variant, const char* apn, const char* cop
       if (AT.doCommandBlocking("AT+UBANDMASK=1,168761503", 5000, nullptr) != AT_Result_Code__OK)
         LOG(L_WARN, "Error setting band mask for NB1 to 168761503 (manual default\r\n");
 
-      char buf[64];
-      snprintf(buf, 64, "AT+CGDCONT=1,\"IP\",\"%s\"", apn);
-      if (AT.doCommandBlocking(buf, 5000, nullptr) != AT_Result_Code__OK)
+      AT.commandSprintf("AT+CGDCONT=1,\"IP\",\"%s\"", apn);
+      if (AT.doCommandBlocking(5000, nullptr) != AT_Result_Code__OK)
         LOG(L_WARN, "Error setting custom APN\r\n");
     }
     if ((testing_variant & Testing__Set_APN_Bands_to_US) != 0) {
@@ -417,13 +416,11 @@ int OwlModemRN4::setHostDeviceInformation(str purpose) {
   if (!purpose.len) purpose = s_dev_kit;
   computeHostDeviceInformation(purpose);
 
-  char command_buffer[MODEM_HOSTDEVICE_INFORMATION_SIZE + 24];
-  snprintf(command_buffer, MODEM_HOSTDEVICE_INFORMATION_SIZE + 24, "AT+UHOSTDEV=%.*s", hostdevice_information.len,
-           hostdevice_information.s);
+  AT.commandSprintf("AT+UHOSTDEV=%.*s", hostdevice_information.len, hostdevice_information.s);
   LOG(L_INFO, "Setting HostDeviceInformation to: %.*s\r\n", hostdevice_information.len, hostdevice_information.s);
 
   for (int attempts = 10; attempts > 0; attempts--) {
-    if (AT.doCommandBlocking(command_buffer, 1000, nullptr) == AT_Result_Code__OK) {
+    if (AT.doCommandBlocking(1000, nullptr) == AT_Result_Code__OK) {
       LOG(L_INFO, ".. setting HostDeviceInformation successful.\r\n");
       registered = true;
       break;
