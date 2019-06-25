@@ -1,6 +1,8 @@
 #include "OwlModemSSLRN4.h"
 #include <stdio.h>
 
+#include "../utils/md5.h"
+
 OwlModemSSLRN4::OwlModemSSLRN4(OwlModemAT* atModem) : atModem_(atModem) {
 }
 
@@ -45,21 +47,11 @@ bool OwlModemSSLRN4::setDeviceCert(str cert, bool force) {
   bool write_cert = true;
 
   if (!force) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5,
-                             USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s);
-
-    if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
-      // TODO: compare MD5 against cert
-      // cert already exists, in future calculate md5 and compare against one returned but for
-      // now just assume it doesn't need setting
-      LOG(L_NOTICE, "Using existing cert: %.*s\r\n", ssl_response.len, ssl_response.s);
-      write_cert = false;
-    }
+    write_cert = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name, cert);
   }
 
   if (write_cert) {
-    LOG(L_NOTICE, "Setting cert...\r\n");
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, 
                              USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s, (int)cert.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, cert) != AT_Result_Code__OK) {
@@ -74,21 +66,11 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey, bool force) {
   bool write_pkey = true;
 
   if (!force) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, USECMNG_CERTIFICATE_TYPE_Key,
-                             s_key_name.len, s_key_name.s);
-
-    if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
-      // TODO: compare MD5 against key
-      // key already exists, in future calculate md5 and compare against one returned but for
-      // now just assume it doesn't need setting
-      LOG(L_NOTICE, "Using existing key: %.*s\r\n", ssl_response.len, ssl_response.s);
-      write_pkey = false;
-    }
+    write_pkey = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Key, s_key_name, pkey);
   }
 
   if (write_pkey) {
-    LOG(L_NOTICE, "Setting private key...\r\n");
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, 
                              USECMNG_CERTIFICATE_TYPE_Key, s_key_name.len, s_key_name.s, (int)pkey.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, pkey) != AT_Result_Code__OK) {
@@ -103,21 +85,11 @@ bool OwlModemSSLRN4::setServerCA(str ca, bool force) {
   bool write_ca = true;
 
   if (!force) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5,
-                             USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s);
-
-    if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
-      // TODO: compare MD5 against ca
-      // ca already exists, in future calculate md5 and compare against one returned but for
-      // now just assume it doesn't need setting
-      LOG(L_NOTICE, "Using existing server ca: %.*s\r\n", ssl_response.len, ssl_response.s);
-      write_ca = false;
-    }
+    write_ca = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name, ca);
   }
 
   if (write_ca) {
-    LOG(L_NOTICE, "Setting server CA...\r\n");
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, 
                              USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s, (int)ca.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, ca) != AT_Result_Code__OK) {
@@ -127,3 +99,42 @@ bool OwlModemSSLRN4::setServerCA(str ca, bool force) {
 
   return true;
 }
+
+int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
+  // TODO: check input, see if PEM format and convery to DER before md5?  otherwise PEM input will never match expected md5 from module
+  if (max_len < 33) {
+    // output buffer not big enough
+    return 0;
+  }
+
+  unsigned char digest[16];
+  struct MD5Context context;
+  MD5Init(&context);
+  MD5Update(&context, (unsigned const char *)input.s, input.len);
+  MD5Final(digest, &context);
+ 
+  for(int i = 0; i < 16; ++i)
+    sprintf(&output[i*2], "%02X", (unsigned int)digest[i]);
+  return 32;
+}
+
+bool OwlModemSSLRN4::shouldWriteCertificate(usecmng_certificate_type_e type, str name, str new_value) {
+  bool should_write = true;
+
+  char md5_buf[33]; // 33 to accomodate 32 characters plus null termination sprintf adds that strstr below needs
+  str md5 = { .s = md5_buf, .len = 0 };
+  md5.len = calculateMD5ForCert(md5_buf, 33, new_value);
+
+  atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, type, name.len, name.s);
+
+  if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
+    char *match = strstr(ssl_response.s, md5_buf);
+    if (match != NULL) {
+      should_write = false;
+    } else {
+      should_write = true;
+    }
+  }
+
+  return should_write;
+ }

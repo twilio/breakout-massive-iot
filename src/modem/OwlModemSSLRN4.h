@@ -43,6 +43,8 @@ class OwlModemSSLRN4 {
  private:
   OwlModemAT* atModem_;
   str ssl_response = {.s = nullptr, .len = 0};
+  bool shouldWriteCertificate(usecmng_certificate_type_e type, str name, str new_value);
+  int calculateMD5ForCert(char *output, int max_len, str input);
 };
 
 #endif  // __OWL_MODEM_SSL_RN4_H__
