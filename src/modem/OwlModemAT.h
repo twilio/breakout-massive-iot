@@ -117,8 +117,9 @@ class OwlModemAT {
    * @return false if command could not be sent. In that case the state of the modem remains unchanged
    */
   bool startATCommand(owl_time_t timeout_ms, str data = {nullptr, 0}, uint16_t data_term = 0xFFFF);
-  bool startATCommand(const char* command, owl_time_t timeout_ms, str data = {nullptr, 0}, uint16_t data_term = 0xFFFF) {
-    commandStrcpy (command);
+  bool startATCommand(const char *command, owl_time_t timeout_ms, str data = {nullptr, 0},
+                      uint16_t data_term = 0xFFFF) {
+    commandStrcpy(command);
     return startATCommand(timeout_ms, data, data_term);
   }
 
@@ -145,7 +146,7 @@ class OwlModemAT {
   /**
    * Execute one AT command. Command buffer should be populated in advance with commandStrcpy/commandSprintf.
    * Blockingly sleeps until some result is there. Only use in trivial cases when this default behaviour is good enough
-   * for your application. 
+   * for your application.
    * @param timeout_millis - timeout for the command in milliseconds - consult the modem manual for maximum timeouts
    * for each command
    * @param out_response - optional str object to return response slice. The data itself is not copied over.
@@ -153,28 +154,28 @@ class OwlModemAT {
    * @return the AT result code, or AT_Result_Code__failure on failure to send the data, or AT_Result_Code__timeout in
    * case of timeout while waiting for one of the standard AT result codes.
    */
-  at_result_code_e doCommandBlocking(owl_time_t timeout_millis, str *out_response,
-                                     str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF);
+  at_result_code_e doCommandBlocking(owl_time_t timeout_millis, str *out_response, str command_data = {nullptr, 0},
+                                     uint16_t data_term = 0xFFFF);
   at_result_code_e doCommandBlocking(const char *command, owl_time_t timeout_millis, str *out_response,
                                      str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF) {
-    commandStrcpy (command);
+    commandStrcpy(command);
     return doCommandBlocking(timeout_millis, out_response, command_data, data_term);
   }
 
   /**
    * sprintf to the command buffer before issuing startATCommand/doCommandBlocking
    */
-  void commandSprintf(const char* format, ...);
+  void commandSprintf(const char *format, ...);
 
- /**
+  /**
    * strcpy to the command buffer before issuing startATCommand/doCommandBlocking
    */
-  void commandStrcpy(const char* command);
+  void commandStrcpy(const char *command);
 
   /*
    * Append zero-terminated string to command buffer
    */
-  void commandStrcat(const char* data);
+  void commandStrcat(const char *data);
   /*
    * Append to command buffer converting the data to HEX representation
    */

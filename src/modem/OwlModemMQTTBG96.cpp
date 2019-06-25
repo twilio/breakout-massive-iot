@@ -399,7 +399,6 @@ bool OwlModemMQTTBG96::logout() {
 }
 
 bool OwlModemMQTTBG96::publish(const char* topic, str data, bool retain, qos_t qos, uint16_t msg_id) {
-
   if (qos == qos_t::atMostOnce) {
     msg_id = 0;
   }
@@ -417,7 +416,6 @@ bool OwlModemMQTTBG96::publish(const char* topic, str data, bool retain, qos_t q
 }
 
 bool OwlModemMQTTBG96::subscribe(const char* topic_filter, uint16_t msg_id, qos_t qos) {
-
   atModem_->commandSprintf("AT+QMTSUB=0,%d,\"%s\",%d", (int)msg_id, topic_filter, qos);
 
   wait_for_command_[qmtsub] = true;

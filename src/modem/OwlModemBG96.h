@@ -38,7 +38,7 @@ class OwlModemBG96 {
    * Constructor for OwlModemBG96
    * @param modem_port - mandatory modem port
    */
-  OwlModemBG96(IOwlSerial *modem_port_in);
+  OwlModemBG96(IOwlSerial* modem_port_in);
 
   /**
    * Destructror of OwlModemRN4
@@ -70,7 +70,8 @@ class OwlModemBG96 {
    * be originally configured by the vendors.
    * @return - 1 on success, 0 on failure
    */
-  int initModem(const char* apn = "", const char* cops = nullptr, at_cops_format_e cops_format = AT_COPS__Format__Numeric);
+  int initModem(const char* apn = "", const char* cops = nullptr,
+                at_cops_format_e cops_format = AT_COPS__Format__Numeric);
 
   /**
    * Wait for the modem to fully attach to the network. Usually, without this, there is little use for this class.

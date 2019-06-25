@@ -327,12 +327,14 @@ bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_t
   response_buffer_.len = 0;
 
   if (!sendData(command_buffer_)) {
-    LOG(L_ERR, "sendCommand [%.*s] failed: writing to serial device failed\r\n", command_buffer_.len, command_buffer_.s);
+    LOG(L_ERR, "sendCommand [%.*s] failed: writing to serial device failed\r\n", command_buffer_.len,
+        command_buffer_.s);
     return false;
   }
 
   if (!sendData("\r\n")) {
-    LOG(L_ERR, "sendCommand [%.*s] failed: writing to serial device failed\r\n", command_buffer_.len, command_buffer_.s);
+    LOG(L_ERR, "sendCommand [%.*s] failed: writing to serial device failed\r\n", command_buffer_.len,
+        command_buffer_.s);
     return false;
   }
 
@@ -346,8 +348,8 @@ bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_t
   return true;
 }
 
-at_result_code_e OwlModemAT::doCommandBlocking(owl_time_t timeout_millis, str *out_response,
-                                               str command_data, uint16_t data_term) {
+at_result_code_e OwlModemAT::doCommandBlocking(owl_time_t timeout_millis, str *out_response, str command_data,
+                                               uint16_t data_term) {
   if (!startATCommand(timeout_millis, command_data, data_term)) {
     return AT_Result_Code__ERROR;
   }
@@ -489,7 +491,7 @@ void OwlModemAT::deregisterPrefixHandler() {
   prefix_handler_       = nullptr;
 }
 
-void OwlModemAT::commandSprintf(const char* format, ...) {
+void OwlModemAT::commandSprintf(const char *format, ...) {
   va_list args;
   va_start(args, format);
 
@@ -498,7 +500,7 @@ void OwlModemAT::commandSprintf(const char* format, ...) {
   va_end(args);
 }
 
-void OwlModemAT::commandStrcpy(const char* command) {
+void OwlModemAT::commandStrcpy(const char *command) {
   command_buffer_.len = strlen(command);
   if (command_buffer_.len > AT_COMMAND_BUFFER_SIZE) {
     command_buffer_.len = AT_COMMAND_BUFFER_SIZE;
@@ -506,7 +508,7 @@ void OwlModemAT::commandStrcpy(const char* command) {
   memcpy(command_buffer_.s, command, command_buffer_.len);
 }
 
-void OwlModemAT::commandStrcat(const char* data) {
+void OwlModemAT::commandStrcat(const char *data) {
   int data_len = strlen(data);
 
   if (command_buffer_.len + data_len > AT_COMMAND_BUFFER_SIZE) {
@@ -517,9 +519,9 @@ void OwlModemAT::commandStrcat(const char* data) {
     memcpy(command_buffer_.s + command_buffer_.len, data, data_len);
     command_buffer_.len += data_len;
   }
-
 }
 
 void OwlModemAT::commandAppendHex(str data) {
-  command_buffer_.len += str_to_hex(command_buffer_.s + command_buffer_.len, AT_COMMAND_BUFFER_SIZE - command_buffer_.len, data);
+  command_buffer_.len +=
+      str_to_hex(command_buffer_.s + command_buffer_.len, AT_COMMAND_BUFFER_SIZE - command_buffer_.len, data);
 }

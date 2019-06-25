@@ -4,27 +4,31 @@
 OwlModemSSLRN4::OwlModemSSLRN4(OwlModemAT* atModem) : atModem_(atModem) {
 }
 
-static str s_ca_name = STRDECL("CA");
+static str s_ca_name   = STRDECL("CA");
 static str s_cert_name = STRDECL("Cert");
-static str s_key_name = STRDECL("Key");
+static str s_key_name  = STRDECL("Key");
 
 bool OwlModemSSLRN4::initContext(uint8_t ssl_context_slot, usecprf_cipher_suite_e cipher_suite) {
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_context_slot, USECPRF_OP_CODE_Certificate_Validation_Level, USECPRF_VALIDATION_LEVEL_No_Validation);
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_context_slot, USECPRF_OP_CODE_Certificate_Validation_Level,
+                           USECPRF_VALIDATION_LEVEL_No_Validation);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot, USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot,
+                           USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot, USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot,
+                           USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot, USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
+  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_context_slot,
+                           USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
   if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     return false;
   }
@@ -41,7 +45,8 @@ bool OwlModemSSLRN4::setDeviceCert(str cert, bool force) {
   bool write_cert = true;
 
   if (!force) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s);
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5,
+                             USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s);
 
     if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
       // TODO: compare MD5 against cert
@@ -54,7 +59,8 @@ bool OwlModemSSLRN4::setDeviceCert(str cert, bool force) {
 
   if (write_cert) {
     LOG(L_NOTICE, "Setting cert...\r\n");
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s, (int)cert.len);
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
+                             USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s, (int)cert.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, cert) != AT_Result_Code__OK) {
       return false;
@@ -68,10 +74,11 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey, bool force) {
   bool write_pkey = true;
 
   if (!force) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, USECMNG_CERTIFICATE_TYPE_Key, s_key_name.len, s_key_name.s);
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, USECMNG_CERTIFICATE_TYPE_Key,
+                             s_key_name.len, s_key_name.s);
 
     if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
-      // TODO: compare MD5 against key 
+      // TODO: compare MD5 against key
       // key already exists, in future calculate md5 and compare against one returned but for
       // now just assume it doesn't need setting
       LOG(L_NOTICE, "Using existing key: %.*s\r\n", ssl_response.len, ssl_response.s);
@@ -81,7 +88,8 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey, bool force) {
 
   if (write_pkey) {
     LOG(L_NOTICE, "Setting private key...\r\n");
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, USECMNG_CERTIFICATE_TYPE_Key, s_key_name.len, s_key_name.s, (int)pkey.len);
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
+                             USECMNG_CERTIFICATE_TYPE_Key, s_key_name.len, s_key_name.s, (int)pkey.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, pkey) != AT_Result_Code__OK) {
       return false;
@@ -95,10 +103,11 @@ bool OwlModemSSLRN4::setServerCA(str ca, bool force) {
   bool write_ca = true;
 
   if (!force) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s);
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5,
+                             USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s);
 
     if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
-      // TODO: compare MD5 against ca 
+      // TODO: compare MD5 against ca
       // ca already exists, in future calculate md5 and compare against one returned but for
       // now just assume it doesn't need setting
       LOG(L_NOTICE, "Using existing server ca: %.*s\r\n", ssl_response.len, ssl_response.s);
@@ -108,7 +117,8 @@ bool OwlModemSSLRN4::setServerCA(str ca, bool force) {
 
   if (write_ca) {
     LOG(L_NOTICE, "Setting server CA...\r\n");
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s, (int)ca.len);
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
+                             USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s, (int)ca.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, ca) != AT_Result_Code__OK) {
       return false;
