@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "../utils/md5.h"
+#include "../utils/base64.h"
 
 OwlModemSSLRN4::OwlModemSSLRN4(OwlModemAT *atModem) : atModem_(atModem) {
 }
@@ -89,18 +90,22 @@ bool OwlModemSSLRN4::setServerCA(str ca) {
 }
 
 int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
-  // TODO: check input, see if PEM format and convery to DER before md5?  otherwise PEM input will never match expected
-  // md5 from module
   if (max_len < 33) {
     // output buffer not big enough
     return 0;
   }
 
   unsigned char digest[16];
-  struct MD5Context context;
-  MD5Init(&context);
-  MD5Update(&context, (unsigned const char *)input.s, input.len);
-  MD5Final(digest, &context);
+
+  if (strstr(input.s, "---B")) {
+    char *start = strstr(input.s, "MII");
+    Base64decodeMD5(digest, start);
+  } else {
+    struct MD5Context context;
+    MD5Init(&context);
+    MD5Update(&context, (unsigned const char *)input.s, input.len);
+    MD5Final(digest, &context);
+  }
 
   for (int i = 0; i < 16; ++i)
     sprintf(&output[i * 2], "%02X", (unsigned int)digest[i]);

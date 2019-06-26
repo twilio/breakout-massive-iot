@@ -25,6 +25,7 @@ set(SDK_SOURCES
 
 	src/utils/str.c
 	src/utils/md5.c
+	src/utils/base64.c
 	)
 
 add_library(twilio_massive_sdk ${SDK_SOURCES})
