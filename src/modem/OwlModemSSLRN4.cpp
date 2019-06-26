@@ -3,7 +3,7 @@
 
 #include "../utils/md5.h"
 
-OwlModemSSLRN4::OwlModemSSLRN4(OwlModemAT* atModem) : atModem_(atModem) {
+OwlModemSSLRN4::OwlModemSSLRN4(OwlModemAT *atModem) : atModem_(atModem) {
 }
 
 static str s_ca_name   = STRDECL("CA");
@@ -43,23 +43,11 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_
   return true;
 }
 
-bool OwlModemSSLRN4::setDeviceCert(str cert_hex, bool force) {
-  bool write_cert = true;
-
-  char cert_buf[2048];
-  str cert = { .s = cert_buf, .len = 0 };
-  cert.len = hex_to_str(cert.s, 2048, cert_hex);
-  if (cert.len == 0) {
-    LOG(L_ERR, "error converting certificate to binary");
-    return false;
-  }
-
-  if (!force) {
-    write_cert = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name, cert);
-  }
+bool OwlModemSSLRN4::setDeviceCert(str cert) {
+  bool write_cert = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name, cert);
 
   if (write_cert) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, 
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s, (int)cert.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, cert) != AT_Result_Code__OK) {
@@ -70,23 +58,11 @@ bool OwlModemSSLRN4::setDeviceCert(str cert_hex, bool force) {
   return true;
 }
 
-bool OwlModemSSLRN4::setDevicePkey(str pkey_hex, bool force) {
-  bool write_pkey = true;
-
-  char pkey_buf[2048];
-  str pkey = { .s = pkey_buf, .len = 0 };
-  pkey.len = hex_to_str(pkey.s, 2048, pkey_hex);
-  if (pkey.len == 0) {
-    LOG(L_ERR, "Error converting key to binary");
-    return false;
-  }
-
-  if (!force) {
-    write_pkey = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Key, s_key_name, pkey);
-  }
+bool OwlModemSSLRN4::setDevicePkey(str pkey) {
+  bool write_pkey = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Key, s_key_name, pkey);
 
   if (write_pkey) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, 
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Key, s_key_name.len, s_key_name.s, (int)pkey.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, pkey) != AT_Result_Code__OK) {
@@ -97,23 +73,11 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey_hex, bool force) {
   return true;
 }
 
-bool OwlModemSSLRN4::setServerCA(str ca_hex, bool force) {
-  bool write_ca = true;
-
-  char ca_buf[2048];
-  str ca = { .s = ca_buf, .len = 0 };
-  ca.len = hex_to_str(ca.s, 2048, ca_hex);
-  if (ca.len == 0) {
-    LOG(L_ERR, "Error converting ca to binary");
-    return false;
-  }
-
-  if (!force) {
-    write_ca = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name, ca);
-  }
+bool OwlModemSSLRN4::setServerCA(str ca) {
+  bool write_ca = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name, ca);
 
   if (write_ca) {
-    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial, 
+    atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s, (int)ca.len);
 
     if (atModem_->doCommandBlocking(10 * 1000, nullptr, ca) != AT_Result_Code__OK) {
@@ -125,7 +89,8 @@ bool OwlModemSSLRN4::setServerCA(str ca_hex, bool force) {
 }
 
 int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
-  // TODO: check input, see if PEM format and convery to DER before md5?  otherwise PEM input will never match expected md5 from module
+  // TODO: check input, see if PEM format and convery to DER before md5?  otherwise PEM input will never match expected
+  // md5 from module
   if (max_len < 33) {
     // output buffer not big enough
     return 0;
@@ -136,17 +101,17 @@ int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
   MD5Init(&context);
   MD5Update(&context, (unsigned const char *)input.s, input.len);
   MD5Final(digest, &context);
- 
-  for(int i = 0; i < 16; ++i)
-    sprintf(&output[i*2], "%02X", (unsigned int)digest[i]);
+
+  for (int i = 0; i < 16; ++i)
+    sprintf(&output[i * 2], "%02X", (unsigned int)digest[i]);
   return 32;
 }
 
 bool OwlModemSSLRN4::shouldWriteCertificate(usecmng_certificate_type_e type, str name, str new_value) {
   bool should_write = true;
 
-  char md5_buf[33]; // 33 to accomodate 32 characters plus null termination sprintf adds that strstr below needs
-  str md5 = { .s = md5_buf, .len = 0 };
+  char md5_buf[33];  // 33 to accomodate 32 characters plus null termination sprintf adds that strstr below needs
+  str md5 = {.s = md5_buf, .len = 0};
   md5.len = calculateMD5ForCert(md5_buf, 33, new_value);
 
   atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, type, name.len, name.s);

@@ -50,11 +50,10 @@ class OwlModemSSLRN4 {
    *
    *   cat ca.pem | openssl x509 -outform der | xxd -p -u -c 10000
    *
-   * @param cert_hex - Certificate in DER form, hex encoded string
-   * @param force - Skips checking the MD5 of any existing item and instead always replaces
+   * @param cert - Certificate in DER or PEM form
    * @return success status
    */
-  bool setDeviceCert(str cert_hex, bool force = false);
+  bool setDeviceCert(str cert);
 
   /**
    * Populate a device private key to the tls system on a sara-r410/sara-n410 modem.
@@ -73,11 +72,10 @@ class OwlModemSSLRN4 {
    *
    *   cat key.pem | openssl x509 -outform der | xxd -p -u -c 10000
    *
-   * @param pkey_hex - certificate in der form, hex encoded string
-   * @param force - skips checking the md5 of any existing item and instead always replaces
+   * @param pkey - certificate in DER or PEM form
    * @return success status
    */
-  bool setDevicePkey(str pkey_hex, bool force = false);
+  bool setDevicePkey(str pkey);
 
   /**
    * Populate a trusted root CA to the tls system on a sara-r410/sara-n410 modem.
@@ -96,17 +94,17 @@ class OwlModemSSLRN4 {
    *
    *   cat ca.pem | openssl x509 -outform der | xxd -p -u -c 10000
    *
-   * @param ca_hex - certificate in der form, hex encoded string
-   * @param force - skips checking the md5 of any existing item and instead always replaces
+   * @param ca - certificate in DER or PEM form
    * @return success status
    */
-  bool setServerCA(str ca_hex, bool force = false);
+  bool setServerCA(str ca);
 
   /**
    * Initialize TLS subsystem.
    *
    * @param ssl_profile_slot - profile slot to use - valid values are 0 - 4 (default: 0)
-   * @param cipher_suite - cipher suite to use when negotiating the connection (default: USECPREF_CIPHER_SUITE_TLS_RSA_WITH_AES_256_CBC_SHA256)
+   * @param cipher_suite - cipher suite to use when negotiating the connection (default:
+   * USECPREF_CIPHER_SUITE_TLS_RSA_WITH_AES_256_CBC_SHA256)
    * @return success status
    */
   bool initContext(uint8_t ssl_profile_slot            = 0,
@@ -116,7 +114,7 @@ class OwlModemSSLRN4 {
   OwlModemAT* atModem_;
   str ssl_response = {.s = nullptr, .len = 0};
   bool shouldWriteCertificate(usecmng_certificate_type_e type, str name, str new_value);
-  int calculateMD5ForCert(char *output, int max_len, str input);
+  int calculateMD5ForCert(char* output, int max_len, str input);
 };
 
 #endif  // __OWL_MODEM_SSL_RN4_H__
