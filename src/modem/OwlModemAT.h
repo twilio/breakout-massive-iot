@@ -164,22 +164,32 @@ class OwlModemAT {
 
   /**
    * sprintf to the command buffer before issuing startATCommand/doCommandBlocking
+   * @return if the resulting command fits the buffer. Can be processed right away, or, if ignored, startATCommand or
+   * doCommandBlocking will return an error when called
    */
-  void commandSprintf(const char *format, ...);
+  bool commandSprintf(const char *format, ...);
 
   /**
    * strcpy to the command buffer before issuing startATCommand/doCommandBlocking
+   * @return if the resulting command fits the buffer. Can be processed right away, or, if ignored, startATCommand or
+   * doCommandBlocking will return an error when called
    */
-  void commandStrcpy(const char *command);
+  bool commandStrcpy(const char *command);
 
   /*
-   * Append zero-terminated string to command buffer
+   * Append zero-terminated string to command buffer. The command should be initialized with commandStrcpy or
+   * commandSprintf before calling this function.
+   * @return if the resulting command fits the buffer. Can be processed right away, or, if ignored, startATCommand or
+   * doCommandBlocking will return an error when called
    */
-  void commandStrcat(const char *data);
+  bool commandStrcat(const char *data);
   /*
-   * Append to command buffer converting the data to HEX representation
+   * Append to command buffer converting the data to HEX representation. The command should be initialized with
+   * commandStrcpy or commandSprintf before calling this function.
+   * @return if the resulting command fits the buffer. Can be processed right away, or, if ignored, startATCommand or
+   * doCommandBlocking will return an error when called
    */
-  void commandAppendHex(str data);
+  bool commandAppendHex(str data);
 
   /**
    * Utility function to filter out of the response for a command, lines which do not start with a certain prefix.
@@ -214,6 +224,7 @@ class OwlModemAT {
 
   char command_buffer_c_[AT_COMMAND_BUFFER_SIZE];
   str command_buffer_ = {.s = command_buffer_c_, .len = 0};
+  bool command_valid_{false};
 
   char input_buffer_c_[AT_INPUT_BUFFER_SIZE];
   str input_buffer_ = {.s = input_buffer_c_, .len = 0};

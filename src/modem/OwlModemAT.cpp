@@ -322,6 +322,12 @@ bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_t
     return false;
   }
 
+  if (!command_valid_) {
+    LOG(L_ERR, "startATCommand [%.*s] failed: command in the buffer is invalid\r\n", command_buffer_.len,
+        command_buffer_.s);
+    return false;
+  }
+
   // don't append what we've got so far to the result
   ignore_first_line_   = (line_state_ != line_state_t::idle || serial_->available() != 0);
   response_buffer_.len = 0;
@@ -337,6 +343,8 @@ bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_t
         command_buffer_.s);
     return false;
   }
+
+  command_valid_ = false;  // Command sent, invalidating the buffer
 
   command_data_      = data;
   command_data_term_ = data_term;
@@ -491,37 +499,76 @@ void OwlModemAT::deregisterPrefixHandler() {
   prefix_handler_       = nullptr;
 }
 
-void OwlModemAT::commandSprintf(const char *format, ...) {
+bool OwlModemAT::commandSprintf(const char *format, ...) {
   va_list args;
   va_start(args, format);
 
-  command_buffer_.len = vsnprintf(command_buffer_.s, AT_COMMAND_BUFFER_SIZE, format, args);
+  int res = vsnprintf(command_buffer_.s, AT_COMMAND_BUFFER_SIZE, format, args);
 
   va_end(args);
-}
 
-void OwlModemAT::commandStrcpy(const char *command) {
-  command_buffer_.len = strlen(command);
-  if (command_buffer_.len > AT_COMMAND_BUFFER_SIZE) {
-    command_buffer_.len = AT_COMMAND_BUFFER_SIZE;
+  // vsnprintf returns the number of bytes that _would_ have been written if the
+  //   buffer was unlimited
+  if (res <= 0 || res > AT_COMMAND_BUFFER_SIZE) {
+    LOG(L_ERR, "Command does not fit in the buffer, invalidating\r\n");
+    command_valid_ = false;
+    return false;
   }
-  memcpy(command_buffer_.s, command, command_buffer_.len);
+  command_buffer_.len = res;
+  command_valid_      = true;
+
+
+  return true;
 }
 
-void OwlModemAT::commandStrcat(const char *data) {
+bool OwlModemAT::commandStrcpy(const char *command) {
+  int res = strlen(command);
+  if (res > AT_COMMAND_BUFFER_SIZE) {
+    LOG(L_ERR, "Command does not fit in the buffer, invalidating\r\n");
+    command_valid_ = false;
+    return false;
+  }
+  command_buffer_.len = res;
+  memcpy(command_buffer_.s, command, command_buffer_.len);
+  command_valid_ = true;
+  return true;
+}
+
+bool OwlModemAT::commandStrcat(const char *data) {
+  if (!command_valid_) {
+    return false;
+  }
+
   int data_len = strlen(data);
 
   if (command_buffer_.len + data_len > AT_COMMAND_BUFFER_SIZE) {
-    data_len = AT_COMMAND_BUFFER_SIZE - command_buffer_.len;
+    LOG(L_ERR, "Command does not fit in the buffer, invalidating\r\n");
+    command_valid_ = false;
+    return false;
   }
 
   if (data_len > 0) {
     memcpy(command_buffer_.s + command_buffer_.len, data, data_len);
     command_buffer_.len += data_len;
   }
+  command_valid_ = true;
+  return true;
 }
 
-void OwlModemAT::commandAppendHex(str data) {
+bool OwlModemAT::commandAppendHex(str data) {
+  if (!command_valid_) {
+    return false;
+  }
+
+  if (command_buffer_.len + 2 * data.len > AT_COMMAND_BUFFER_SIZE) {
+    LOG(L_ERR, "Command does not fit in the buffer, invalidating\r\n");
+    command_valid_ = false;
+    return false;
+  }
+
   command_buffer_.len +=
       str_to_hex(command_buffer_.s + command_buffer_.len, AT_COMMAND_BUFFER_SIZE - command_buffer_.len, data);
+
+  command_valid_ = true;
+  return true;
 }
