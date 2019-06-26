@@ -87,16 +87,14 @@ int OwlModemSIM::getPINStatus() {
 }
 
 int OwlModemSIM::verifyPIN(str pin) {
-  char buffer[64];
-  snprintf(buffer, 64, "AT+CPIN=%.*s", pin.len, pin.s);
-  int result = atModem_->doCommandBlocking(buffer, 10 * 1000, nullptr) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+CPIN=%.*s", pin.len, pin.s);
+  int result = atModem_->doCommandBlocking(10 * 1000, nullptr) == AT_Result_Code__OK;
   return result;
 }
 
 int OwlModemSIM::verifyPUK(str puk, str pin) {
-  char buffer[64];
-  snprintf(buffer, 64, "AT+CPIN=%.*s,%.*s", puk.len, puk.s, pin.len, pin.s);
-  int result = atModem_->doCommandBlocking(buffer, 10 * 1000, nullptr) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+CPIN=%.*s,%.*s", puk.len, puk.s, pin.len, pin.s);
+  int result = atModem_->doCommandBlocking(10 * 1000, nullptr) == AT_Result_Code__OK;
   return result;
 }
 

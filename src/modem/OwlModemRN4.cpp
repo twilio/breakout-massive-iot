@@ -94,7 +94,7 @@ void initCheckPIN(str message) {
   }
 }
 
-int OwlModemRN4::initModem(int testing_variant, const char* apn, const char* cops, at_cops_format_e cops_format) {
+int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cops, at_cops_format_e cops_format) {
   at_result_code_e rc;
   OwlModem_PINHandler_f saved_handler = 0;
   at_umnoprof_mno_profile_e current_profile;
@@ -143,10 +143,8 @@ int OwlModemRN4::initModem(int testing_variant, const char* apn, const char* cop
       if (AT.doCommandBlocking("AT+UBANDMASK=1,168761503", 5000, nullptr) != AT_Result_Code__OK)
         LOG(L_WARN, "Error setting band mask for NB1 to 168761503 (manual default\r\n");
 
-      char buf[64];
-      snprintf(buf, 64, "AT+CGDCONT=1,\"IP\",\"%s\"", apn);
-      if (AT.doCommandBlocking(buf, 5000, nullptr) != AT_Result_Code__OK)
-        LOG(L_WARN, "Error setting custom APN\r\n");
+      AT.commandSprintf("AT+CGDCONT=1,\"IP\",\"%s\"", apn);
+      if (AT.doCommandBlocking(5000, nullptr) != AT_Result_Code__OK) LOG(L_WARN, "Error setting custom APN\r\n");
     }
     if ((testing_variant & Testing__Set_APN_Bands_to_US) != 0) {
       if (AT.doCommandBlocking("AT+URAT=8", 5000, nullptr) != AT_Result_Code__OK)
@@ -180,8 +178,8 @@ int OwlModemRN4::initModem(int testing_variant, const char* apn, const char* cop
 
 
   if (cops != nullptr) {
-    at_cops_act_e cops_act       = AT_COPS__Access_Technology__LTE_NB_S1;
-    str oper                     = STRDECL(cops);
+    at_cops_act_e cops_act = AT_COPS__Access_Technology__LTE_NB_S1;
+    str oper               = STRDECL(cops);
     LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", cops);
     if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
       LOG(L_ERR, "Error selecting mobile operator\r\n");
@@ -417,13 +415,11 @@ int OwlModemRN4::setHostDeviceInformation(str purpose) {
   if (!purpose.len) purpose = s_dev_kit;
   computeHostDeviceInformation(purpose);
 
-  char command_buffer[MODEM_HOSTDEVICE_INFORMATION_SIZE + 24];
-  snprintf(command_buffer, MODEM_HOSTDEVICE_INFORMATION_SIZE + 24, "AT+UHOSTDEV=%.*s", hostdevice_information.len,
-           hostdevice_information.s);
+  AT.commandSprintf("AT+UHOSTDEV=%.*s", hostdevice_information.len, hostdevice_information.s);
   LOG(L_INFO, "Setting HostDeviceInformation to: %.*s\r\n", hostdevice_information.len, hostdevice_information.s);
 
   for (int attempts = 10; attempts > 0; attempts--) {
-    if (AT.doCommandBlocking(command_buffer, 1000, nullptr) == AT_Result_Code__OK) {
+    if (AT.doCommandBlocking(1000, nullptr) == AT_Result_Code__OK) {
       LOG(L_INFO, ".. setting HostDeviceInformation successful.\r\n");
       registered = true;
       break;

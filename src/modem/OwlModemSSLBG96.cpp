@@ -27,9 +27,8 @@ bool OwlModemSSLBG96::setDeviceCert(str cert, bool force) {
       // is only present in the newest firmware revisions
       OwlModemAT::filterResponse(s_qfopen, ssl_response, &ssl_response);
       long int fdesc = str_to_long_int(ssl_response, 10);
-      char closebuf[32];
-      snprintf(closebuf, 32, "AT+QFCLOSE=%d", (int)fdesc);
-      if (atModem_->doCommandBlocking(closebuf, 1 * 1000, &ssl_response) != AT_Result_Code__OK) {
+      atModem_->commandSprintf("AT+QFCLOSE=%d", (int)fdesc);
+      if (atModem_->doCommandBlocking(1 * 1000, &ssl_response) != AT_Result_Code__OK) {
         LOG(L_WARN, "Couldn't close certificate file descriptor");
       }
       write_cert = false;
@@ -40,10 +39,9 @@ bool OwlModemSSLBG96::setDeviceCert(str cert, bool force) {
     atModem_->doCommandBlocking("AT+QFDEL=\"ssl_cert.pem\"", 1 * 1000,
                                 nullptr);  // ignore the result, which will be error if file does not exist
 
-    char buffer[64];
-    snprintf(buffer, 64, "AT+QFUPL=\"ssl_cert.pem\",%d,100", (int)cert.len);
+    atModem_->commandSprintf("AT+QFUPL=\"ssl_cert.pem\",%d,100", (int)cert.len);
 
-    if (atModem_->doCommandBlocking(buffer, 10 * 1000, nullptr, cert) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(10 * 1000, nullptr, cert) != AT_Result_Code__OK) {
       return false;
     }
   }
@@ -65,9 +63,8 @@ bool OwlModemSSLBG96::setDevicePkey(str pkey, bool force) {
       // is only present in the newest firmware revisions
       OwlModemAT::filterResponse(s_qfopen, ssl_response, &ssl_response);
       long int fdesc = str_to_long_int(ssl_response, 10);
-      char closebuf[32];
-      snprintf(closebuf, 32, "AT+QFCLOSE=%d", (int)fdesc);
-      if (atModem_->doCommandBlocking(closebuf, 1 * 1000, &ssl_response) != AT_Result_Code__OK) {
+      atModem_->commandSprintf("AT+QFCLOSE=%d", (int)fdesc);
+      if (atModem_->doCommandBlocking(1 * 1000, &ssl_response) != AT_Result_Code__OK) {
         LOG(L_WARN, "Couldn't close key file descriptor");
       }
       write_pkey = false;
@@ -78,10 +75,9 @@ bool OwlModemSSLBG96::setDevicePkey(str pkey, bool force) {
     atModem_->doCommandBlocking("AT+QFDEL=\"ssl_pkey.pem\"", 1 * 1000,
                                 nullptr);  // ignore the result, which will be error if file does not exist
 
-    char buffer[64];
-    snprintf(buffer, 64, "AT+QFUPL=\"ssl_pkey.pem\",%d,100", (int)pkey.len);
+    atModem_->commandSprintf("AT+QFUPL=\"ssl_pkey.pem\",%d,100", (int)pkey.len);
 
-    if (atModem_->doCommandBlocking(buffer, 10 * 1000, nullptr, pkey) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(10 * 1000, nullptr, pkey) != AT_Result_Code__OK) {
       return false;
     }
   }
@@ -103,9 +99,8 @@ bool OwlModemSSLBG96::setServerCA(str ca, bool force) {
       // is only present in the newest firmware revisions
       OwlModemAT::filterResponse(s_qfopen, ssl_response, &ssl_response);
       long int fdesc = str_to_long_int(ssl_response, 10);
-      char closebuf[32];
-      snprintf(closebuf, 32, "AT+QFCLOSE=%d", (int)fdesc);
-      if (atModem_->doCommandBlocking(closebuf, 1 * 1000, &ssl_response) != AT_Result_Code__OK) {
+      atModem_->commandSprintf("AT+QFCLOSE=%d", (int)fdesc);
+      if (atModem_->doCommandBlocking(1 * 1000, &ssl_response) != AT_Result_Code__OK) {
         LOG(L_WARN, "Couldn't close CA certificate file descriptor");
       }
       write_ca = false;
@@ -116,10 +111,9 @@ bool OwlModemSSLBG96::setServerCA(str ca, bool force) {
     atModem_->doCommandBlocking("AT+QFDEL=\"ssl_cacert.pem\"", 1 * 1000,
                                 nullptr);  // ignore the result, which will be error if file does not exist
 
-    char buffer[64];
-    snprintf(buffer, 64, "AT+QFUPL=\"ssl_cacert.pem\",%d,100", (int)ca.len);
+    atModem_->commandSprintf("AT+QFUPL=\"ssl_cacert.pem\",%d,100", (int)ca.len);
 
-    if (atModem_->doCommandBlocking(buffer, 10 * 1000, nullptr, ca) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(10 * 1000, nullptr, ca) != AT_Result_Code__OK) {
       return false;
     }
   }

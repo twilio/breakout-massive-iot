@@ -142,8 +142,7 @@ TEST_CASE("OwlModemAT processes simple commands correctly", "[command]") {
   TestSerial serial;
   OwlModemAT modem(&serial);
 
-  str command = STRDECL("AT+COPS?");
-  REQUIRE(modem.startATCommand(command, 1000));
+  REQUIRE(modem.startATCommand("AT+COPS?", 1000));
   REQUIRE(serial.te_to_mt == "AT+COPS?\r\n");
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_result);
@@ -186,8 +185,7 @@ TEST_CASE("OwlModemAT processes URC while command is running", "[command-urc]") 
     modem.spin();
   }
 
-  str command = STRDECL("AT+COPS?");
-  REQUIRE(modem.startATCommand(command, 1000));
+  REQUIRE(modem.startATCommand("AT+COPS?", 1000));
   REQUIRE(serial.te_to_mt == "AT+COPS?\r\n");
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_result);
@@ -235,8 +233,7 @@ TEST_CASE("Command response data is not affected by previous responses", "[comma
     modem.spin();
   }
 
-  str command = STRDECL("AT+COPS?");
-  REQUIRE(modem.startATCommand(command, 1000));
+  REQUIRE(modem.startATCommand("AT+COPS?", 1000));
   REQUIRE(serial.te_to_mt == "AT+COPS?\r\n");
   serial.te_to_mt = "";
 
@@ -263,7 +260,7 @@ TEST_CASE("Command response data is not affected by previous responses", "[comma
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 
-  REQUIRE(modem.startATCommand(command, 1000));
+  REQUIRE(modem.startATCommand("AT+COPS?", 1000));
   REQUIRE(serial.te_to_mt == "AT+COPS?\r\n");
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_result);
@@ -302,10 +299,9 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
       "of his pursuit will reward his pains with some delight; and he will have reason to think his time not ill "
       "spent, even when he cannot much boast of any great acquisition.";
   std::string command_string = "AT_QFUPL=\"file\"," + std::to_string(data_string.length());
-  str command                = {.s = (char*)command_string.c_str(), .len = command_string.length()};
   str data                   = {.s = (char*)data_string.c_str(), .len = data_string.length()};
 
-  REQUIRE(modem.startATCommand(command, 1000, data));
+  REQUIRE(modem.startATCommand(command_string.c_str(), 1000, data));
   REQUIRE(serial.te_to_mt == (command_string + "\r\n"));
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::wait_prompt);

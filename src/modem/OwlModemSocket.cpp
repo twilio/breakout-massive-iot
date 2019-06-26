@@ -373,9 +373,8 @@ static str s_usocr = STRDECL("+USOCR: ");
 int OwlModemSocket::open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t *out_socket) {
   if (out_socket) *out_socket = 255;
   int socket = 255;
-  char buf[64];
-  snprintf(buf, 64, "AT+USOCR=%d,%u", protocol, local_port);
-  int result = atModem_->doCommandBlocking(buf, 3000, &socket_response) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+USOCR=%d,%u", protocol, local_port);
+  int result = atModem_->doCommandBlocking(3000, &socket_response) == AT_Result_Code__OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usocr, socket_response, &socket_response);
   socket = str_to_uint32_t(socket_response, 10);
@@ -393,17 +392,16 @@ int OwlModemSocket::close(uint8_t socket) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
   }
-  char buf[64];
   switch (status[socket].protocol) {
     case AT_USO_Protocol__TCP:
-      snprintf(buf, 64, "AT+USOCL=%u,0", socket);
+      atModem_->commandSprintf("AT+USOCL=%u,0", socket);
       break;
     case AT_USO_Protocol__UDP:
     default:
-      snprintf(buf, 64, "AT+USOCL=%u", socket);
+      atModem_->commandSprintf("AT+USOCL=%u", socket);
       break;
   }
-  int result = (atModem_->doCommandBlocking(buf, 120 * 1000, nullptr) == AT_Result_Code__OK);
+  int result = (atModem_->doCommandBlocking(120 * 1000, nullptr) == AT_Result_Code__OK);
   if (!result) return 0;
 
   this->status[socket].setClosed();
@@ -422,9 +420,8 @@ int OwlModemSocket::enableTLS(uint8_t socket, int tls_id) {
     return 0;
   }
 
-  char buf[16];
-  snprintf(buf, 16, "AT+USOSEC=%u,1,%d", socket, tls_id);
-  return (atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK);
+  atModem_->commandSprintf("AT+USOSEC=%u,1,%d", socket, tls_id);
+  return (atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK);
 }
 
 int OwlModemSocket::disableTLS(uint8_t socket) {
@@ -433,9 +430,8 @@ int OwlModemSocket::disableTLS(uint8_t socket) {
     return 0;
   }
 
-  char buf[16];
-  snprintf(buf, 16, "AT+USOSEC=%u,0", socket);
-  return (atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK);
+  atModem_->commandSprintf("AT+USOSEC=%u,0", socket);
+  return (atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK);
 }
 
 static str s_usoer = STRDECL("+USOER: ");
@@ -461,19 +457,18 @@ int OwlModemSocket::connect(uint8_t socket, str remote_ip, uint16_t remote_port,
     return 0;
   }
   this->status[socket].is_connected = 0;
-  char buf[64];
   switch (this->status[socket].protocol) {
     case AT_USO_Protocol__TCP:
-      snprintf(buf, 64, "AT+USOCO=%u,\"%.*s\",%u,0", socket, remote_ip.len, remote_ip.s, remote_port);
+      atModem_->commandSprintf("AT+USOCO=%u,\"%.*s\",%u,0", socket, remote_ip.len, remote_ip.s, remote_port);
       break;
     case AT_USO_Protocol__UDP:
-      snprintf(buf, 64, "AT+USOCO=%u,\"%.*s\",%u", socket, remote_ip.len, remote_ip.s, remote_port);
+      atModem_->commandSprintf("AT+USOCO=%u,\"%.*s\",%u", socket, remote_ip.len, remote_ip.s, remote_port);
       break;
     default:
       LOG(L_ERR, "Socket %d has unsupported protocol %d\r\n", this->status[socket].protocol);
       return 0;
   }
-  int result = (atModem_->doCommandBlocking(buf, 120 * 1000, &socket_response) == AT_Result_Code__OK);
+  int result = (atModem_->doCommandBlocking(120 * 1000, &socket_response) == AT_Result_Code__OK);
   if (!result) return 0;
   this->status[socket].is_connected         = 1;
   this->status[socket].handler_SocketClosed = cb;
@@ -484,12 +479,10 @@ static str s_usowr = STRDECL("+USOWR: ");
 
 int OwlModemSocket::send(uint8_t socket, str data) {
   int bytes_sent = 0;
-  char buf[1200];
-  int len = snprintf(buf, 1200, "AT+USOWR=%u,%d,\"", socket, data.len);
-  len += str_to_hex(buf + len, 1200 - len, data);
-  buf[len++] = '\"';
-  buf[len++] = 0;
-  int result = atModem_->doCommandBlocking(buf, 120 * 1000, &socket_response) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+USOWR=%u,%d,\"", socket, data.len);
+  atModem_->commandAppendHex(data);
+  atModem_->commandStrcat("\"");
+  int result = atModem_->doCommandBlocking(120 * 1000, &socket_response) == AT_Result_Code__OK;
   if (!result) return -1;
   OwlModemAT::filterResponse(s_usowr, socket_response, &socket_response);
   str token = {0};
@@ -581,13 +574,10 @@ int OwlModemSocket::sendToUDP(uint8_t socket, str remote_ip, uint16_t remote_por
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
-  char buf[1200];
-  int len =
-      snprintf(buf, 1200, "AT+USOST=%u,\"%.*s\",%u,%d,\"", socket, remote_ip.len, remote_ip.s, remote_port, data.len);
-  len += str_to_hex(buf + len, 1200 - len, data);
-  buf[len++] = '\"';
-  buf[len++] = 0;
-  int result = atModem_->doCommandBlocking(buf, 10 * 1000, &socket_response) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+USOST=%u,\"%.*s\",%u,%d,\"", socket, remote_ip.len, remote_ip.s, remote_port, data.len);
+  atModem_->commandAppendHex(data);
+  atModem_->commandStrcat("\"");
+  int result = atModem_->doCommandBlocking(10 * 1000, &socket_response) == AT_Result_Code__OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usost, socket_response, &socket_response);
   str token = {0};
@@ -633,9 +623,8 @@ static str s_usord = STRDECL("+USORD: ");
 
 int OwlModemSocket::receive(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
-  char buf[64];
-  snprintf(buf, 64, "AT+USORD=%u,%u", socket, len);
-  int result = (atModem_->doCommandBlocking(buf, 1000, &socket_response) == AT_Result_Code__OK);
+  atModem_->commandSprintf("AT+USORD=%u,%u", socket, len);
+  int result = (atModem_->doCommandBlocking(1000, &socket_response) == AT_Result_Code__OK);
   if (!result) {
     return 0;
   }
@@ -763,9 +752,8 @@ int OwlModemSocket::receiveFromUDP(uint8_t socket, uint16_t len, str *out_remote
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
-  char buf[64];
-  snprintf(buf, 64, "AT+USORF=%u,%u", socket, len);
-  int result = (atModem_->doCommandBlocking(buf, 1000, &socket_response) == AT_Result_Code__OK);
+  atModem_->commandSprintf("AT+USORF=%u,%u", socket, len);
+  int result = (atModem_->doCommandBlocking(1000, &socket_response) == AT_Result_Code__OK);
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usorf, socket_response, &socket_response);
   str token             = {0};
@@ -837,9 +825,8 @@ int OwlModemSocket::listenUDP(uint8_t socket, uint16_t local_port, OwlModem_UDPD
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
-  char buf[64];
-  snprintf(buf, 64, "AT+USOLI=%u,%u", socket, local_port);
-  int result = (atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK);
+  atModem_->commandSprintf("AT+USOLI=%u,%u", socket, local_port);
+  int result = (atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK);
   if (!result) return 0;
 
   this->status[socket].handler_UDPData = cb;
@@ -881,9 +868,8 @@ int OwlModemSocket::acceptTCP(uint8_t socket, uint16_t local_port, OwlModem_TCPA
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
-  char buf[64];
-  snprintf(buf, 64, "AT+USOLI=%u,%u", socket, local_port);
-  int result = atModem_->doCommandBlocking(buf, 1000, nullptr) == AT_Result_Code__OK;
+  atModem_->commandSprintf("AT+USOLI=%u,%u", socket, local_port);
+  int result = atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK;
   if (!result) return 0;
 
   this->status[socket].handler_TCPAccept    = handler_tcp_accept;

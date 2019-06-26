@@ -333,8 +333,6 @@ void OwlModemMQTTBG96::processURCQmtrecv(str data) {
 }
 
 bool OwlModemMQTTBG96::openConnection(const char* host_addr, uint16_t port) {
-  char buffer[128];
-
   if (use_tls_) {
     if (atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,1,0", 1 * 1000, nullptr) != AT_Result_Code__OK) {
       return false;
@@ -345,11 +343,11 @@ bool OwlModemMQTTBG96::openConnection(const char* host_addr, uint16_t port) {
     }
   }
 
-  snprintf(buffer, 128, "AT+QMTOPEN=0,\"%s\",%d", host_addr, (int)port);
+  atModem_->commandSprintf("AT+QMTOPEN=0,\"%s\",%d", host_addr, (int)port);
 
   wait_for_command_[qmtopen] = true;
 
-  if (atModem_->doCommandBlocking(buffer, 1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     wait_for_command_[qmtopen] = false;
     return false;
   }
@@ -373,17 +371,15 @@ bool OwlModemMQTTBG96::closeConnection() {
 }
 
 bool OwlModemMQTTBG96::login(const char* client_id, const char* uname, const char* password) {
-  char buffer[128];
-
   if (uname == nullptr || password == nullptr) {
-    snprintf(buffer, 128, "AT+QMTCONN=0,\"%s\"", client_id);
+    atModem_->commandSprintf("AT+QMTCONN=0,\"%s\"", client_id);
   } else {
-    snprintf(buffer, 128, "AT+QMTCONN=0,\"%s\",\"%s\",\"%s\"", client_id, uname, password);
+    atModem_->commandSprintf("AT+QMTCONN=0,\"%s\",\"%s\",\"%s\"", client_id, uname, password);
   }
 
   wait_for_command_[qmtconn] = true;
 
-  if (atModem_->doCommandBlocking(buffer, 1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     wait_for_command_[qmtconn] = false;
     return false;
   }
@@ -403,17 +399,15 @@ bool OwlModemMQTTBG96::logout() {
 }
 
 bool OwlModemMQTTBG96::publish(const char* topic, str data, bool retain, qos_t qos, uint16_t msg_id) {
-  char buffer[128];
-
   if (qos == qos_t::atMostOnce) {
     msg_id = 0;
   }
 
-  snprintf(buffer, 128, "AT+QMTPUB=0,%d,%d,%d,\"%s\"", (int)msg_id, qos, retain, topic);
+  atModem_->commandSprintf("AT+QMTPUB=0,%d,%d,%d,\"%s\"", (int)msg_id, qos, retain, topic);
 
   wait_for_command_[qmtpub] = true;
 
-  if (atModem_->doCommandBlocking(buffer, 1 * 1000, nullptr, data, 0x1A) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr, data, 0x1A) != AT_Result_Code__OK) {
     wait_for_command_[qmtpub] = false;
     return false;
   }
@@ -422,13 +416,11 @@ bool OwlModemMQTTBG96::publish(const char* topic, str data, bool retain, qos_t q
 }
 
 bool OwlModemMQTTBG96::subscribe(const char* topic_filter, uint16_t msg_id, qos_t qos) {
-  char buffer[128];
-
-  snprintf(buffer, 128, "AT+QMTSUB=0,%d,\"%s\",%d", (int)msg_id, topic_filter, qos);
+  atModem_->commandSprintf("AT+QMTSUB=0,%d,\"%s\",%d", (int)msg_id, topic_filter, qos);
 
   wait_for_command_[qmtsub] = true;
 
-  if (atModem_->doCommandBlocking(buffer, 1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
     wait_for_command_[qmtsub] = false;
     return false;
   }

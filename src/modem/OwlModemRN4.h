@@ -82,7 +82,8 @@ class OwlModemRN4 {
    * be originally configured by the vendors.
    * @return - 1 on success, 0 on failure
    */
-  int initModem(int testing_variant = 0, const char* apn = "", const char* cops = nullptr, at_cops_format_e cops_format = AT_COPS__Format__Numeric);
+  int initModem(int testing_variant = 0, const char *apn = "", const char *cops = nullptr,
+                at_cops_format_e cops_format = AT_COPS__Format__Numeric);
 
   /**
    * Wait for the modem to fully attach to the network. Usually, without this, there is little use for this class.
@@ -154,7 +155,7 @@ class OwlModemRN4 {
 
   /** APN Management */
   OwlModemPDN pdn;
-  
+
   /** TLS set up */
   OwlModemSSLRN4 ssl;
 
