@@ -157,6 +157,10 @@ void OwlModemAT::spinProcessInput() {
         int chunk_len;
 
         if (lf_pos == nullptr) {
+          if (input_buffer_slice.s[input_buffer_slice.len - 1] == '\r') {
+            // Annoying corner case: '\r' has arrived while '\n' is to be read next. '\r' doesn't belong to the string
+            --input_buffer_slice.len;
+          }
           chunk_len = input_buffer_slice.len;
         } else {
           // try to be liberal and allow both "\r\n" and plain "\n" line endings
@@ -191,7 +195,7 @@ void OwlModemAT::spinProcessInput() {
             spinProcessLine();
             line_state_ = line_state_t::idle;
             // line_buffer_.len = 0;
-            input_buffer_slice.s++;  // skip '\r'
+            input_buffer_slice.s++;  // skip line delimiter
             input_buffer_slice.len--;
           }
         }

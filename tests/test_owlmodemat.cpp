@@ -89,6 +89,24 @@ TEST_CASE("OwlModemAT breaks input into lines correctly", "[linesplit]") {
     REQUIRE(line_2_found);
     REQUIRE(line_4_found);
   }
+
+  SECTION("Split 0D0A") {
+    INFO("Testing input where line delimeters are split between readings");
+    TestSerial serial;
+    OwlModemAT modem(&serial);
+
+    received_strings.clear();
+    serial.mt_to_te = "\r\nLINE0\r";
+    modem.spin();
+
+    REQUIRE(received_strings.empty());
+
+    serial.mt_to_te = "\n";
+    modem.spin();
+
+    REQUIRE(received_strings.size() == 1);
+    REQUIRE(received_strings[0] == "LINE0");
+  }
 }
 
 std::vector<std::pair<std::string, std::string>> test_urcs;
