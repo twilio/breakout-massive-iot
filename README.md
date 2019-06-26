@@ -3,8 +3,8 @@ Twilio Massive SDK is a library that enables you to connect your narrowband-powe
 
 The SDK is designed to be cross-platform, so certain integration work is needed to make it work on your device. If you want to get started right away, you can use one of our example ports:
 
-  * Arduino library (**TODO: LINK**) for [Twilio Narrowband Alfa developer kit](https://www.twilio.com/docs/wireless/quickstart/alfa-developer-kit). Connects over DTLS-protected CoAP to Twilio Commands back end.
-  * Sample Zephyr application (**TODO: LINK**) for [FRDM-F64X](https://www.nxp.com/support/developer-resources/evaluation-and-development-boards/freedom-development-boards/mcu-boards/freedom-development-platform-for-kinetis-k64-k63-and-k24-mcus:FRDM-K64F) with [Dragino NB-IoT Shield](https://wiki.dragino.com/index.php?title=NB-IoT_Shield). Connects over TLS-protected MQTT to a MQTT broker.
+  * [Arduino library](https://github.com/twilio/Breakout_Massive_SDK_Arduino) for [Twilio Narrowband Alfa developer kit](https://www.twilio.com/docs/wireless/quickstart/alfa-developer-kit). Connects over DTLS-protected CoAP to Twilio Commands back end.
+  * [Sample Zephyr application](https://github.com/twilio/Breakout_Massive_SDK_Zephyr) for [FRDM-F64X](https://www.nxp.com/support/developer-resources/evaluation-and-development-boards/freedom-development-boards/mcu-boards/freedom-development-platform-for-kinetis-k64-k63-and-k24-mcus:FRDM-K64F) with [Dragino NB-IoT Shield](https://wiki.dragino.com/index.php?title=NB-IoT_Shield). Connects over TLS-protected MQTT to a MQTT broker.
 
 The library consist of the following parts arranged in respective directories under `src`:
 
