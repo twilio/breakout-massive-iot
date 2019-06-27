@@ -39,15 +39,17 @@
  * @param remote_ip - where the data came from - in case the socket was connected, this might be missing
  * @param remote_port - the remote port where the data came from
  * @param data - the binary data
+ * @param priv - private data
  */
-typedef void (*OwlModem_UDPDataHandler_f)(uint8_t socket, str remote_ip, uint16_t remote_port, str data);
+typedef void (*OwlModem_UDPDataHandler_f)(uint8_t socket, str remote_ip, uint16_t remote_port, str data, void* priv);
 
 /**
  * Handler for TCP data
  * @param socket - the socket the data was received on
  * @param data - the binary data
+ * @param priv - private data
  */
-typedef void (*OwlModem_TCPDataHandler_f)(uint8_t socket, str data);
+typedef void (*OwlModem_TCPDataHandler_f)(uint8_t socket, str data, void* priv);
 
 /**
  * Handler for TCP new connection accept
@@ -57,15 +59,17 @@ typedef void (*OwlModem_TCPDataHandler_f)(uint8_t socket, str data);
  * @param listening_socket - the listening socket where this new connection was accepted
  * @param local_ip - the local IP where this connection was accepted
  * @param local_port - the local port of this connection
+ * @param priv - private data
  */
 typedef void (*OwlModem_TCPAcceptHandler_f)(uint8_t new_socket, str remote_ip, uint16_t remote_port,
-                                            uint8_t listening_socket, str local_ip, uint16_t local_port);
+                                            uint8_t listening_socket, str local_ip, uint16_t local_port, void* priv);
 
 /**
  * Handler for TCP socket closed event
  * @param socket - the socket which was closed
+ * @param priv - private data
  */
-typedef void (*OwlModem_SocketClosedHandler_f)(uint8_t socket);
+typedef void (*OwlModem_SocketClosedHandler_f)(uint8_t socket, void* priv);
 
 
 
@@ -79,10 +83,15 @@ class OwlModemSocketStatus {
 
   at_uso_protocol_e protocol = AT_USO_Protocol__none;
 
-  OwlModem_UDPDataHandler_f handler_UDPData           = 0;
-  OwlModem_TCPDataHandler_f handler_TCPData           = 0;
-  OwlModem_TCPAcceptHandler_f handler_TCPAccept       = 0;
-  OwlModem_SocketClosedHandler_f handler_SocketClosed = 0;
+  // TODO: consider using just one piece of private data for all handlers
+  OwlModem_UDPDataHandler_f handler_UDPData           = nullptr;
+  void* handler_UDPData_priv                          = nullptr;
+  OwlModem_TCPDataHandler_f handler_TCPData           = nullptr;
+  void* handler_TCPData_priv                          = nullptr;
+  OwlModem_TCPAcceptHandler_f handler_TCPAccept       = nullptr;
+  void* handler_TCPAccept_priv                        = nullptr;
+  OwlModem_SocketClosedHandler_f handler_SocketClosed = nullptr;
+  void* handler_SocketClosed_priv                     = nullptr;
 
   void setOpened(at_uso_protocol_e protocol);
   void setClosed();
@@ -95,7 +104,7 @@ class OwlModemSocketStatus {
  */
 class OwlModemSocket {
  public:
-  OwlModemSocket(OwlModemAT *atModem);
+  OwlModemSocket(OwlModemAT* atModem);
 
   /**
    * Handler for Unsolicited Response Codes from the modem - called from OwlModem on timer, when URC is received
@@ -104,7 +113,7 @@ class OwlModemSocket {
    * @param instance - pointer to OwlModemSocket instance
    * @return if the line was handled
    */
-  static bool processURC(str urc, str data, void *instance);
+  static bool processURC(str urc, str data, void* instance);
 
   /**
    * Handler for incoming data - triggers receive and handler calling for UDP/TCP queued packets.
@@ -122,7 +131,7 @@ class OwlModemSocket {
    * @param out_socket - socket id
    * @return 1 on success, 0 on failure
    */
-  int open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t *out_socket);
+  int open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t* out_socket);
 
   /**
    * Close socket
@@ -153,7 +162,7 @@ class OwlModemSocket {
    * @param out_error - output error
    * @return 1 on success, 0 on failure
    */
-  int getError(at_uso_error_e *out_error);
+  int getError(at_uso_error_e* out_error);
 
   /**
    * Connect a socket to a remote IP and port. Use this for both UDP and TCP. For UDP, this allows the use of
@@ -161,9 +170,12 @@ class OwlModemSocket {
    * @param socket - socket id
    * @param remote_ip - remote IP
    * @param remote_port - remote port
+   * @param cb - callback for closed connection
+   * @param cb_priv - private data for the callback
    * @return 1 on success, 0 on failure
    */
-  int connect(uint8_t socket, str remote_ip, uint16_t remote_port, OwlModem_SocketClosedHandler_f cb);
+  int connect(uint8_t socket, str remote_ip, uint16_t remote_port, OwlModem_SocketClosedHandler_f cb,
+              void* cb_priv = nullptr);
 
   /**
    * Send data over UDP
@@ -172,7 +184,7 @@ class OwlModemSocket {
    * @param out_bytes_sent - output number of bytes actually sent
    * @return 1 on success, 0 on failure or not all bytes sent
    */
-  int sendUDP(uint8_t socket, str data, int *out_bytes_sent);
+  int sendUDP(uint8_t socket, str data, int* out_bytes_sent);
 
   /**
    * Send data over TCP
@@ -181,7 +193,7 @@ class OwlModemSocket {
    * @param out_bytes_sent - output number of bytes actually sent
    * @return 1 on success or partial success (not all bytes written), 0 on failure
    */
-  int sendTCP(uint8_t socket, str data, int *out_bytes_sent);
+  int sendTCP(uint8_t socket, str data, int* out_bytes_sent);
 
   /**
    * Send data over UDP to remote_ip:remote_port
@@ -206,7 +218,7 @@ class OwlModemSocket {
    * connected to a particular remote IP:port.
    * @return 1 on success, 0 on failure
    */
-  int getQueuedForReceive(uint8_t socket, int *out_receive_tcp, int *out_receive_udp, int *out_receivefrom_udp);
+  int getQueuedForReceive(uint8_t socket, int* out_receive_tcp, int* out_receive_udp, int* out_receivefrom_udp);
 
   /**
    * Do Receive on UDP when the socket was connected to a remote IP:port - typically called on +UUSORD events.
@@ -217,7 +229,7 @@ class OwlModemSocket {
    * @return 1 on success, 0 on failure
    * @return
    */
-  int receiveUDP(uint8_t socket, uint16_t len, str *out_data, int max_data_len);
+  int receiveUDP(uint8_t socket, uint16_t len, str* out_data, int max_data_len);
 
   /**
    * Do Receive on TCP after the socket was connected to a remote IP:port - typically called on +UUSORD events.
@@ -228,7 +240,7 @@ class OwlModemSocket {
    * @return 1 on success, 0 on failure
    * @return
    */
-  int receiveTCP(uint8_t socket, uint16_t len, str *out_data, int max_data_len);
+  int receiveTCP(uint8_t socket, uint16_t len, str* out_data, int max_data_len);
 
   /**
    * Do ReceiveFrom on UDP - typically called on +UUSORF events.
@@ -240,7 +252,7 @@ class OwlModemSocket {
    * @param max_data_len - maximum bytes to write in out_data
    * @return 1 on success, 0 on failure
    */
-  int receiveFromUDP(uint8_t socket, uint16_t len, str *out_remote_ip, uint16_t *out_remote_port, str *out_data,
+  int receiveFromUDP(uint8_t socket, uint16_t len, str* out_remote_ip, uint16_t* out_remote_port, str* out_data,
                      int max_data_len);
 
   /**
@@ -248,89 +260,112 @@ class OwlModemSocket {
    * @param socket - socket id to listen on
    * @param local_port - local port to listen on
    * @param handler - (re-)set the handler for data to this function
+   * @param handler_priv - private data for the callback
    * @return 1 on success, 0 on failure
    */
-  int listenUDP(uint8_t socket, uint16_t local_port, OwlModem_UDPDataHandler_f handler);
+  int listenUDP(uint8_t socket, uint16_t local_port, OwlModem_UDPDataHandler_f handler, void* handler_priv = nullptr);
 
   /**
-   * Start listening on a port for incoming TCP data. Call handler function when data is available.
+   * Register handler for incoming TCP data
    * @param socket - socket id to listen on
-   * @param local_port - local port to listen on
    * @param handler - (re-)set the handler for data to this function
+   * @param handler_priv - private data for the callback
    * @return 1 on success, 0 on failure
    */
-  int listenTCP(uint8_t socket, uint16_t local_port, OwlModem_TCPDataHandler_f handler_tcp_data);
+  int listenTCP(uint8_t socket, OwlModem_TCPDataHandler_f handler_tcp_data, void* handler_priv = nullptr);
 
   /**
    * Start listening for new TCP connection on a socket. Call handler function when new connection is accepted.
    * @param socket - socket id to listen on
    * @param local_port - local port to listen on
-   * @param handler - (re-)set the handler for data to this function
+   * @param handler_tcp_accept - callback for accepted connection
+   * @param handler_socket_closed - callback for closed socket
+   * @param handler_tcp_data - callback for incoming UDP data
+   * @param handler_tcp_accept_priv - private data for accepted connection callback
+   * @param handler_socket_closed_priv - private data for closed socket callback
+   * @param handler_tcp_data_priv - private data for the callback
+
    * @return 1 on success, 0 on failure
    */
   int acceptTCP(uint8_t socket, uint16_t local_port, OwlModem_TCPAcceptHandler_f handler_tcp_accept,
-                OwlModem_SocketClosedHandler_f handler_socket_closed, OwlModem_TCPDataHandler_f handler_tcp_data);
+                OwlModem_SocketClosedHandler_f handler_socket_closed, OwlModem_TCPDataHandler_f handler_tcp_data,
+                void* handler_tcp_accept_priv = nullptr, void* handler_socket_closed_priv = nullptr,
+                void* handler_tcp_data_pirv = nullptr);
 
   /**
    * Open UDP socket and set the listen callback in one operation.
    * @param local_port - local port to listen on
-   * @param handler_data - callback for incoming UDP data
    * @param out_socket - output socket id
+   * @param handler_data - callback for incoming UDP data
+   * @param handler_data_priv - private data for the callback
    * @return 1 on success, 0 on failure
    */
-  int openListenUDP(uint16_t local_port, OwlModem_UDPDataHandler_f handler_data, uint8_t *out_socket);
+  int openListenUDP(uint16_t local_port, uint8_t* out_socket, OwlModem_UDPDataHandler_f handler_data,
+                    void* hanlder_data_priv = nullptr);
 
   /**
    * Open UDP socket, connect to the remote IP:port and set the listen callback in one operation.
    * @param remote_ip - remote IP
    * @param remote_port - remote port
-   * @param handler_data - callback for incoming UDP data
    * @param out_socket - output socket id
+   * @param handler_data - callback for incoming UDP data
+   * @param handler_data_priv - private data for the callback
    * @return 1 on success, 0 on failure
    */
-  int openConnectUDP(str remote_ip, uint16_t remote_port, OwlModem_UDPDataHandler_f handler_data, uint8_t *out_socket);
+  int openConnectUDP(str remote_ip, uint16_t remote_port, uint8_t* out_socket, OwlModem_UDPDataHandler_f handler_data,
+                     void* hanlder_data_priv = nullptr);
 
   /**
    * Open UDP socket, connect to the remote IP:port and set the listen callback in one operation.
    * @param local_port - local port to listen on
    * @param remote_ip - remote IP
    * @param remote_port - remote port
-   * @param handler_data - callback for incoming UDP data
    * @param out_socket - output socket id
+   * @param handler_data - callback for incoming UDP data
+   * @param handler_data_priv - private data for the callback
    * @return 1 on success, 0 on failure
    */
-  int openListenConnectUDP(uint16_t local_port, str remote_ip, uint16_t remote_port,
-                           OwlModem_UDPDataHandler_f handler_data, uint8_t *out_socket);
+  int openListenConnectUDP(uint16_t local_port, str remote_ip, uint16_t remote_port, uint8_t* out_socket,
+                           OwlModem_UDPDataHandler_f handler_data, void* handler_data_priv = nullptr);
 
   /**
    * TCP client - Open TCP socket, connect to the remote IP:port and set the listen callback in one operation.
    * @param local_port - local port to listen on
    * @param remote_ip - remote IP
    * @param remote_port - remote port
-   * @param handler_data - callback for incoming UDP data
    * @param out_socket - output socket id
+   * @param handler_close - callback for closed socket
+   * @param handler_data - callback for incoming TCP data
+   * @param handler_close_priv - private data for closed socket callback
+   * @param handler_data_priv - private data for data callback
    * @return 1 on success, 0 on failure
    */
-  int openListenConnectTCP(uint16_t local_port, str remote_ip, uint16_t remote_port,
+  int openListenConnectTCP(uint16_t local_port, str remote_ip, uint16_t remote_port, uint8_t* out_socket,
                            OwlModem_SocketClosedHandler_f handler_close, OwlModem_TCPDataHandler_f handler_data,
-                           uint8_t *out_socket);
+                           void* handler_close_priv = nullptr, void* handler_data_priv = nullptr);
 
   /**
    * TCP server - Open TCP socket, set into accept mode (listening for incoming connection) and set handler for data
    * and close to be carried-over to the accepted connections.
    * @param local_port - local port to listen on
-   * @param handler_data - callback for incoming UDP data
    * @param out_socket - output socket id
+   * @param handler_accept - callback for accepted connection
+   * @param handler_close - callback for closed socket
+   * @param handler_data - callback for incoming UDP data
+   * @param handler_accept_priv - private data for accepted connection callback
+   * @param handler_close_priv - private data for closed socket callback
+   * @param handler_data_priv - private data for the callback
    * @return 1 on success, 0 on failure
    */
-  int openAcceptTCP(uint16_t local_port, OwlModem_TCPAcceptHandler_f handler_accept,
-                    OwlModem_SocketClosedHandler_f handler_socket_close, OwlModem_TCPDataHandler_f handler_data,
-                    uint8_t *out_socket);
+  int openAcceptTCP(uint16_t local_port, uint8_t* out_socket, OwlModem_TCPAcceptHandler_f handler_accept,
+                    OwlModem_SocketClosedHandler_f handler_close, OwlModem_TCPDataHandler_f handler_data,
+                    void* handler_accept_priv = nullptr, void* handler_close_priv = nullptr,
+                    void* handler_data_priv = nullptr);
 
 
 
  private:
-  OwlModemAT *atModem_ = 0;
+  OwlModemAT* atModem_ = 0;
 
 
   OwlModemSocketStatus status[MODEM_MAX_SOCKETS];
@@ -343,7 +378,7 @@ class OwlModemSocket {
   str udp_data = {.s = udp_buffer, .len = 0};
 
   int send(uint8_t socket, str data);
-  int receive(uint8_t socket, uint16_t len, str *out_data, int max_data_len);
+  int receive(uint8_t socket, uint16_t len, str* out_data, int max_data_len);
 
   bool processURCConnected(str urc, str data);
   bool processURCClosed(str urc, str data);
