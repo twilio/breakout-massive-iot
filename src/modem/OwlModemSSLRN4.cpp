@@ -99,7 +99,7 @@ int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
 
   if (strstr(input.s, "---B")) {
     char *start = strstr(input.s, "MII");
-    Base64decodeMD5(digest, start);
+    owl_base64decode_md5(digest, start);
   } else {
     struct MD5Context context;
     MD5Init(&context);

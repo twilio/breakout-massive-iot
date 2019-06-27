@@ -389,16 +389,16 @@ TEST_CASE("Base64 encoding/decoding works correctly", "[base64]") {
       "shun\nThe frumious Bandersnatch!";
 
   // Encode with utils/base64.h
-  char* data_b64_utils = new char[Base64encode_len(data.length())];
-  Base64encode(data_b64_utils, data.c_str(), data.length());
-  char* data_plain_utils = new char[Base64decode_len(data_b64_utils)];
-  Base64decode(data_plain_utils, data_b64_utils);
+  char* data_b64_utils = new char[owl_base64encode_len(data.length())];
+  owl_base64encode(data_b64_utils, (unsigned char*)data.c_str(), data.length());
+  unsigned char* data_plain_utils = new unsigned char[owl_base64decode_len(data_b64_utils)];
+  owl_base64decode(data_plain_utils, data_b64_utils);
 
-  REQUIRE(Base64decode_len(data_b64_utils) == data.length());
-  REQUIRE(std::string(data_plain_utils, Base64decode_len(data_b64_utils)) == data);
+  REQUIRE(owl_base64decode_len(data_b64_utils) == data.length());
+  REQUIRE(std::string((char*)data_plain_utils, owl_base64decode_len(data_b64_utils)) == data);
 
   // Encode with OpenSSL
-  char* data_b64_openssl = new char[Base64encode_len(data.length())];
+  char* data_b64_openssl = new char[owl_base64encode_len(data.length())];
   EVP_EncodeBlock((unsigned char*)data_b64_openssl, (unsigned char*)data.c_str(), data.length());
   REQUIRE(strcmp(data_b64_utils, data_b64_openssl) == 0);
 
@@ -421,12 +421,12 @@ TEST_CASE("MD5 hash on base64-encoded data is calculated correctly", "[md5][base
   MD5Final(plain_digest, &ctx);
 
   // Encode data
-  char* data_b64 = new char[Base64encode_len(data.length())];
-  Base64encode(data_b64, data.c_str(), data.length());
+  char* data_b64 = new char[owl_base64encode_len(data.length())];
+  owl_base64encode(data_b64, (unsigned char*)data.c_str(), data.length());
 
   // Hash encoded data
   unsigned char base64_digest[16];
-  Base64decodeMD5(base64_digest, data_b64);
+  owl_base64decode_md5(base64_digest, data_b64);
   REQUIRE(memcmp(base64_digest, plain_digest, 16) == 0);
 }
 
