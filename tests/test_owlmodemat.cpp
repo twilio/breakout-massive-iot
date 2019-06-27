@@ -3,6 +3,11 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "modem/OwlModemAT.h"
+#include "utils/md5.h"
+#include "utils/base64.h"
+#include <openssl/md5.h>
+#include <openssl/evp.h>
+#include <string>
 
 std::vector<std::string> received_strings;
 
@@ -353,6 +358,76 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
   REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
 
   REQUIRE(std::string(response.s, response.len) == "");
+}
+
+TEST_CASE("MD5 hash is calculated correctly", "[md5]") {
+  std::string data =
+      "Beware the Jabberwock, my son!\nThe jaws that bite, the claws that catch!\nBeware the Jubjub bird, and "
+      "shun\nThe frumious Bandersnatch!";
+
+  /* Hash with utils/md5.c */
+  struct MD5Context ctx;
+  MD5Init(&ctx);
+  MD5Update(&ctx, (unsigned char*)data.c_str(), data.length());
+
+  unsigned char utils_digest[16];
+  MD5Final(utils_digest, &ctx);
+
+  /* Hash with OpenSSL*/
+  MD5_CTX ctx_openssl;
+  REQUIRE(MD5_Init(&ctx_openssl) == 1);
+  REQUIRE(MD5_Update(&ctx_openssl, (unsigned char*)data.c_str(), data.length()) == 1);
+
+  unsigned char openssl_digest[16];
+  REQUIRE(MD5_Final(openssl_digest, &ctx_openssl));
+  REQUIRE(memcmp(utils_digest, openssl_digest, 16) == 0);
+}
+
+TEST_CASE("Base64 encoding/decoding works correctly", "[base64]") {
+  std::string data =
+      "Beware the Jabberwock, my son!\nThe jaws that bite, the claws that catch!\nBeware the Jubjub bird, and "
+      "shun\nThe frumious Bandersnatch!";
+
+  // Encode with utils/base64.h
+  char* data_b64_utils = new char[Base64encode_len(data.length())];
+  Base64encode(data_b64_utils, data.c_str(), data.length());
+  char* data_plain_utils = new char[Base64decode_len(data_b64_utils)];
+  Base64decode(data_plain_utils, data_b64_utils);
+
+  REQUIRE(Base64decode_len(data_b64_utils) == data.length());
+  REQUIRE(std::string(data_plain_utils, Base64decode_len(data_b64_utils)) == data);
+
+  // Encode with OpenSSL
+  char* data_b64_openssl = new char[Base64encode_len(data.length())];
+  EVP_EncodeBlock((unsigned char*)data_b64_openssl, (unsigned char*)data.c_str(), data.length());
+  REQUIRE(strcmp(data_b64_utils, data_b64_openssl) == 0);
+
+  delete[] data_b64_utils;
+  delete[] data_plain_utils;
+  delete[] data_b64_openssl;
+}
+
+TEST_CASE("MD5 hash on base64-encoded data is calculated correctly", "[md5][base64]") {
+  std::string data =
+      "Beware the Jabberwock, my son!\nThe jaws that bite, the claws that catch!\nBeware the Jubjub bird, and "
+      "shun\nThe frumious Bandersnatch!";
+
+  // Hash plain data
+  struct MD5Context ctx;
+  MD5Init(&ctx);
+  MD5Update(&ctx, (unsigned char*)data.c_str(), data.length());
+
+  unsigned char plain_digest[16];
+  MD5Final(plain_digest, &ctx);
+
+  // Encode data
+  char* data_b64 = new char[Base64encode_len(data.length())];
+  Base64encode(data_b64, data.c_str(), data.length());
+
+  // Hash encoded data
+  unsigned char base64_digest[16];
+  Base64decodeMD5(base64_digest, data_b64);
+  REQUIRE(memcmp(base64_digest, plain_digest, 16) == 0);
 }
 
 #endif  // ARDUINO

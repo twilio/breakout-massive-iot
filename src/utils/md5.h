@@ -38,9 +38,4 @@ void MD5Transform(uint32 buf[4], const unsigned char in[64]);
 }
 #endif
 
-/*
- * This is needed to make RSAREF happy on some MS-DOS compilers.
- */
-typedef struct MD5Context MD5_CTX;
-
 #endif /* !MD5_H */
