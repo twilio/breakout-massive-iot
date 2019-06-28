@@ -322,12 +322,23 @@ void OwlModemMQTTBG96::processURCQmtrecv(str data) {
   }
 
   str topic = token;
+  if (topic.len >= 2) {
+    // strip quotes
+    topic.s++;
+    topic.len -= 2;
+  }
 
   if (!str_tok(data, ",", &token)) {
     command_success_[qmtuns] = false;
     return;
   }
   str message = token;
+  if (message.len >= 2) {
+    // strip quotes
+    message.s++;
+    message.len -= 2;
+  }
+
 
   message_callback_(topic, message);
 }
