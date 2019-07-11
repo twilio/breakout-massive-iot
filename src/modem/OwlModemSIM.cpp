@@ -66,7 +66,9 @@ int OwlModemSIM::getICCID(str *out_response) {
 }
 
 int OwlModemSIM::getIMSI(str *out_response) {
-  return atModem_->doCommandBlocking("AT+CIMI", 1000, out_response) == AT_Result_Code__OK;
+  int result = atModem_->doCommandBlocking("AT+CIMI", 1000, out_response);
+  str_strip(out_response);
+  return (result == AT_Result_Code__OK);
 }
 
 static str s_cnum = STRDECL("+CNUM: ");

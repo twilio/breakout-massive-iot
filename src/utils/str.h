@@ -124,6 +124,7 @@ int str_to_hex(char *dst, int max_dst_len, str src);
 int str_find(str x, str y);
 int str_find_char(str x, char *y);
 
+void str_strip(str *s);
 
 #ifdef __cplusplus
 }
