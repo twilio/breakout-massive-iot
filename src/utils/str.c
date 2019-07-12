@@ -275,3 +275,8 @@ int str_find_char(str x, char *y) {
     if (memcmp(x.s + i, y, len) == 0) return i;
   return -1;
 }
+
+void str_strip(str *s) {
+  while (s->len > 0 && isspace(s->s[s->len - 1]))
+    s->len--;
+}
