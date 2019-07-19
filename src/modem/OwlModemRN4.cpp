@@ -415,10 +415,10 @@ int OwlModemRN4::setHostDeviceInformation(str purpose) {
   if (!purpose.len) purpose = s_dev_kit;
   computeHostDeviceInformation(purpose);
 
-  AT.commandSprintf("AT+UHOSTDEV=%.*s", hostdevice_information.len, hostdevice_information.s);
   LOG(L_INFO, "Setting HostDeviceInformation to: %.*s\r\n", hostdevice_information.len, hostdevice_information.s);
 
   for (int attempts = 10; attempts > 0; attempts--) {
+    AT.commandSprintf("AT+UHOSTDEV=%.*s", hostdevice_information.len, hostdevice_information.s);
     if (AT.doCommandBlocking(1000, nullptr) == AT_Result_Code__OK) {
       LOG(L_INFO, ".. setting HostDeviceInformation successful.\r\n");
       registered = true;
