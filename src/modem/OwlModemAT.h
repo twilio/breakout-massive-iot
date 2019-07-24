@@ -99,7 +99,7 @@ class OwlModemAT {
    */
   bool sendData(str data);
   bool sendData(char *data) {
-    return sendData({.s = data, .len = strlen(data)});
+    return sendData({.s = data, .len = static_cast<int>(strlen(data))});
   }
 
   /**

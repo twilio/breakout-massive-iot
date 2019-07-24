@@ -322,7 +322,7 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
       "of his pursuit will reward his pains with some delight; and he will have reason to think his time not ill "
       "spent, even when he cannot much boast of any great acquisition.";
   std::string command_string = "AT_QFUPL=\"file\"," + std::to_string(data_string.length());
-  str data                   = {.s = (char*)data_string.c_str(), .len = data_string.length()};
+  str data                   = {.s = (char*)data_string.c_str(), .len = static_cast<int>(data_string.length())};
 
   REQUIRE(modem.startATCommand(command_string.c_str(), 1000, data));
   REQUIRE(serial.te_to_mt == (command_string + "\r\n"));
