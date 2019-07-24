@@ -25,7 +25,6 @@
 #define __OWL_UTILS_H__
 
 #include "str.h"
-#include "bin_t.h"
 #include "log.h"
 
 #endif

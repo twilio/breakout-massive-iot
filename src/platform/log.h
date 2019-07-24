@@ -27,7 +27,6 @@
 #include <stdint.h>
 
 #include "../utils/str.h"
-#include "../utils/bin_t.h"
 
 /*
  * Log levels
@@ -98,15 +97,6 @@ void owl_log_empty(log_level_t level, const char *format, ...);
  * @param x - the str to log
  */
 void owl_log_str(log_level_t level, str x);
-
-/**
- * Log a binary bin_t in a nice binary dump format. Use the LOGSTR() macro instead, to also get the function and
- * line information from the code.
- * @param level - level to output on
- * @param x - the bin_t to log
- */
-void owl_log_bin_t(log_level_t level, bin_t x);
-
 
 #ifdef __cplusplus
 }

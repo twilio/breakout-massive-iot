@@ -60,7 +60,6 @@
 #define LOGE(level, format, ...) owl_log_empty(level, format, ##__VA_ARGS__)
 #define LOGF(level, format, ...) owl_log(level, format, ##__VA_ARGS__)
 #define LOGSTR(level, x) owl_log_str(level, x)
-#define LOGBIN(level, x) owl_log_bin_t(level, x)
 
 #else
 

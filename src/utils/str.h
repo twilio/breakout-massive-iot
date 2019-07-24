@@ -69,7 +69,7 @@ typedef struct {
       if (!(dst).s) {                                                                                                  \
         LOG(L_ERR, "Error allocating %d bytes\r\n", (src).len);                                                        \
         (dst).len = 0;                                                                                                 \
-        goto out_of_memory;                                                                                            \
+        break;                                                                                                         \
       }                                                                                                                \
       memcpy((dst).s, (src).s, (src).len);                                                                             \
       (dst).len = (src).len;                                                                                           \
