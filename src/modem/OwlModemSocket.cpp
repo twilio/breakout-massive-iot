@@ -127,7 +127,7 @@ bool OwlModemSocket::processURCClosed(str urc, str data) {
     this->status[socket].is_connected = 0;
     if (!this->status[socket].handler_SocketClosed)
       LOG(L_NOTICE,
-          "Received URC socket-closed for socket %d [%.*s]. Set a handler when you call connect(), acceptTCP(), etc"
+          "Received URC socket-closed for socket %d. Set a handler when you call connect(), acceptTCP(), etc"
           " if you wish to receive this event in your application\r\n",
           socket);
     else

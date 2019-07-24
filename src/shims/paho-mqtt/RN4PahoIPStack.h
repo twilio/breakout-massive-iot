@@ -8,7 +8,7 @@ class RN4PahoIPStack {
   RN4PahoIPStack(OwlModemSocket* modem) : modem_{modem} {
   }
 
-  bool connect(const char* hostname, int port, bool use_tls = true, int tls_id = 0);
+  bool connect(const char* hostname, int port, bool use_tls = false, int tls_id = 0);
   int disconnect();
 
   int read(unsigned char* buffer, int len, int timeout_ms);
