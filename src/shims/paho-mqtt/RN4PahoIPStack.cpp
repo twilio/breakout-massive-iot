@@ -4,24 +4,34 @@
 
 bool RN4PahoIPStack::connect(const char* hostname, int port, bool use_tls, int tls_id) {
   if (!modem_->open(AT_USO_Protocol__TCP, RN4_PAHO_LOCAL_PORT, &socket_id_)) {
+    LOG(L_ERR, "failed to open socket\r\n");
     return false;
   }
 
   if (use_tls) {
     if (!modem_->enableTLS(socket_id_, tls_id)) {
-      modem_->close(socket_id_);
+      LOG(L_ERR, "failed to enable tls\r\n");
+      if (!modem_->close(socket_id_)) {
+        LOG(L_ERR, "failed to close socket [%ld]\r\n", socket_id_);
+      }
       return false;
     }
   } else {
     if (!modem_->disableTLS(socket_id_)) {
-      modem_->close(socket_id_);
+      LOG(L_ERR, "failed to disable tls\r\n");
+      if (!modem_->close(socket_id_)) {
+        LOG(L_ERR, "failed to close socket [%ld]\r\n", socket_id_);
+      }
       return false;
     }
   }
 
   str hostname_str = STRDECL(hostname);
   if (!modem_->connect(socket_id_, hostname_str, port, socketCloseHandler, this)) {
-    modem_->close(socket_id_);
+    LOG(L_ERR, "failed to connect socket [%ld]\r\n", socket_id_);
+    if (!modem_->close(socket_id_)) {
+      LOG(L_ERR, "failed to close socket [%ld]\r\n", socket_id_);
+    }
     return false;
   }
 

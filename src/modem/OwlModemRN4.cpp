@@ -232,16 +232,29 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
 
 int OwlModemRN4::waitForNetworkRegistration(char *purpose, int testing_variant) {
   bool network_ready = false;
+  bool needs_reset = false;
   owl_time_t timeout = owl_time() + 30 * 1000;
   while (true) {
     at_cereg_stat_e stat;
     if (network.getEPSRegistrationStatus(0, &stat, 0, 0, 0, 0, 0)) {
       network_ready = (stat == AT_CEREG__Stat__Registered_Home_Network || stat == AT_CEREG__Stat__Registered_Roaming);
       if (network_ready) break;
+      if (stat == AT_CEREG__Stat__Registration_Denied || stat == AT_CREG__Stat__Not_Registered) needs_reset = true;
     }
     if ((testing_variant & Testing__Timeout_Network_Registration_30_Sec) != 0 && owl_time() > timeout) {
       LOG(L_ERR, "Bailing out from network registration - for testing purposes only\r\n");
       return 0;
+    }
+    if (needs_reset && owl_time() > timeout) {
+      LOG(L_INFO, "Failed to connect to network, resetting\r\n");
+      needs_reset = false;
+      if (!network.setModemFunctionality(AT_CFUN__FUN__Modem_Silent_Reset__No_SIM_Reset, 0))
+        LOG(L_WARN, "Error resetting modem\r\n");
+      // wait for the modem to come back
+      while (!isPoweredOn()) {
+        LOG(L_INFO, "..  - waiting for modem to power back on after reset\r\n");
+        owl_delay(100);
+      }
     }
     LOG(L_NOTICE, ".. waiting for network registration\r\n");
     owl_delay(2000);
@@ -415,10 +428,10 @@ int OwlModemRN4::setHostDeviceInformation(str purpose) {
   if (!purpose.len) purpose = s_dev_kit;
   computeHostDeviceInformation(purpose);
 
-  AT.commandSprintf("AT+UHOSTDEV=%.*s", hostdevice_information.len, hostdevice_information.s);
   LOG(L_INFO, "Setting HostDeviceInformation to: %.*s\r\n", hostdevice_information.len, hostdevice_information.s);
 
   for (int attempts = 10; attempts > 0; attempts--) {
+    AT.commandSprintf("AT+UHOSTDEV=%.*s", hostdevice_information.len, hostdevice_information.s);
     if (AT.doCommandBlocking(1000, nullptr) == AT_Result_Code__OK) {
       LOG(L_INFO, ".. setting HostDeviceInformation successful.\r\n");
       registered = true;
