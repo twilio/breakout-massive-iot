@@ -48,6 +48,13 @@ bool OwlModemSSLRN4::setDeviceCert(str cert) {
   bool write_cert = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name, cert);
 
   if (write_cert) {
+    if (isPEM(cert)) {
+      // remove garbage, most likely trailing zeros
+      while (cert.s[cert.len - 1] != '-') {
+        --cert.len;
+      }
+    }
+
     atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s, (int)cert.len);
 
@@ -63,6 +70,13 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey) {
   bool write_pkey = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Key, s_key_name, pkey);
 
   if (write_pkey) {
+    if (isPEM(pkey)) {
+      // remove garbage, most likely trailing zeros
+      while (pkey.s[pkey.len - 1] != '-') {
+        --pkey.len;
+      }
+    }
+
     atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Key, s_key_name.len, s_key_name.s, (int)pkey.len);
 
@@ -78,6 +92,13 @@ bool OwlModemSSLRN4::setServerCA(str ca) {
   bool write_ca = shouldWriteCertificate(USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name, ca);
 
   if (write_ca) {
+    if (isPEM(ca)) {
+      // remove garbage, most likely trailing zeros
+      while (ca.s[ca.len - 1] != '-') {
+        --ca.len;
+      }
+    }
+
     atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s, (int)ca.len);
 
@@ -89,6 +110,11 @@ bool OwlModemSSLRN4::setServerCA(str ca) {
   return true;
 }
 
+bool OwlModemSSLRN4::isPEM(str input) {
+  // contains at least '-----BEGIN ... ----- ... -----END -----', therefore 30 characters
+  return input.s && input.len > 30 && strstr(input.s, "-----B");
+}
+
 int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
   if (max_len < 33) {
     // output buffer not big enough
@@ -97,7 +123,7 @@ int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
 
   unsigned char digest[16];
 
-  if (strstr(input.s, "---B")) {
+  if (isPEM(input)) {
     char *start = strstr(input.s, "MII");
     owl_base64decode_md5(digest, start);
   } else {
