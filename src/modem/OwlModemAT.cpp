@@ -15,10 +15,13 @@ void OwlModemAT::spinProcessLine() {
   spinProcessLineTestpoint(line_buffer_);
 #endif
 
+  LOG(L_DBG, "**Line in** \r\n");
+  LOGSTR(L_DBG, line_buffer_);
   switch (state_) {
     case modem_state_t::idle:
     case modem_state_t::send_data:
     case modem_state_t::response_ready:
+      LOG(L_DBG, "**Line in: idle** \r\n");
       if (!processURC()) {  // feed it to URC parser, if no success process as a special prefix
         processPrefix();
       }
@@ -26,21 +29,26 @@ void OwlModemAT::spinProcessLine() {
 
     case modem_state_t::wait_result:
     case modem_state_t::wait_prompt:
+      LOG(L_DBG, "**Line in: wait** \r\n");
       if (processURC()) {
+        LOG(L_DBG, "**Line in: wait - is URC** \r\n");
         break;
       }
       at_result_code_e code = tryParseCode();
 
       if (code == AT_Result_Code__unknown) {
+        LOG(L_DBG, "**Line in: wait - not a code** \r\n");
         processPrefix();
         appendLineToResponse();
         break;
       }
 
       if (state_ == modem_state_t::wait_prompt && code == AT_Result_Code__CONNECT) {
+        LOG(L_DBG, "**Line in: wait - process prompt** \r\n");
         processInputPrompt();
       } else {
         last_response_code_ = code;
+        LOG(L_DBG, "**Line in: wait - response code %d** \r\n", code);
 
         if (response_handler_ != nullptr &&
             response_handler_(last_response_code_, response_buffer_, response_handler_param_)) {
@@ -119,14 +127,19 @@ void OwlModemAT::spinProcessInput() {
 
   input_buffer_.len = serial_->read(reinterpret_cast<uint8_t *>(input_buffer_.s),
                                     (available > AT_INPUT_BUFFER_SIZE) ? AT_INPUT_BUFFER_SIZE : available);
+  LOG(L_DBG, "**Term in** \r\n");
+  LOGSTR(L_DBG, input_buffer_);
 
   str input_buffer_slice = input_buffer_;
   do {
     switch (line_state_) {
       case line_state_t::idle: {
         const char *lf_pos = (char *)memchr(input_buffer_slice.s, '\n', input_buffer_slice.len);
+        LOG(L_DBG, "**Term state idle** \r\n");
+        LOGSTR(L_DBG, input_buffer_slice);
 
         if (lf_pos == nullptr) {
+          LOG(L_DBG, "**Term state idle: no lf** \r\n");
           return;  // not in a a string and no string begginning here, ignore
         }
 
@@ -140,9 +153,12 @@ void OwlModemAT::spinProcessInput() {
       }
 
       case line_state_t::in_line: {
+        LOG(L_DBG, "**Term state in_line** \r\n");
+        LOGSTR(L_DBG, input_buffer_slice);
         // Special case: current command is expecting input prompt, and we get '>' symbol in the
         //   beginning of the line. In this case no line end delimiter ("\r\n") is expected
         if (line_buffer_.len == 0 && state_ == modem_state_t::wait_prompt && input_buffer_slice.s[0] == '>') {
+          LOG(L_DBG, "**Term state in_line: input prompt** \r\n");
           processInputPrompt();
           input_buffer_slice.s++;
           input_buffer_slice.len--;
@@ -157,16 +173,21 @@ void OwlModemAT::spinProcessInput() {
         int chunk_len;
 
         if (lf_pos == nullptr) {
+          LOG(L_DBG, "**Term state in_line: no_lf** \r\n");
           if (input_buffer_slice.s[input_buffer_slice.len - 1] == '\r') {
             // Annoying corner case: '\r' has arrived while '\n' is to be read next. '\r' doesn't belong to the string
+            LOG(L_DBG, "**Term state in_line: cr_correction** \r\n");
             --input_buffer_slice.len;
           }
           chunk_len = input_buffer_slice.len;
         } else {
+          LOG(L_DBG, "**Term state in_line: has_lf** \r\n");
           // try to be liberal and allow both "\r\n" and plain "\n" line endings
           if ((lf_pos != input_buffer_slice.s) && (*(lf_pos - 1) == '\r')) {
+            LOG(L_DBG, "**Term state in_line: has_lf - has_cr** \r\n");
             chunk_len = (int)(lf_pos - 1 - input_buffer_slice.s);
           } else {
+            LOG(L_DBG, "**Term state in_line: has_lf - no_cr** \r\n");
             chunk_len = (int)(lf_pos - input_buffer_slice.s);
           }
         }
@@ -177,6 +198,7 @@ void OwlModemAT::spinProcessInput() {
         }
 
         if (chunk_len != 0) {
+          LOG(L_DBG, "**Term state in_line: append chunk** \r\n");
           memcpy(line_buffer_.s + line_buffer_.len, input_buffer_slice.s, chunk_len);
           line_buffer_.len += chunk_len;
           input_buffer_slice.s += chunk_len;
@@ -184,14 +206,17 @@ void OwlModemAT::spinProcessInput() {
         }
 
         if (lf_pos != nullptr) {
+          LOG(L_DBG, "**Term state in_line: lf_found** \r\n");
           // end of line found, process the line
           if (line_buffer_.len == 0) {
             // empty line means we're run into "\r\n\r\n" sequence. Probably
             //   means that we treated end marker as begin marker, so run again
             //   using "end" as "begin"
+            LOG(L_DBG, "**Term state in_line: lf_found - empty line** \r\n");
             line_state_ = line_state_t::idle;
           } else {
             // normal line, process
+            LOG(L_DBG, "**Term state in_line: lf_found - processing line** \r\n");
             spinProcessLine();
             line_state_ = line_state_t::idle;
             // line_buffer_.len = 0;
@@ -336,6 +361,8 @@ bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_t
   ignore_first_line_   = (line_state_ != line_state_t::idle || serial_->available() != 0);
   response_buffer_.len = 0;
 
+  LOG(L_DBG, "**Term out** \r\n");
+  LOGSTR(L_DBG, command_buffer_);
   if (!sendData(command_buffer_)) {
     LOG(L_ERR, "sendCommand [%.*s] failed: writing to serial device failed\r\n", command_buffer_.len,
         command_buffer_.s);
