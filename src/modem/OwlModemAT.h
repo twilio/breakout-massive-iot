@@ -203,15 +203,9 @@ class OwlModemAT {
 
 
  private:
-  enum class line_state_t {
-    idle,
-    in_line,
-  };
-
   IOwlSerial *serial_{nullptr};
 
   modem_state_t state_{modem_state_t::idle};
-  line_state_t line_state_{line_state_t::idle};
 
   str command_data_ = {nullptr, 0};
   uint16_t command_data_term_{0xFFFF};

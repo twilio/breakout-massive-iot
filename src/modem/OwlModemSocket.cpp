@@ -630,6 +630,11 @@ static str s_usord = STRDECL("+USORD: ");
 
 int OwlModemSocket::receive(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
+
+  //if (status[socket].len_outstanding_receive_data <= 0) {
+  //  return 1;
+  //}
+
   atModem_->commandSprintf("AT+USORD=%u,%u", socket, len);
   int result = (atModem_->doCommandBlocking(1000, &socket_response) == AT_Result_Code__OK);
   if (!result) {
