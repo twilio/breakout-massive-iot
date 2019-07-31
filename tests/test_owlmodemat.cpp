@@ -64,8 +64,9 @@ TEST_CASE("OwlModemAT breaks input into lines correctly", "[linesplit]") {
 
     modem.spin();
 
-    REQUIRE(received_strings ==
-            std::vector<std::string>({"LINE1", "LINE2"}));  // LINE0 lacks leading \r\n and should be ignored
+    // LINE0 lacks leading '\r\n', but it still processed to be nice to
+    //   misbehaving modems
+    REQUIRE(received_strings == std::vector<std::string>({"LINE0", "LINE1", "LINE2"}));
   }
 
   SECTION("fuzzy input") {
