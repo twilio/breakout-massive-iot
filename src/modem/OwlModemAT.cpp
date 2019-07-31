@@ -119,91 +119,75 @@ void OwlModemAT::spinProcessInput() {
 
   input_buffer_.len = serial_->read(reinterpret_cast<uint8_t *>(input_buffer_.s),
                                     (available > AT_INPUT_BUFFER_SIZE) ? AT_INPUT_BUFFER_SIZE : available);
+  LOG(L_DBG, "Input from the modem\r\n");
+  LOGSTR(L_DBG, input_buffer_);
 
   str input_buffer_slice = input_buffer_;
   do {
-    switch (line_state_) {
-      case line_state_t::idle: {
-        const char *lf_pos = (char *)memchr(input_buffer_slice.s, '\n', input_buffer_slice.len);
+    // Special case: current command is expecting input prompt, and we get '>' symbol in the
+    //   beginning of the line. In this case no line end delimiter ("\r\n") is expected
+    if (line_buffer_.len == 0 && state_ == modem_state_t::wait_prompt && input_buffer_slice.s[0] == '>') {
+      processInputPrompt();
+      input_buffer_slice.s++;
+      input_buffer_slice.len--;
+      continue;
+    }
 
-        if (lf_pos == nullptr) {
-          return;  // not in a a string and no string begginning here, ignore
-        }
+    // General case: normal input string delimited by "\r\n" from both ends
 
-        int tail = (int)(lf_pos - input_buffer_slice.s +
-                         1);  // should not be larger than input_buffer_slice.len according to memchr contract
-        input_buffer_slice.s += tail;
-        input_buffer_slice.len -= tail;
-        line_buffer_.len = 0;
-        line_state_      = line_state_t::in_line;
-        continue;
+    const char *lf_pos = (char *)memchr(input_buffer_slice.s, '\n', input_buffer_slice.len);
+
+    int chunk_len;
+
+    if (lf_pos == nullptr) {
+      if (input_buffer_slice.s[input_buffer_slice.len - 1] == '\r') {
+        // Annoying corner case: '\r' has arrived while '\n' is to be read next. '\r' doesn't belong to the string
+        --input_buffer_slice.len;
       }
+      chunk_len = input_buffer_slice.len;
+    } else {
+      // try to be liberal and allow both "\r\n" and plain "\n" line endings
+      if ((lf_pos != input_buffer_slice.s) && (*(lf_pos - 1) == '\r')) {
+        chunk_len = (int)(lf_pos - 1 - input_buffer_slice.s);
+      } else {
+        chunk_len = (int)(lf_pos - input_buffer_slice.s);
+      }
+    }
 
-      case line_state_t::in_line: {
-        // Special case: current command is expecting input prompt, and we get '>' symbol in the
-        //   beginning of the line. In this case no line end delimiter ("\r\n") is expected
-        if (line_buffer_.len == 0 && state_ == modem_state_t::wait_prompt && input_buffer_slice.s[0] == '>') {
-          processInputPrompt();
-          input_buffer_slice.s++;
-          input_buffer_slice.len--;
-          line_state_ = line_state_t::idle;
-          continue;
-        }
+    if (line_buffer_.len + chunk_len > AT_LINE_BUFFER_SIZE) {
+      LOG(L_ERR, "AT input string is too long, truncating\r\n");
+      chunk_len = AT_LINE_BUFFER_SIZE - line_buffer_.len;
+    }
 
-        // General case: normal input string delimited by "\r\n" from both ends
+    if (chunk_len != 0) {
+      memcpy(line_buffer_.s + line_buffer_.len, input_buffer_slice.s, chunk_len);
+      line_buffer_.len += chunk_len;
+      input_buffer_slice.s += chunk_len;
+      input_buffer_slice.len -= chunk_len;
+    }
 
-        const char *lf_pos = (char *)memchr(input_buffer_slice.s, '\n', input_buffer_slice.len);
-
-        int chunk_len;
-
-        if (lf_pos == nullptr) {
-          if (input_buffer_slice.s[input_buffer_slice.len - 1] == '\r') {
-            // Annoying corner case: '\r' has arrived while '\n' is to be read next. '\r' doesn't belong to the string
-            --input_buffer_slice.len;
-          }
-          chunk_len = input_buffer_slice.len;
-        } else {
-          // try to be liberal and allow both "\r\n" and plain "\n" line endings
-          if ((lf_pos != input_buffer_slice.s) && (*(lf_pos - 1) == '\r')) {
-            chunk_len = (int)(lf_pos - 1 - input_buffer_slice.s);
-          } else {
-            chunk_len = (int)(lf_pos - input_buffer_slice.s);
-          }
-        }
-
-        if (line_buffer_.len + chunk_len > AT_LINE_BUFFER_SIZE) {
-          LOG(L_ERR, "AT input string is too long, truncating\r\n");
-          chunk_len = AT_LINE_BUFFER_SIZE - line_buffer_.len;
-        }
-
-        if (chunk_len != 0) {
-          memcpy(line_buffer_.s + line_buffer_.len, input_buffer_slice.s, chunk_len);
-          line_buffer_.len += chunk_len;
-          input_buffer_slice.s += chunk_len;
-          input_buffer_slice.len -= chunk_len;
-        }
-
-        if (lf_pos != nullptr) {
-          // end of line found, process the line
-          if (line_buffer_.len == 0) {
-            // empty line means we're run into "\r\n\r\n" sequence. Probably
-            //   means that we treated end marker as begin marker, so run again
-            //   using "end" as "begin"
-            line_state_ = line_state_t::idle;
-          } else {
-            // normal line, process
-            spinProcessLine();
-            line_state_ = line_state_t::idle;
-            // line_buffer_.len = 0;
-            input_buffer_slice.s++;  // skip line delimiter
+    if (lf_pos != nullptr) {
+      // end of line found, process the line
+      if (line_buffer_.len == 0) {
+        // empty line means we're run into "\r\n\r\n" sequence. Probably
+        //   means that we treated end marker as begin marker, so run again
+        //   using "end" as "begin"
+        // still need to eat delimiters
+        while (input_buffer_slice.len != 0) {
+          if (input_buffer_slice.s[0] == '\r' || input_buffer_slice.s[0] == '\n') {
+            input_buffer_slice.s++;
             input_buffer_slice.len--;
+          } else {
+            break;
           }
         }
-        continue;
+      } else {
+        // normal line, process
+        spinProcessLine();
+        line_buffer_.len = 0;
+        input_buffer_slice.s++;  // skip line delimiter
+        input_buffer_slice.len--;
       }
-
-      default:
-        return;  // we should never get here
     }
   } while (input_buffer_slice.len != 0);
 }
@@ -332,10 +316,10 @@ bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_t
     return false;
   }
 
-  // don't append what we've got so far to the result
-  ignore_first_line_   = (line_state_ != line_state_t::idle || serial_->available() != 0);
   response_buffer_.len = 0;
 
+  LOG(L_DBG, "Output to the modem \r\n");
+  LOGSTR(L_DBG, command_buffer_);
   if (!sendData(command_buffer_)) {
     LOG(L_ERR, "sendCommand [%.*s] failed: writing to serial device failed\r\n", command_buffer_.len,
         command_buffer_.s);
