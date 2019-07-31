@@ -56,7 +56,8 @@
 
 #define IS_PRINTABLE(level) (level <= debug_level || level == L_CLI)
 
-#define LOG(level, format, ...) owl_log(level, "%s():%d " format, __func__, __LINE__, ##__VA_ARGS__)
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define LOG(level, format, ...) owl_log(level, "%s:%d:%s() " format, __FILENAME__, __LINE__, __func__, ##__VA_ARGS__)
 #define LOGE(level, format, ...) owl_log_empty(level, format, ##__VA_ARGS__)
 #define LOGF(level, format, ...) owl_log(level, format, ##__VA_ARGS__)
 #define LOGSTR(level, x) owl_log_str(level, x)
