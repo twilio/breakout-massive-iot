@@ -18,22 +18,46 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_
     return false;
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
-                           USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
-    return false;
+  if (hasServerCA) {
+    atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
+        USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
+  } else {
+    atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
+        USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name);
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
-                           USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
-    return false;
+  if (hasDeviceCert) {
+    atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
+        USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
+  } else {
+    atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
+        USECPRF_OP_CODE_Client_Certificate_Internal_Name);
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
   }
 
-  atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
-                           USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
-    return false;
+  if (hasDevicePkey) {
+    atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
+        USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
+  } else {
+    atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
+        USECPRF_OP_CODE_Client_Private_Key_Internal_Name);
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+      return false;
+    }
   }
 
   atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_profile_slot, USECPRF_OP_CODE_Cipher_Suite, cipher_suite);
@@ -63,6 +87,7 @@ bool OwlModemSSLRN4::setDeviceCert(str cert) {
     }
   }
 
+  hasDeviceCert = true;
   return true;
 }
 
@@ -85,6 +110,7 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey) {
     }
   }
 
+  hasDevicePkey = true;
   return true;
 }
 
@@ -107,6 +133,7 @@ bool OwlModemSSLRN4::setServerCA(str ca) {
     }
   }
 
+  hasServerCA = true;
   return true;
 }
 
