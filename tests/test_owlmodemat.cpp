@@ -431,4 +431,35 @@ TEST_CASE("MD5 hash on base64-encoded data is calculated correctly", "[md5][base
   REQUIRE(memcmp(base64_digest, plain_digest, 16) == 0);
 }
 
+TEST_CASE("Ensure conversion from uint8_t to binary string occurs correctly", "[binary_str]") {
+  char output_[8];
+  str output = { .s = output_, .len = 0 };
+
+  str zero_8 = STRDECL("00000000");
+  str zero_4 = STRDECL("0000");
+  str nine_4 = STRDECL("1001");
+  str supernine_8 = STRDECL("11111001");
+
+  uint8_t_to_binary_str(0, &output, 8);
+  REQUIRE(str_equal(zero_8, output) == 1);
+
+  uint8_t_to_binary_str(0, &output, 4);
+  REQUIRE(str_equal(zero_4, output) == 1);
+
+  uint8_t_to_binary_str(9, &output, 4);
+  REQUIRE(str_equal(nine_4, output) == 1);
+
+  uint8_t_to_binary_str(249, &output, 4);
+  REQUIRE(str_equal(nine_4, output) == 1);
+
+  uint8_t_to_binary_str(249, &output, 8);
+  REQUIRE(str_equal(supernine_8, output) == 1);
+
+  uint8_t_to_binary_str(249, &output, 9);
+  REQUIRE(str_equal(supernine_8, output) == 1);
+
+  uint8_t_to_binary_str(249, &output, 0);
+  REQUIRE(str_equal(supernine_8, output) == 1);
+}
+
 #endif  // ARDUINO

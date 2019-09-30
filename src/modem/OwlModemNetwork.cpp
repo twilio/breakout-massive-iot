@@ -267,11 +267,71 @@ bool OwlModemNetwork::processURCEPSRegistration(str urc, str data) {
 
 
 
+static str s_edrx      = STRDECL("+CEDRXP");
+static str s_edrx_full = STRDECL("+CEDRXP: ");
+
+void OwlModemNetwork::parseEDRXStatus(str response, at_edrx_access_technology_e *out_network,
+                                      at_edrx_cycle_length_e *out_requested_value,
+                                      at_edrx_cycle_length_e *out_provided_value,
+                                      at_edrx_paging_time_window_e *out_paging_time_window) {
+  int cnt   = 0;
+  str token = {0};
+  if (out_network) *out_network = AT_EDRX_Access_Technology__Unspecified;
+  if (out_requested_value) *out_requested_value = AT_EDRX_Cycle_Length__Unspecified;
+  if (out_provided_value) *out_provided_value = AT_EDRX_Cycle_Length__Unspecified;
+  if (out_paging_time_window) *out_paging_time_window = AT_EDRX_Paging_Time_Window__Unspecified;
+
+  str data = response;
+  str_skipover_prefix(&data, s_edrx_full);
+  while (str_tok(data, ",", &token)) {
+    switch (cnt) {
+      case 0:
+        if (out_network) *out_network = (at_edrx_access_technology_e)str_to_long_int(token, 10);
+        break;
+      case 1:
+        if (out_requested_value) *out_requested_value = (at_edrx_cycle_length_e)str_to_uint32_t(token, 2);
+        break;
+      case 2:
+        if (out_provided_value) *out_provided_value = (at_edrx_cycle_length_e)str_to_uint32_t(token, 2);
+        break;
+      case 3:
+        if (out_paging_time_window) *out_paging_time_window = (at_edrx_paging_time_window_e)str_to_uint32_t(token, 2);
+        break;
+      default:
+        LOG(L_ERR, "Not handled %d(-th) token [%.*s] data was [%.*s]\r\n", cnt, token.len, token.s, data.len, data.s);
+    }
+    cnt++;
+  }
+}
+
+bool OwlModemNetwork::processURCEDRXResult(str urc, str data) {
+  if (!str_equal(urc, s_edrx)) {
+    return false;
+  }
+
+  this->parseEDRXStatus(data, &last_edrx_status.network, &last_edrx_status.requested_value,
+        &last_edrx_status.provided_value, &last_edrx_status.paging_time_window);
+
+  if (!this->handler_edrx) {
+    LOG(L_INFO,
+        "Received URC for eDRX [%.*s]. Set a handler with setHandlerEDRXURC() if you wish to "
+        "receive this event in your application\r\n",
+        data.len, data.s);
+  } else {
+    (this->handler_edrx)(last_edrx_status.network, last_edrx_status.requested_value,
+        last_edrx_status.provided_value, last_edrx_status.paging_time_window);
+  }
+
+  return true;
+}
+
+
+
 bool OwlModemNetwork::processURC(str urc, str data, void *instance) {
   OwlModemNetwork *inst = reinterpret_cast<OwlModemNetwork *>(instance);
 
   return inst->processURCNetworkRegistration(urc, data) || inst->processURCGPRSRegistration(urc, data) ||
-         inst->processURCEPSRegistration(urc, data);
+         inst->processURCEPSRegistration(urc, data) || inst->processURCEDRXResult(urc, data);
 }
 
 
@@ -516,4 +576,62 @@ int OwlModemNetwork::getSignalQuality(at_csq_rssi_e *out_rssi, at_csq_qual_e *ou
     cnt++;
   }
   return 1;
+}
+
+int OwlModemNetwork::setEDRXMode(at_edrx_mode_e n,
+    at_edrx_access_technology_e t,
+    at_edrx_cycle_length_e v) {
+  if (t == AT_EDRX_Access_Technology__Unspecified) {
+    atModem_->commandSprintf("AT+CEDRXS=%d", n);
+  } else {
+    if ((n == AT_EDRX_Mode__Enabled || n == AT_EDRX_Mode__Enabled_With_URC) &&
+        (v != AT_EDRX_Cycle_Length__Unspecified)) {
+      char v_str_[8];
+      str v_str = { .s = v_str_, .len = 0 };
+      uint8_t_to_binary_str(v, &v_str, 4);
+      atModem_->commandSprintf("AT+CEDRXS=%d,%d,\"%.*s\"", n, t, v_str.len, v_str.s);
+    } else {
+      atModem_->commandSprintf("AT+CEDRXS=%d,%d", n, t);
+    }
+  }
+
+  return atModem_->doCommandBlocking(180 * 1000, nullptr) == AT_Result_Code__OK;
+}
+
+void OwlModemNetwork::setHandlerEDRXURC(OwlModem_EDRXStatusChangeHandler_f cb) {
+  this->handler_edrx = cb;
+}
+
+int OwlModemNetwork::setPSMMode(at_psm_mode_e n,
+    at_psm_tau_interval pt_interval,
+    uint8_t pt,
+    at_psm_active_time_interval at_interval,
+    uint8_t at) {
+  if (n == AT_PSM_Mode__Enabled &&
+      pt_interval == AT_PSM_TAU_Interval__Timer_Unspecified &&
+      at_interval != AT_PSM_Active_Time_Interval__Timer_Unspecified) {
+    LOG(L_ERR, "PSM enable called with Active Time Interval but no TAU Interval which is invalid.\r\n");
+    return 0;
+  }
+
+  if (n != AT_PSM_Mode__Enabled || pt_interval == AT_PSM_TAU_Interval__Timer_Unspecified) {
+    atModem_->commandSprintf("AT+CPSMS=%d", n);
+  } else {
+    uint8_t pt_value = ((uint8_t)pt_interval << 5) | (pt & 0x1F); // msb 3 bits are interval, lsb 5 bits are value
+    char pt_str_[8];
+    str pt_str = { .s = pt_str_, .len = 0 };
+    uint8_t_to_binary_str(pt_value, &pt_str, 8);
+
+    if (at_interval == AT_PSM_Active_Time_Interval__Timer_Unspecified) {
+      atModem_->commandSprintf("AT+CPSMS=%d,,,\"%.*s\"", n, pt_str.len, pt_str.s);
+    } else {
+      uint8_t at_value = ((uint8_t)at_interval << 5) | (at & 0x1F); // msb 3 bits are interval, lsb 5 bits are value
+      char at_str_[8];
+      str at_str = { .s = at_str_, .len = 0 };
+      uint8_t_to_binary_str(at_value, &at_str, 8);
+      atModem_->commandSprintf("AT+CPSMS=%d,,,\"%.*s\",\"%.*s\"", n, pt_str.len, pt_str.s, at_str.len, at_str.s);
+    }
+  }
+
+  return atModem_->doCommandBlocking(180 * 1000, nullptr) == AT_Result_Code__OK;
 }
