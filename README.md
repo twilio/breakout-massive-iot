@@ -1,9 +1,9 @@
-# Twilio Massive SDK
+# Twilio Breakout SDK for Massive IoT
 Twilio Massive SDK is a library that enables you to connect your cellular-connected devices to Twilio and your own back end services.
 
 The SDK is designed to be cross-platform, so certain integration work is needed to make it work on your device. If you want to get started right away, you can use our example port:
 
-  * [Arduino library](https://github.com/twilio/Breakout_Massive_SDK_Arduino) for [Twilio Narrowband Alfa developer kit](https://www.twilio.com/docs/wireless/quickstart/alfa-developer-kit). Demonstrates communicating to an MQTT broker over TLS with Certificates or Username/Password.
+  * [Twilio Breakout SDK for Massive IoT - with Arduino support](https://github.com/twilio/Breakout_Massive_SDK_Arduino) for [Twilio Narrowband Alfa developer kit](https://www.twilio.com/docs/wireless/quickstart/alfa-developer-kit). Demonstrates communicating to an MQTT broker over TLS with Certificates or Username/Password.
 
 The library consist of the following parts arranged in respective directories under `src`:
 
