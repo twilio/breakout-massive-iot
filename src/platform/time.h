@@ -29,9 +29,7 @@
 typedef uint64_t owl_time_t;
 
 /**
- * Non-wrapping time in milliseconds. Must be called at least once every 49 days or so to detect the wrap-around.
- * @return time since start in milliseconds - wrap-around is not a concern, but do use owl_time_millis_t and uint64_t
- * arithmetic in your code
+ * @return time since start in milliseconds
  */
 owl_time_t owl_time();
 

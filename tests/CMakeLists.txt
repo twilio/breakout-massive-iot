@@ -20,11 +20,24 @@ set(MODEM_SOURCES
 	${MODEM_DIR}/OwlModemAT.cpp
 	)
 
+set(NMEA_SOURCES
+	${MODEM_DIR}/enums.cpp
+	${MODEM_DIR}/../utils/str.c
+	${MODEM_DIR}/OwlNMEA0183.cpp
+	)
+
 add_executable(test_owlmodemat
 	test_owlmodemat.cpp
 	test_platform.cpp
 	${MODEM_SOURCES}
 )
+
+add_executable(test_nmea
+	test_nmea.cpp
+	test_platform.cpp
+	${NMEA_SOURCES}
+)
+
 
 target_link_libraries(test_owlmodemat
   ${OPENSSL_LIBRARIES}
@@ -32,4 +45,5 @@ target_link_libraries(test_owlmodemat
 
 if(ENABLE_COVERAGE)
 	add_coverage(test_owlmodemat)
+	add_coverage(test_nmea)
 endif()

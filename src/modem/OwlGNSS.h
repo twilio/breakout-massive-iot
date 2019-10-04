@@ -1,5 +1,5 @@
 /*
- * OwlModemGNSS.h
+ * OwlGNSS.h
  * Twilio Breakout SDK
  *
  * Copyright (c) 2018 Twilio, Inc.
@@ -18,22 +18,17 @@
  */
 
 /**
- * \file OwlModemGNSS.h - API for retrieving various data from the GNSS card
+ * \file OwlGNSS.h - API for retrieving various data from the GNSS card
  */
 
-#ifndef __OWL_MODEM_GNSS_H__
-#define __OWL_MODEM_GNSS_H__
+#ifndef __OWL_GNSS_H__
+#define __OWL_GNSS_H__
 
+#include "OwlNMEA0183.h"
 #include "enums.h"
 
 
-
-#define MODEM_GNSS_RESPONSE_BUFFER_SIZE 1024
-
-
-
-class OwlModemRN4;
-
+#define GNSS_VALID_MS 30000 // GNSS indication is valid for 30 seconds
 
 typedef struct {
   bool valid; /**< If this data is a valid valid (true) or there is a navigation receiver warning (false) */
@@ -72,9 +67,9 @@ typedef struct {
 /**
  * Twilio wrapper for the serial interface to a GNSS module
  */
-class OwlModemGNSS {
+class OwlGNSS {
  public:
-  OwlModemGNSS(OwlModemRN4 *owlModem);
+  OwlGNSS(IOwlSerial *serial) : nmea0183_ {serial} {}
 
 
   /**
@@ -88,14 +83,12 @@ class OwlModemGNSS {
    * Log a position data structure.
    * @param level - log level to show on
    */
-  void logGNSSData(log_level_t level, gnss_data_t data);
-
+  static void logGNSSData(log_level_t level, gnss_data_t data);
 
  private:
-  OwlModemRN4 *owlModem = 0;
-
-  char GNSS_response_buffer[MODEM_GNSS_RESPONSE_BUFFER_SIZE];
-  str_mut GNSS_response = {.s = GNSS_response_buffer, .len = 0};
+  OwlNMEA0183 nmea0183_;
+  gnss_data_t lastdata_ = {.valid = false};
+  owl_time_t lastdata_ts_ = 0;
 };
 
 #endif
