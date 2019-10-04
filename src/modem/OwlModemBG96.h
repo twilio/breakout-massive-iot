@@ -108,5 +108,5 @@ class OwlModemBG96 {
  private:
   bool has_modem_port{false};
 
-  static void initCheckPIN(str message);
+  static void initCheckPIN(str message, void* priv);
 };

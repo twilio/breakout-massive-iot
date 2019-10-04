@@ -30,8 +30,9 @@
 /**
  * Handler function signature for SIM card ready/not ready - use this to check the PIN status.
  * @param message - the last message regarding PIN from the card
+ * @param priv    - private pointer given at callback registration
  */
-typedef void (*OwlModem_PINHandler_f)(str message);
+typedef void (*OwlModem_PINHandler_f)(str message, void *priv);
 
 
 
@@ -79,12 +80,13 @@ class OwlModemSIM {
    * Set the function to handle PIN requests from the SIM card
    * @param cb - callback function
    */
-  void setHandlerPIN(OwlModem_PINHandler_f cb);
+  void setHandlerPIN(OwlModem_PINHandler_f cb, void *priv = nullptr);
 
 
 
   /** Not private because the initialization might call this in a special way */
   OwlModem_PINHandler_f handler_cpin = 0;
+  void *handler_cpin_priv            = nullptr;
 
  private:
   OwlModemAT *atModem_ = 0;

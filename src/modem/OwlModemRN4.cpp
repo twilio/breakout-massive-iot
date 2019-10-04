@@ -85,7 +85,9 @@ int OwlModemRN4::isPoweredOn() {
  * Handler for PIN, used during initialization
  * @param message
  */
-void initCheckPIN(str message) {
+void initCheckPIN(str message, void *priv) {
+  (void)priv;
+
   if (!str_equal_prefix_char(message, "READY")) {
     LOG(L_ERR,
         "PIN status [%.*s] != READY and PIN handler not set. Please disable the SIM card PIN, or set a handler.\r\n",
@@ -212,7 +214,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
   }
 
   if (SIM.handler_cpin) saved_handler = SIM.handler_cpin;
-  SIM.setHandlerPIN(initCheckPIN);
+  SIM.setHandlerPIN(initCheckPIN, nullptr);
   if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Error checking PIN status\r\n");
   }
