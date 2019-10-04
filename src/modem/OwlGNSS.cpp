@@ -27,7 +27,7 @@
 
 int OwlGNSS::getGNSSData(gnss_data_t *out_data) {
   str nmea_line;
-  int line_count = 0;
+  int line_count               = 0;
   constexpr int max_line_count = 50;
 
   do {
@@ -49,9 +49,9 @@ int OwlGNSS::getGNSSData(gnss_data_t *out_data) {
 
     nmea_line.s += 6;
     nmea_line.len -= 6;
-    
+
     str token = {.s = nullptr, .len = 0};
-    memset(&lastdata_, 0, sizeof(lastdata_)); // Also sets 'valid' to false
+    memset(&lastdata_, 0, sizeof(lastdata_));  // Also sets 'valid' to false
     lastdata_ts_ = owl_time();
 
     for (int cnt = 0; str_tok_with_empty_tokens(nmea_line, ",", &token); cnt++) {
@@ -69,7 +69,7 @@ int OwlGNSS::getGNSSData(gnss_data_t *out_data) {
           break;
         case 1:
           // V/A
-	  lastdata_.valid = token.len >= 1 && token.s[0] == 'A';
+          lastdata_.valid = token.len >= 1 && token.s[0] == 'A';
           break;
         case 2:
           // llll.lll
@@ -87,8 +87,7 @@ int OwlGNSS::getGNSSData(gnss_data_t *out_data) {
         case 4:
           // yyyyy.yyy
           if (token.len < 9) break;
-          lastdata_.position.longitude_degrees =
-              (token.s[0] - '0') * 100 + (token.s[1] - '0') * 10 + token.s[2] - '0';
+          lastdata_.position.longitude_degrees = (token.s[0] - '0') * 100 + (token.s[1] - '0') * 10 + token.s[2] - '0';
           token.s += 3;
           token.len -= 3;
           lastdata_.position.longitude_minutes = str_to_double(token);

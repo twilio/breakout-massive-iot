@@ -48,11 +48,14 @@ TEST_CASE("OwlNMEA0183 breaks parses correctly", "[nmea0183]") {
     TestSerial serial;
     OwlNMEA0183 nmea(&serial);
 
-    serial.mt_to_te = "very long chunk of garbage quickly taking all the space in the input buffer of NMEA0183 parser\r\n";
+    serial.mt_to_te =
+        "very long chunk of garbage quickly taking all the space in the input buffer of NMEA0183 parser\r\n";
 
     for (int i = 0; i < 10; i++) {
       serial.mt_to_te += "garbage\r\ngarbage$SMMES,0,1,2*5A\r\ngarbage$SMMES,0,1,3*5A\r\ngarbage$SMMES,0,1,2*5A\r\n";
-      serial.mt_to_te += "$SMMES,a,very,long,message,which,does,not,fit,the,message,buffer,because,it,is,longer,than,100,charachers,does,have,a,good,checksum,though*08\r\n";
+      serial.mt_to_te +=
+          "$SMMES,a,very,long,message,which,does,not,fit,the,message,buffer,because,it,is,longer,than,100,charachers,"
+          "does,have,a,good,checksum,though*08\r\n";
     }
 
     int line_count = 0;
@@ -61,13 +64,12 @@ TEST_CASE("OwlNMEA0183 breaks parses correctly", "[nmea0183]") {
 
       if (ret.s != nullptr) {
         REQUIRE(str_to_string(ret) == "SMMES,0,1,2");
-	line_count++;
+        line_count++;
       }
     }
 
     REQUIRE(line_count == 20);
   }
-
 }
 
 #endif  // ARDUINO

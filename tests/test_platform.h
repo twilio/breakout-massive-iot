@@ -30,4 +30,4 @@ class TestSerial : public IOwlSerial {
 };
 
 
-#endif // TEST_PLATFORM_H__
+#endif  // TEST_PLATFORM_H__

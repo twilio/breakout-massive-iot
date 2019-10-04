@@ -28,7 +28,7 @@
 #include "enums.h"
 
 
-#define GNSS_VALID_MS 30000 // GNSS indication is valid for 30 seconds
+#define GNSS_VALID_MS 30000  // GNSS indication is valid for 30 seconds
 
 typedef struct {
   bool valid; /**< If this data is a valid valid (true) or there is a navigation receiver warning (false) */
@@ -69,7 +69,8 @@ typedef struct {
  */
 class OwlGNSS {
  public:
-  OwlGNSS(IOwlSerial *serial) : nmea0183_ {serial} {}
+  OwlGNSS(IOwlSerial *serial) : nmea0183_{serial} {
+  }
 
 
   /**
@@ -87,7 +88,7 @@ class OwlGNSS {
 
  private:
   OwlNMEA0183 nmea0183_;
-  gnss_data_t lastdata_ = {.valid = false};
+  gnss_data_t lastdata_   = {.valid = false};
   owl_time_t lastdata_ts_ = 0;
 };
 

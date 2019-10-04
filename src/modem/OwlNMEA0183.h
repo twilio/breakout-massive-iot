@@ -5,16 +5,18 @@
 #include "../utils/utils.h"
 
 #define NMEA_INPUT_BUFFER_SIZE 64
-#define NMEA_LINE_BUFFER_SIZE 100   // Maximum message size according to NMEA0183 is 82 characters, but let's be graceful
+#define NMEA_LINE_BUFFER_SIZE 100  // Maximum message size according to NMEA0183 is 82 characters, but let's be graceful
 class OwlNMEA0183 {
  public:
-  OwlNMEA0183(IOwlSerial *serial) : serial_(serial) {}
+  OwlNMEA0183(IOwlSerial *serial) : serial_(serial) {
+  }
 
   str getLine();
-  bool bufEmpty() {return serial_->available() == 0;}
+  bool bufEmpty() {
+    return serial_->available() == 0;
+  }
 
  private:
-
   bool checksumOk();
   enum class nmea_state_t {
     idle,
