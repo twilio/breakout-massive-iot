@@ -448,20 +448,20 @@ typedef enum {
 char *at_psm_mode_text(at_psm_mode_e code);
 
 typedef enum {
-  AT_PSM_TAU_Interval__000                   = 0x0, /**< 10 minutes */
-  AT_PSM_TAU_Interval__001                   = 0x1, /**< 1 hour */
-  AT_PSM_TAU_Interval__010                   = 0x2, /**< 10 hours */
-  AT_PSM_TAU_Interval__011                   = 0x3, /**< 2 seconds */
-  AT_PSM_TAU_Interval__100                   = 0x4, /**< 30 seconds */
-  AT_PSM_TAU_Interval__101                   = 0x5, /**< 1 minute */
-  AT_PSM_TAU_Interval__110                   = 0x6, /**< 320 hours */
+  AT_PSM_TAU_Interval__10_Minutes            = 0x0, /**< 10 minutes (000) */
+  AT_PSM_TAU_Interval__1_Hour                = 0x1, /**< 1 hour (001) */
+  AT_PSM_TAU_Interval__10_Hours              = 0x2, /**< 10 hours (010) */
+  AT_PSM_TAU_Interval__2_Seconds             = 0x3, /**< 2 seconds (011) */
+  AT_PSM_TAU_Interval__30_Seconds            = 0x4, /**< 30 seconds (100) */
+  AT_PSM_TAU_Interval__1_Minute              = 0x5, /**< 1 minute (101) */
+  AT_PSM_TAU_Interval__320_Hours             = 0x6, /**< 320 hours (110) */
   AT_PSM_TAU_Interval__Timer_Unspecified     = 0x7, /**< unspecified - used for either off or default values */
 } at_psm_tau_interval;
 
 typedef enum {
-  AT_PSM_Active_Time_Interval__000               = 0x0, /**< 2 seconds */
-  AT_PSM_Active_Time_Interval__001               = 0x1, /**< 1 minute */
-  AT_PSM_Active_Time_Interval__010               = 0x2, /**< 1 decihour == 6 minutes */
+  AT_PSM_Active_Time_Interval__2_Seconds         = 0x0, /**< 2 seconds (000) */
+  AT_PSM_Active_Time_Interval__1_Minute          = 0x1, /**< 1 minute (001) */
+  AT_PSM_Active_Time_Interval__1_Decihour        = 0x2, /**< 1 decihour == 6 minutes (010) */
   AT_PSM_Active_Time_Interval__Timer_Unspecified = 0x7, /**< unspecified - used for either off or default values */
 } at_psm_active_time_interval;
 
