@@ -379,4 +379,90 @@ typedef enum {
 
 char *at_uso_error_text(at_uso_error_e code);
 
+
+typedef enum {
+  AT_EDRX_Mode__Disabled                   = 0, /**< eDRX Mode Disabled, retain parameters */
+  AT_EDRX_Mode__Enabled                    = 1, /**< eDRX Mode Enabled */
+  AT_EDRX_Mode__Enabled_With_URC           = 2, /**< eDRX Mode enabled with URC responses */
+  AT_EDRX_Mode__Disable_And_Reset_Defaults = 3, /**< eDRX Mode Disabled, reset default params */
+} at_edrx_mode_e;
+
+char *at_edrx_mode_text(at_edrx_mode_e code);
+
+typedef enum {
+  AT_EDRX_Access_Technology__GSM         =   2, /**< Not valid for SARA-RN4 or BG96 */
+  AT_EDRX_Access_Technology__UTRAN       =   3, /**< Not valid for SARA-RN4 or BG96 */
+  AT_EDRX_Access_Technology__LTE_Cat_M1  =   4, /**< Specify Cat M1 */
+  AT_EDRX_Access_Technology__LTE_Cat_NB1 =   5, /**< Specify Cat NB1 */
+  AT_EDRX_Access_Technology__Unspecified = 255, /**< Used to indicate unspecified, will use the current active technology type */
+} at_edrx_access_technology_e;
+
+char *at_edrx_access_technology_text(at_edrx_access_technology_e code);
+
+typedef enum {
+  AT_EDRX_Cycle_Length__0000                =   0, /**< 5.12 seconds; WB-S1 mode only otherwise interpreted as 0010 */
+  AT_EDRX_Cycle_Length__0001                =   1, /**< 10.24 seconds; WB-S1 mode only otherwise interpreted as 0010 */
+  AT_EDRX_Cycle_Length__0010                =   2, /**< 20.48 seconds */
+  AT_EDRX_Cycle_Length__0011                =   3, /**< 40.96 seconds */
+  AT_EDRX_Cycle_Length__0100                =   4, /**< 61.44 seconds; WB-S1 mode only otherwise interpreted as 0010 */
+  AT_EDRX_Cycle_Length__0101                =   5, /**< 81.92 seconds */
+  AT_EDRX_Cycle_Length__0110                =   6, /**< 102.4 seconds; WB-S1 mode only otherwise interpreted as 0010 */
+  AT_EDRX_Cycle_Length__0111                =   7, /**< 122.88 seconds; WB-S1 mode only otherwise interpreted as 0010 */
+  AT_EDRX_Cycle_Length__1000                =   8, /**< 143.36 seconds; WB-S1 mode only otherwise interpreted as 0010 */
+  AT_EDRX_Cycle_Length__1001                =   9, /**< 163.84 seconds */
+  AT_EDRX_Cycle_Length__1010                =  10, /**< 327.68 seconds */
+  AT_EDRX_Cycle_Length__1011                =  11, /**< 655.36 seconds */
+  AT_EDRX_Cycle_Length__1100                =  12, /**< 1310.72 seconds */
+  AT_EDRX_Cycle_Length__1101                =  13, /**< 2621.44 seconds */
+  AT_EDRX_Cycle_Length__1110                =  14, /**< 5242.88 seconds; NB-S1 mode only otherwise interpreted as 1101 */
+  AT_EDRX_Cycle_Length__1111                =  15, /**< 10485.76 seconds; NB-S1 mode only otherwise interpreted as 1101 */
+  AT_EDRX_Cycle_Length__Unspecified         = 255, /**< Passed when disabling or retaining current setting */
+} at_edrx_cycle_length_e;
+
+typedef enum {
+  AT_EDRX_Paging_Time_Window__0000                =   0, /**< NB1  1.28s ; M1  2.56s */
+  AT_EDRX_Paging_Time_Window__0001                =   1, /**< NB1  2.56s ; M1  5.12s */
+  AT_EDRX_Paging_Time_Window__0010                =   2, /**< NB1  3.84s ; M1  7.68s */
+  AT_EDRX_Paging_Time_Window__0011                =   3, /**< NB1  5.12s ; M1 10.24s */
+  AT_EDRX_Paging_Time_Window__0100                =   4, /**< NB1  6.4s  ; M1 12.8s  */
+  AT_EDRX_Paging_Time_Window__0101                =   5, /**< NB1  7.68s ; M1 15.36s */
+  AT_EDRX_Paging_Time_Window__0110                =   6, /**< NB1  8.96s ; M1 17.92s */
+  AT_EDRX_Paging_Time_Window__0111                =   7, /**< NB1 10.24s ; M1 20.48s */
+  AT_EDRX_Paging_Time_Window__1000                =   8, /**< NB1 11.52s ; M1 23.04s */
+  AT_EDRX_Paging_Time_Window__1001                =   9, /**< NB1 12.8s  ; M1 25.6s  */
+  AT_EDRX_Paging_Time_Window__1010                =  10, /**< NB1 14.08s ; M1 28.16s */
+  AT_EDRX_Paging_Time_Window__1011                =  11, /**< NB1 15.36s ; M1 30.72s */
+  AT_EDRX_Paging_Time_Window__1100                =  12, /**< NB1 16.64s ; M1 33.28s */
+  AT_EDRX_Paging_Time_Window__1101                =  13, /**< NB1 17.92s ; M1 35.84s */
+  AT_EDRX_Paging_Time_Window__1110                =  14, /**< NB1 19.20s ; M1 38.4s  */
+  AT_EDRX_Paging_Time_Window__1111                =  15, /**< NB1 20.48s ; M1 40.96s */
+  AT_EDRX_Paging_Time_Window__Unspecified         = 255, /**< Unspecified by URC */
+} at_edrx_paging_time_window_e;
+
+typedef enum {
+  AT_PSM_Mode__Disabled                   = 0, /**< PSM Mode Disabled, retain paramaters */
+  AT_PSM_Mode__Enabled                    = 1, /**< PSM Mode Enabled */
+  AT_PSM_Mode__Disable_And_Reset_Defaults = 2, /**< PSM Mode Disabled, reset default params */
+} at_psm_mode_e;
+
+char *at_psm_mode_text(at_psm_mode_e code);
+
+typedef enum {
+  AT_PSM_TAU_Interval__10_Minutes            = 0x0, /**< 10 minutes (000) */
+  AT_PSM_TAU_Interval__1_Hour                = 0x1, /**< 1 hour (001) */
+  AT_PSM_TAU_Interval__10_Hours              = 0x2, /**< 10 hours (010) */
+  AT_PSM_TAU_Interval__2_Seconds             = 0x3, /**< 2 seconds (011) */
+  AT_PSM_TAU_Interval__30_Seconds            = 0x4, /**< 30 seconds (100) */
+  AT_PSM_TAU_Interval__1_Minute              = 0x5, /**< 1 minute (101) */
+  AT_PSM_TAU_Interval__320_Hours             = 0x6, /**< 320 hours (110) */
+  AT_PSM_TAU_Interval__Timer_Unspecified     = 0x7, /**< unspecified - used for either off or default values */
+} at_psm_tau_interval;
+
+typedef enum {
+  AT_PSM_Active_Time_Interval__2_Seconds         = 0x0, /**< 2 seconds (000) */
+  AT_PSM_Active_Time_Interval__1_Minute          = 0x1, /**< 1 minute (001) */
+  AT_PSM_Active_Time_Interval__1_Decihour        = 0x2, /**< 1 decihour == 6 minutes (010) */
+  AT_PSM_Active_Time_Interval__Timer_Unspecified = 0x7, /**< unspecified - used for either off or default values */
+} at_psm_active_time_interval;
+
 #endif

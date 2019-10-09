@@ -116,6 +116,14 @@ long int str_to_long_int(str x, int base);
 uint32_t str_to_uint32_t(str x, int base);
 double str_to_double(str x);
 
+/**
+ * Convert uint8_t to a binary string (e.g. "1010101010")
+ * @param x - uint8_t input value
+ * @param dst - str with at least [precision] (default 8) character capacity (only [precision] characters will be used)
+ * @param precision - (optional) default is 8, can specify smaller precision to get a shorter result; bits that don't fit in input value are ignored
+ */
+void uint8_t_to_binary_str(uint8_t x, str *dst, uint8_t precision);
+
 int hex_to_int(char c);
 
 int hex_to_str(char *dst, int max_dst_len, str src);

@@ -606,3 +606,66 @@ char *at_uso_error_text(at_uso_error_e code) {
     if (at_uso_error_types[i].code == code) return at_uso_error_types[i].value;
   return "<unknown-uso-error>";
 }
+
+
+
+struct {
+  char *value;
+  at_edrx_mode_e code;
+} at_edrx_mode_types[] = {
+    {.value = "Disabled", .code = AT_EDRX_Mode__Disabled},
+    {.value = "Enabled", .code = AT_EDRX_Mode__Enabled},
+    {.value = "Enabled with URC", .code = AT_EDRX_Mode__Enabled_With_URC},
+    {.value = "Disabled with Reset", .code = AT_EDRX_Mode__Disable_And_Reset_Defaults},
+
+    {.value = 0, .code = (at_edrx_mode_e)-1},
+};
+
+char *at_edrx_mode_text(at_edrx_mode_e code) {
+  int i;
+  for (i = 0; at_edrx_mode_types[i].value != 0; i++)
+    if (at_edrx_mode_types[i].code == code) return at_edrx_mode_types[i].value;
+  return "<unknown-edrx-mode>";
+}
+
+
+
+struct {
+  char *value;
+  at_edrx_access_technology_e code;
+} at_edrx_access_technology_types[] = {
+    {.value = "GSM", .code = AT_EDRX_Access_Technology__GSM},
+    {.value = "UTRAN", .code = AT_EDRX_Access_Technology__UTRAN},
+    {.value = "LTE Cat M1", .code = AT_EDRX_Access_Technology__LTE_Cat_M1},
+    {.value = "LTE Cat NB1", .code = AT_EDRX_Access_Technology__LTE_Cat_NB1},
+    {.value = "Unspecified", .code = AT_EDRX_Access_Technology__Unspecified},
+
+    {.value = 0, .code = (at_edrx_access_technology_e)-1},
+};
+
+char *at_edrx_access_technology_text(at_edrx_access_technology_e code) {
+  int i;
+  for (i = 0; at_edrx_access_technology_types[i].value != 0; i++)
+    if (at_edrx_access_technology_types[i].code == code) return at_edrx_access_technology_types[i].value;
+  return "<unknown-edrx-technology>";
+}
+
+
+
+struct {
+  char *value;
+  at_psm_mode_e code;
+} at_psm_mode_types[] = {
+    {.value = "Disabled", .code = AT_PSM_Mode__Disabled},
+    {.value = "Enabled", .code = AT_PSM_Mode__Enabled},
+    {.value = "Disabled with Reset", .code = AT_PSM_Mode__Disable_And_Reset_Defaults},
+
+    {.value = 0, .code = (at_psm_mode_e)-1},
+};
+
+char *at_psm_mode_text(at_psm_mode_e code) {
+  int i;
+  for (i = 0; at_psm_mode_types[i].value != 0; i++)
+    if (at_psm_mode_types[i].code == code) return at_psm_mode_types[i].value;
+  return "<unknown-psm-mode>";
+}

@@ -63,6 +63,18 @@ typedef void (*OwlModem_EPSRegistrationStatusChangeHandler_f)(at_cereg_stat_e st
                                                               at_cereg_act_e act, at_cereg_cause_type_e cause_type,
                                                               uint32_t reject_cause);
 
+/**
+ * Handler function signature for eDRX change events
+ * @param network - Network technology
+ * @param requested_value - Requested eDRX cycle length
+ * @param provided_value - Network provided eDRX cycle length
+ * @param paging_time_window - Network provided Paging Time Window
+ */
+typedef void (*OwlModem_EDRXStatusChangeHandler_f)(at_edrx_access_technology_e network,
+                                                   at_edrx_cycle_length_e requested_value,
+                                                   at_edrx_cycle_length_e provided_value,
+                                                   at_edrx_paging_time_window_e paging_time_window);
+
 
 /**
  * Twilio wrapper for the AT serial interface to a modem - Methods to get information from the Network card
@@ -171,7 +183,7 @@ class OwlModemNetwork {
    * or AT_CREG__N__Network_Registration_and_Location_Information_URC, reports will be generated. This handler
    * will be called when that happens, so that you can handle the event.
    *
-   * Note: This will happen asynchronously, so don't forget calling the OwlModem->handleRx() method on an interrupt
+   * Note: This will happen asynchronously, so don't forget to call the OwlModem->handleRx() method on an interrupt
    * timer.
    *
    * @param cb
@@ -204,7 +216,7 @@ class OwlModemNetwork {
    * or AT_CREG__N__GPRS_Registration_and_Location_Information_URC, reports will be generated. This handler
    * will be called when that happens, so that you can handle the event.
    *
-   * Note: This will happen asynchronously, so don't forget calling the OwlModem->handleRx() method on an interrupt
+   * Note: This will happen asynchronously, so don't forget to call the OwlModem->handleRx() method on an interrupt
    * timer.
    *
    * @param cb
@@ -239,7 +251,7 @@ class OwlModemNetwork {
    * or AT_CREG__N__EPS_Registration_and_Location_Information_URC, reports will be generated. This handler
    * will be called when that happens, so that you can handle the event.
    *
-   * Note: This will happen asynchronously, so don't forget calling the OwlModem->handleRx() method on an interrupt
+   * Note: This will happen asynchronously, so don't forget to call the OwlModem->handleRx() method on an interrupt
    * timer.
    *
    * @param cb
@@ -256,6 +268,48 @@ class OwlModemNetwork {
   int getSignalQuality(at_csq_rssi_e *out_rssi, at_csq_qual_e *out_qual);
 
 
+  /**
+   * Set the current eDRX mode.  Please note this persists in NVM between module restarts.
+   * @param n - mode to set
+   * @param t - (optional) technology (NB or M1); if unspecified, use currently set module technology type
+   * @param v - (optional) requested eDRX value (ignored for disabling modes)
+   * @return 1 on success, 0 on failure
+   */
+  int setEDRXMode(at_edrx_mode_e n, at_edrx_access_technology_e t = AT_EDRX_Access_Technology__Unspecified,
+                  at_edrx_cycle_length_e v = AT_EDRX_Cycle_Length__Unspecified);
+
+  /**
+   * When setting the eDRX mode to AT_EDRX_Mode__Enabled_With_URC, reports will be generated.  These
+   * can indicate the actual effective cycle length as well as the network assigned Paging Time Window
+   * if they are passed by the network (not always the case). This handler will be called when that
+   * happens, so that you can handle the event.
+   *
+   * Note: This will happen asynchronously, so don't forget to call the OwlModem->handleRx() method on an interrupt
+   * timer.
+   *
+   * @param cb
+   */
+  void setHandlerEDRXURC(OwlModem_EDRXStatusChangeHandler_f cb);
+
+  /**
+   * Set the current PSM mode.  Please note this persists in NVM between module restarts.
+   *
+   * Since this affects the module soon after startup, you may not be able to communicate with
+   * the module during sleep periods.  To un-set this, restart the module and immediately call
+   * this to disable or issue the AT command "AT+CPSMS=0"
+   * @param n - mode to set
+   * @param pt_interval - (optional, unless specifying Active Time Interval) requested periodic TAU interval
+   * @param pt - (optional, unless specifying Active Time Interval) requested periodic TAU (only values from 0 to 31 are valid)
+   * @param at_interval - (optional) requested active time interval
+   * @param at - (optional) requested active time (only values from 0 to 31 are valid)
+   * @return 1 on success, 0 on failure
+   */
+  int setPSMMode(at_psm_mode_e n,
+                 at_psm_tau_interval pt_interval = AT_PSM_TAU_Interval__Timer_Unspecified,
+                 uint8_t pt = 0,
+                 at_psm_active_time_interval at_interval = AT_PSM_Active_Time_Interval__Timer_Unspecified,
+                 uint8_t at = 0);
+
 
  private:
   OwlModemAT *atModem_ = 0;
@@ -265,10 +319,12 @@ class OwlModemNetwork {
   OwlModem_NetworkRegistrationStatusChangeHandler_f handler_creg = 0;
   OwlModem_GPRSRegistrationStatusChangeHandler_f handler_cgreg   = 0;
   OwlModem_EPSRegistrationStatusChangeHandler_f handler_cereg    = 0;
+  OwlModem_EDRXStatusChangeHandler_f handler_edrx                = 0;
 
   bool processURCNetworkRegistration(str urc, str data);
   bool processURCGPRSRegistration(str urc, str data);
   bool processURCEPSRegistration(str urc, str data);
+  bool processURCEDRXResult(str urc, str data);
 
 
   void parseNetworkRegistrationStatus(str response, at_creg_n_e *out_n, at_creg_stat_e *out_stat, uint16_t *out_lac,
@@ -278,6 +334,10 @@ class OwlModemNetwork {
   void parseEPSRegistrationStatus(str response, at_cereg_n_e *out_n, at_cereg_stat_e *out_stat, uint16_t *out_lac,
                                   uint32_t *out_ci, at_cereg_act_e *out_act, at_cereg_cause_type_e *out_cause_type,
                                   uint32_t *out_reject_cause);
+  void parseEDRXStatus(str response, at_edrx_access_technology_e *out_network,
+                       at_edrx_cycle_length_e *out_requested_value,
+                       at_edrx_cycle_length_e *out_provided_value,
+                       at_edrx_paging_time_window_e *out_paging_time_window);
 
   typedef struct {
     at_creg_n_e n;
@@ -331,6 +391,20 @@ class OwlModemNetwork {
       .act          = AT_CEREG__AcT__invalid,
       .cause_type   = AT_CEREG__Cause_Type__EMM_Cause,
       .reject_cause = 0,
+  };
+
+  typedef struct {
+    at_edrx_access_technology_e network;
+    at_edrx_cycle_length_e requested_value;
+    at_edrx_cycle_length_e provided_value;
+    at_edrx_paging_time_window_e paging_time_window;
+  } owl_edrx_status_t;
+
+  owl_edrx_status_t last_edrx_status = {
+      .network            = AT_EDRX_Access_Technology__Unspecified,
+      .requested_value    = AT_EDRX_Cycle_Length__Unspecified,
+      .provided_value     = AT_EDRX_Cycle_Length__Unspecified,
+      .paging_time_window = AT_EDRX_Paging_Time_Window__Unspecified,
   };
 };
 
