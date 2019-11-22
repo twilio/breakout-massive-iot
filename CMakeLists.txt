@@ -3,7 +3,8 @@ project(twilio-massive-sdk)
 
 set(CMAKE_CXX_STANDARD 14)
 
-option(BUILD_SAMPLE "Build MQTT sample" OFF)
+option(BUILD_SAMPLE_BG96 "Build BG96 MQTT sample" OFF)
+option(BUILD_SAMPLE_PAHO "Build Paho MQTT sample" OFF)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src)
 
@@ -22,6 +23,7 @@ set(SDK_SOURCES
 	src/modem/OwlModemSIM.cpp
 	src/modem/OwlModemSocket.cpp
 	src/modem/OwlModemSSLBG96.cpp
+	src/modem/OwlModemSSLRN4.cpp
 
 	src/utils/str.c
 	src/utils/md5.c
@@ -32,6 +34,6 @@ add_library(twilio_massive_sdk ${SDK_SOURCES})
 
 add_subdirectory(tests)
 
-if (BUILD_SAMPLE)
+if (BUILD_SAMPLE_BG96 OR BUILD_SAMPLE_PAHO)
   add_subdirectory(native/sample)
-endif(BUILD_SAMPLE)
+endif()

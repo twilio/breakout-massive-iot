@@ -91,7 +91,7 @@ int main(int argc, const char** argv) {
   }
 
   owl_log_set_level(L_DBG);
-  CharDeviceSerial serial(device_path);
+  CharDeviceSerial serial(device_path, 9600);
   OwlModemBG96 bg96(&serial);
 
   if (!bg96.powerOn()) {
