@@ -7,6 +7,12 @@ option(BUILD_HIL_TESTS "Build HIL tests" OFF)
 option(BUILD_SAMPLE_BG96 "Build BG96 MQTT sample" OFF)
 option(BUILD_SAMPLE_PAHO "Build Paho MQTT sample" OFF)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules" ${CMAKE_MODULE_PATH})
+
+if(ENABLE_COVERAGE)
+	find_package(codecov)
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src)
 
 add_definitions(-DBUILD_FOR_TEST)
@@ -33,6 +39,10 @@ set(SDK_SOURCES
 	)
 
 add_library(twilio_massive_sdk ${SDK_SOURCES})
+
+if(ENABLE_COVERAGE)
+	add_coverage(twilio_massive_sdk)
+endif()
 
 add_subdirectory(tests)
 

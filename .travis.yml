@@ -1,8 +1,13 @@
 language: cpp
 dist: bionic
 compiler:
-  - clang
+- gcc
 os:
-  - linux
+- linux
 script:
-  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./ci-script-travis.sh; fi'
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./ci-script-travis.sh; fi
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+env:
+  global:
+    secure: efbSNAbENJit6C6PDnmvsAMNmMD9+jLYHE2WsoutzVhMz/HUgNLfRC+Y0gAlVEOVhUpRh3I+5ZMqHt38zkx5JxdlQpR7J2dZQiVKuQL3Drqa9DWMQFmUtwvCQMyG2SS2z2433MfxKrbr3GNpTv9f3ee8fiOnGMYZytCnAiu6V6mgvcwi+5PGhT3yPUtagQxyOJvxqI2mPNe97Uasj5DcFQ2mFkXeveJrxET0fij4F/xJNaDDyvtCeKMNCym7dyl47Tfqj3qK07Mchf1l0GFFno4IlavlzgkXu6UQvnitcc9NN2KCjFZDQpX1e8pxuqEnEP3vSB8PVQummFEJfNge/nGiBFdVwAt4S+hH9jiwSsLxM+KHbOI/sKJn/vWZlOMbZEMQlgdv0vbpvJn3WE3zrOTNUgUUgKYUqkICvv+tSzJr+SgprbQ8A+wxXbMuXSYnVoJVBcxWCmT2IfbxVQZ0iFV3K630bNaFL090JRhnzGKwh/dVbRIlgv5QBP9IlCU4DnCfMGk4XwuTHT20rd7JWCrL2nU10CtZy/w8U01JCRR+9KuHL5+XPmsHrWfXRK/KYbWcNqwjVd8Ae38Wix6DKSbYLvfX1nHD02dMZVPiYwVkWqLajFXkN8CjsqX8jyCcqNwUa2lUT1nERBraqM+4GOp6llDAFTmof6YApnvdUXk=
