@@ -3,6 +3,7 @@ project(twilio-massive-sdk)
 
 set(CMAKE_CXX_STANDARD 14)
 
+option(BUILD_HIL_TESTS "Build HIL tests" OFF)
 option(BUILD_SAMPLE_BG96 "Build BG96 MQTT sample" OFF)
 option(BUILD_SAMPLE_PAHO "Build Paho MQTT sample" OFF)
 
@@ -18,10 +19,11 @@ set(SDK_SOURCES
 	src/modem/OwlModemInformation.cpp
 	src/modem/OwlModemMQTTBG96.cpp
 	src/modem/OwlModemNetwork.cpp
+	src/modem/OwlModemNetworkRN4.cpp
 	src/modem/OwlModemPDN.cpp
 	src/modem/OwlModemRN4.cpp
 	src/modem/OwlModemSIM.cpp
-	src/modem/OwlModemSocket.cpp
+	src/modem/OwlModemSocketRN4.cpp
 	src/modem/OwlModemSSLBG96.cpp
 	src/modem/OwlModemSSLRN4.cpp
 
@@ -36,4 +38,8 @@ add_subdirectory(tests)
 
 if (BUILD_SAMPLE_BG96 OR BUILD_SAMPLE_PAHO)
   add_subdirectory(native/sample)
+endif()
+
+if (BUILD_HIL_TESTS)
+  add_subdirectory(native/hiltests)
 endif()
