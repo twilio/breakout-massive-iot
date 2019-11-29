@@ -28,9 +28,10 @@
 #include "OwlModemAT.h"
 #include "OwlModemInformation.h"
 #include "OwlModemNetwork.h"
+#include "OwlModemNetworkRN4.h"
 #include "OwlModemPDN.h"
 #include "OwlModemSIM.h"
-#include "OwlModemSocket.h"
+#include "OwlModemSocketRN4.h"
 #include "OwlModemGNSS.h"
 #include "OwlModemSSLRN4.h"
 
@@ -153,6 +154,9 @@ class OwlModemRN4 {
   /** Network Registration and Management */
   OwlModemNetwork network;
 
+  /** U-Blox SARA-R410/SARA-N410 specific Network Registration and Management */
+  OwlModemNetworkRN4 network_rn4;
+
   /** APN Management */
   OwlModemPDN pdn;
 
@@ -160,7 +164,7 @@ class OwlModemRN4 {
   OwlModemSSLRN4 ssl;
 
   /** TCP/UDP communication over sockets */
-  OwlModemSocket socket;
+  OwlModemSocketRN4 socket;
 
   /** GNSS to get position, date, time, etc */
   OwlModemGNSS gnss = OwlModemGNSS(this);

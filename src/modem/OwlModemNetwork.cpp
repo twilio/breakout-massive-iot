@@ -370,25 +370,6 @@ int OwlModemNetwork::setModemFunctionality(at_cfun_fun_e fun, at_cfun_rst_e *res
   return atModem_->doCommandBlocking(3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
 }
 
-
-
-static str s_umnoprof = STRDECL("+UMNOPROF: ");
-
-int OwlModemNetwork::getModemMNOProfile(at_umnoprof_mno_profile_e *out_profile) {
-  if (out_profile) *out_profile = AT_UMNOPROF__MNO_PROFILE__SW_Default;
-  int result = atModem_->doCommandBlocking("AT+UMNOPROF?", 15 * 1000, &network_response) == AT_Result_Code__OK;
-  if (!result) return 0;
-  OwlModemAT::filterResponse(s_umnoprof, network_response, &network_response);
-  *out_profile = (at_umnoprof_mno_profile_e)str_to_long_int(network_response, 10);
-  return 1;
-}
-
-int OwlModemNetwork::setModemMNOProfile(at_umnoprof_mno_profile_e profile) {
-  atModem_->commandSprintf("AT+UMNOPROF=%d", profile);
-  return atModem_->doCommandBlocking(3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
-}
-
-
 static str s_cops = STRDECL("+COPS: ");
 
 int OwlModemNetwork::getOperatorSelection(at_cops_mode_e *out_mode, at_cops_format_e *out_format, str *out_oper,
@@ -548,8 +529,6 @@ int OwlModemNetwork::setEPSRegistrationURC(at_cereg_n_e n) {
 void OwlModemNetwork::setHandlerEPSRegistrationURC(OwlModem_EPSRegistrationStatusChangeHandler_f cb) {
   this->handler_cereg = cb;
 }
-
-
 
 static str s_csq = STRDECL("+CSQ: ");
 

@@ -1,5 +1,5 @@
 /*
- * OwlModemSocket.h
+ * OwlModemSocketRN4.h
  * Twilio Breakout SDK
  *
  * Copyright (c) 2018 Twilio, Inc.
@@ -18,7 +18,7 @@
  */
 
 /**
- * \file OwlModemSocket.h - API for TCP/UDP communication over sockets
+ * \file OwlModemSocketRN4.h - API for TCP/UDP communication over sockets
  */
 
 #ifndef __OWL_MODEM_SOCKET_H__
@@ -73,7 +73,7 @@ typedef void (*OwlModem_SocketClosedHandler_f)(uint8_t socket, void* priv);
 
 
 
-class OwlModemSocketStatus {
+class OwlModemSocketRN4Status {
  public:
   uint8_t is_opened    = 0;
   uint8_t is_connected = 0;
@@ -102,15 +102,15 @@ class OwlModemSocketStatus {
 /**
  * Twilio wrapper for the AT serial interface to a modem - Methods for TCP/UDP communication over sockets
  */
-class OwlModemSocket {
+class OwlModemSocketRN4 {
  public:
-  OwlModemSocket(OwlModemAT* atModem);
+  OwlModemSocketRN4(OwlModemAT* atModem);
 
   /**
    * Handler for Unsolicited Response Codes from the modem - called from OwlModem on timer, when URC is received
    * @param urc - event id
    * @param data - data of the event
-   * @param instance - pointer to OwlModemSocket instance
+   * @param instance - pointer to OwlModemSocketRN4 instance
    * @return if the line was handled
    */
   static bool processURC(str urc, str data, void* instance);
@@ -368,7 +368,7 @@ class OwlModemSocket {
   OwlModemAT* atModem_ = 0;
 
 
-  OwlModemSocketStatus status[MODEM_MAX_SOCKETS];
+  OwlModemSocketRN4Status status[MODEM_MAX_SOCKETS];
 
   str socket_response = {.s = nullptr, .len = 0};
 

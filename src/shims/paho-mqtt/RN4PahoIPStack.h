@@ -1,11 +1,11 @@
 #ifndef __RN4_PAHO_IP_STACK_H__
 #define __RN4_PAHO_IP_STACK_H__
 
-#include "../../modem/OwlModemSocket.h"
+#include "../../modem/OwlModemSocketRN4.h"
 
 class RN4PahoIPStack {
  public:
-  RN4PahoIPStack(OwlModemSocket* modem) : modem_{modem} {
+  RN4PahoIPStack(OwlModemSocketRN4* modem) : modem_{modem} {
   }
 
   bool connect(const char* hostname, int port, bool use_tls = false, int tls_id = 0);
@@ -21,7 +21,7 @@ class RN4PahoIPStack {
   static void socketCloseHandler(uint8_t socket, void* priv);
 
  private:
-  OwlModemSocket* modem_;
+  OwlModemSocketRN4* modem_;
   uint8_t socket_id_;
   bool open_{false};
 };

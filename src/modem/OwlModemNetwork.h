@@ -108,21 +108,6 @@ class OwlModemNetwork {
    */
   int setModemFunctionality(at_cfun_fun_e fun, at_cfun_rst_e *reset);
 
-
-  /**
-   * Retrieve the current modem MNO profile selection.
-   * @param out_profile - Modem MNO profile
-   * @return 1 on success, 0 on failure
-   */
-  int getModemMNOProfile(at_umnoprof_mno_profile_e *out_profile);
-
-  /**
-   * Set the current modem MNO profile selection.
-   * @param profile - Modem MNO profile to set
-   * @return 1 on success, 0 on failure
-   */
-  int setModemMNOProfile(at_umnoprof_mno_profile_e profile);
-
   /**
    * Retrieve the current Operator Selection Mode and selected Operator, Radio Access Technology
    * @param out_mode - output current mode
@@ -172,7 +157,7 @@ class OwlModemNetwork {
                                    at_creg_act_e *out_act);
 
   /**
-   * Set the current style of Unregistered Response Code (URC) asynchronous reporting for Network Registration Status.
+   * Set the current style of Unsolicited Response Code (URC) asynchronous reporting for Network Registration Status.
    * @param n - mode to set
    * @return 1 on success, 0 on failure
    */

@@ -27,12 +27,8 @@
 #include "enums.h"
 #include "OwlModemAT.h"
 
-
-
-#define MODEM_SIM_RESPONSE_BUFFER_SIZE 256
-
 /**
- * Handler function signature for SIM card not ready - use this to verify the PIN with the card.
+ * Handler function signature for SIM card ready/not ready - use this to check the PIN status.
  * @param message - the last message regarding PIN from the card
  */
 typedef void (*OwlModem_PINHandler_f)(str message);
@@ -71,13 +67,6 @@ class OwlModemSIM {
   int getIMSI(str *out_response);
 
   /**
-   * Retrieve MSISDN (SIM card stored own telephone number indication)
-   * @param out_response - str object that will point to the response buffer
-   * @return 1 on success, 0 on failure
-   */
-  int getMSISDN(str *out_response);
-
-  /**
    * Trigger retrieval of the current PIN status - setting the callback will trigger verification.
    *
    * Note: You must do setHandlerPIN() before calling this. That's where you get the actual status, not here!
@@ -85,26 +74,6 @@ class OwlModemSIM {
    * @return 1 on success, 0 on failure
    */
   int getPINStatus();
-
-  /**
-   * Verify the PIN with the card
-   *
-   * Note: You must do setHandlerPIN() before calling this. That's where you get the new status, not here!
-   *
-   * @param pin
-   * @return 1 on success, 0 on failure
-   */
-  int verifyPIN(str pin);
-
-  /**
-   * Verify the PUK and set a new PIN
-   *
-   * Note: You must do setHandlerPIN() before calling this. That's where you get the new status, not here!
-   *
-   * @param pin
-   * @return 1 on success, 0 on failure
-   */
-  int verifyPUK(str puk, str pin);
 
   /**
    * Set the function to handle PIN requests from the SIM card
@@ -119,9 +88,6 @@ class OwlModemSIM {
 
  private:
   OwlModemAT *atModem_ = 0;
-
-  // char sim_response_buffer[MODEM_SIM_RESPONSE_BUFFER_SIZE];
-  // str sim_response = {.s = sim_response_buffer, .len = 0};
 
   int handleCPIN(str urc, str data);
 };

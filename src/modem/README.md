@@ -94,7 +94,7 @@ void your_function_PINHandler(str message) {
 
 
 
-### [`OwlModemSocket`](OwlModemSocket.h)
+### [`OwlModemSocketRN4`](OwlModemSocketRN4.h)
 
 ```C
 /**

@@ -1,5 +1,5 @@
 /*
- * OwlModemSocket.cpp
+ * OwlModemSocketRN4.cpp
  * Twilio Breakout SDK
  *
  * Copyright (c) 2018 Twilio, Inc.
@@ -18,14 +18,14 @@
  */
 
 /**
- * \file OwlModemSocket.cpp - API for TCP/UDP communication over sockets
+ * \file OwlModemSocketRN4.cpp - API for TCP/UDP communication over sockets
  */
 
-#include "OwlModemSocket.h"
+#include "OwlModemSocketRN4.h"
 
 #include <stdio.h>
 
-void OwlModemSocketStatus::setOpened(at_uso_protocol_e proto) {
+void OwlModemSocketRN4Status::setOpened(at_uso_protocol_e proto) {
   is_opened    = 1;
   is_connected = 0;
 
@@ -40,7 +40,7 @@ void OwlModemSocketStatus::setOpened(at_uso_protocol_e proto) {
   handler_SocketClosed = nullptr;
 }
 
-void OwlModemSocketStatus::setClosed() {
+void OwlModemSocketRN4Status::setClosed() {
   is_opened    = 0;
   is_connected = 0;
 
@@ -57,12 +57,12 @@ void OwlModemSocketStatus::setClosed() {
 }
 
 static char URC_ID[] = "Socket";
-OwlModemSocket::OwlModemSocket(OwlModemAT *atModem) : atModem_(atModem) {
+OwlModemSocketRN4::OwlModemSocketRN4(OwlModemAT *atModem) : atModem_(atModem) {
   for (uint8_t socket = 0; socket < MODEM_MAX_SOCKETS; socket++)
     status[socket].setClosed();
 
   if (atModem_ != nullptr) {
-    atModem_->registerUrcHandler(URC_ID, OwlModemSocket::processURC, this);
+    atModem_->registerUrcHandler(URC_ID, OwlModemSocketRN4::processURC, this);
   }
 }
 
@@ -70,7 +70,7 @@ OwlModemSocket::OwlModemSocket(OwlModemAT *atModem) : atModem_(atModem) {
 
 static str s_uusoco = STRDECL("+UUSOCO");
 
-bool OwlModemSocket::processURCConnected(str urc, str data) {
+bool OwlModemSocketRN4::processURCConnected(str urc, str data) {
   if (!str_equal(urc, s_uusoco)) {
     return false;
   }
@@ -106,7 +106,7 @@ bool OwlModemSocket::processURCConnected(str urc, str data) {
 
 static str s_uusocl = STRDECL("+UUSOCL");
 
-bool OwlModemSocket::processURCClosed(str urc, str data) {
+bool OwlModemSocketRN4::processURCClosed(str urc, str data) {
   if (!str_equal(urc, s_uusocl)) {
     return false;
   }
@@ -139,7 +139,7 @@ bool OwlModemSocket::processURCClosed(str urc, str data) {
 
 static str s_uusoli = STRDECL("+UUSOLI");
 
-bool OwlModemSocket::processURCTCPAccept(str urc, str data) {
+bool OwlModemSocketRN4::processURCTCPAccept(str urc, str data) {
   if (!str_equal(urc, s_uusoli)) {
     return false;
   }
@@ -211,7 +211,7 @@ bool OwlModemSocket::processURCTCPAccept(str urc, str data) {
 
 static str s_uusord = STRDECL("+UUSORD");
 
-bool OwlModemSocket::processURCReceive(str urc, str data) {
+bool OwlModemSocketRN4::processURCReceive(str urc, str data) {
   if (!str_equal(urc, s_uusord)) {
     return false;
   }
@@ -246,7 +246,7 @@ bool OwlModemSocket::processURCReceive(str urc, str data) {
 
 static str s_uusorf = STRDECL("+UUSORF");
 
-bool OwlModemSocket::processURCReceiveFrom(str urc, str data) {
+bool OwlModemSocketRN4::processURCReceiveFrom(str urc, str data) {
   if (!str_equal(urc, s_uusorf)) {
     return false;
   }
@@ -276,8 +276,8 @@ bool OwlModemSocket::processURCReceiveFrom(str urc, str data) {
 }
 
 
-bool OwlModemSocket::processURC(str urc, str data, void *instance) {
-  OwlModemSocket *inst = reinterpret_cast<OwlModemSocket *>(instance);
+bool OwlModemSocketRN4::processURC(str urc, str data, void *instance) {
+  OwlModemSocketRN4 *inst = reinterpret_cast<OwlModemSocketRN4 *>(instance);
 
   /* ordered based on the expected frequency of arrival */
   return inst->processURCReceiveFrom(urc, data) || inst->processURCReceive(urc, data) ||
@@ -287,7 +287,7 @@ bool OwlModemSocket::processURC(str urc, str data, void *instance) {
 
 
 
-void OwlModemSocket::handleWaitingData() {
+void OwlModemSocketRN4::handleWaitingData() {
   LOG(L_MEM, "Starting handleWaitingData\r\n");
 
   char buf[64];
@@ -375,7 +375,7 @@ void OwlModemSocket::handleWaitingData() {
 
 static str s_usocr = STRDECL("+USOCR: ");
 
-int OwlModemSocket::open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t *out_socket) {
+int OwlModemSocketRN4::open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t *out_socket) {
   if (out_socket) *out_socket = 255;
   int socket = 255;
   atModem_->commandSprintf("AT+USOCR=%d,%u", protocol, local_port);
@@ -392,7 +392,7 @@ int OwlModemSocket::open(at_uso_protocol_e protocol, uint16_t local_port, uint8_
   return result;
 }
 
-int OwlModemSocket::close(uint8_t socket) {
+int OwlModemSocketRN4::close(uint8_t socket) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
@@ -414,7 +414,7 @@ int OwlModemSocket::close(uint8_t socket) {
   return result;
 }
 
-int OwlModemSocket::enableTLS(uint8_t socket, int tls_id) {
+int OwlModemSocketRN4::enableTLS(uint8_t socket, int tls_id) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
@@ -429,7 +429,7 @@ int OwlModemSocket::enableTLS(uint8_t socket, int tls_id) {
   return (atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK);
 }
 
-int OwlModemSocket::disableTLS(uint8_t socket) {
+int OwlModemSocketRN4::disableTLS(uint8_t socket) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
@@ -441,7 +441,7 @@ int OwlModemSocket::disableTLS(uint8_t socket) {
 
 static str s_usoer = STRDECL("+USOER: ");
 
-int OwlModemSocket::getError(at_uso_error_e *out_error) {
+int OwlModemSocketRN4::getError(at_uso_error_e *out_error) {
   if (out_error) *out_error = (at_uso_error_e)-1;
   int result = (atModem_->doCommandBlocking("AT+USOER", 1000, &socket_response) == AT_Result_Code__OK);
   if (!result) return 0;
@@ -452,7 +452,7 @@ int OwlModemSocket::getError(at_uso_error_e *out_error) {
   return result;
 }
 
-int OwlModemSocket::connect(uint8_t socket, str remote_ip, uint16_t remote_port, OwlModem_SocketClosedHandler_f cb,
+int OwlModemSocketRN4::connect(uint8_t socket, str remote_ip, uint16_t remote_port, OwlModem_SocketClosedHandler_f cb,
                             void *cb_priv) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
@@ -484,7 +484,7 @@ int OwlModemSocket::connect(uint8_t socket, str remote_ip, uint16_t remote_port,
 
 static str s_usowr = STRDECL("+USOWR: ");
 
-int OwlModemSocket::send(uint8_t socket, str data) {
+int OwlModemSocketRN4::send(uint8_t socket, str data) {
   int bytes_sent = 0;
   atModem_->commandSprintf("AT+USOWR=%u,%d,\"", socket, data.len);
   atModem_->commandAppendHex(data);
@@ -507,7 +507,7 @@ int OwlModemSocket::send(uint8_t socket, str data) {
   return bytes_sent;
 }
 
-int OwlModemSocket::sendUDP(uint8_t socket, str data, int *out_bytes_sent) {
+int OwlModemSocketRN4::sendUDP(uint8_t socket, str data, int *out_bytes_sent) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
@@ -534,7 +534,7 @@ int OwlModemSocket::sendUDP(uint8_t socket, str data, int *out_bytes_sent) {
   return bytes_sent == data.len;
 }
 
-int OwlModemSocket::sendTCP(uint8_t socket, str data, int *out_bytes_sent) {
+int OwlModemSocketRN4::sendTCP(uint8_t socket, str data, int *out_bytes_sent) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
@@ -563,7 +563,7 @@ int OwlModemSocket::sendTCP(uint8_t socket, str data, int *out_bytes_sent) {
 
 static str s_usost = STRDECL("+USOST: ");
 
-int OwlModemSocket::sendToUDP(uint8_t socket, str remote_ip, uint16_t remote_port, str data) {
+int OwlModemSocketRN4::sendToUDP(uint8_t socket, str remote_ip, uint16_t remote_port, str data) {
   int bytes_sent = 0;
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
@@ -603,7 +603,7 @@ int OwlModemSocket::sendToUDP(uint8_t socket, str remote_ip, uint16_t remote_por
   return bytes_sent == data.len;
 }
 
-int OwlModemSocket::getQueuedForReceive(uint8_t socket, int *out_receive_tcp, int *out_receive_udp,
+int OwlModemSocketRN4::getQueuedForReceive(uint8_t socket, int *out_receive_tcp, int *out_receive_udp,
                                         int *out_receivefrom_udp) {
   if (out_receive_tcp) *out_receive_tcp = 0;
   if (out_receive_udp) *out_receive_udp = 0;
@@ -628,7 +628,7 @@ int OwlModemSocket::getQueuedForReceive(uint8_t socket, int *out_receive_tcp, in
 
 static str s_usord = STRDECL("+USORD: ");
 
-int OwlModemSocket::receive(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
+int OwlModemSocketRN4::receive(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
 
   atModem_->commandSprintf("AT+USORD=%u,%u", socket, len);
@@ -680,7 +680,7 @@ error:
   return 0;
 }
 
-int OwlModemSocket::receiveUDP(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
+int OwlModemSocketRN4::receiveUDP(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket);
@@ -707,7 +707,7 @@ int OwlModemSocket::receiveUDP(uint8_t socket, uint16_t len, str *out_data, int 
   return this->receive(socket, len, out_data, max_data_len);
 }
 
-int OwlModemSocket::receiveTCP(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
+int OwlModemSocketRN4::receiveTCP(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket);
@@ -736,7 +736,7 @@ int OwlModemSocket::receiveTCP(uint8_t socket, uint16_t len, str *out_data, int 
 
 static str s_usorf = STRDECL("+USORF: ");
 
-int OwlModemSocket::receiveFromUDP(uint8_t socket, uint16_t len, str *out_remote_ip, uint16_t *out_remote_port,
+int OwlModemSocketRN4::receiveFromUDP(uint8_t socket, uint16_t len, str *out_remote_ip, uint16_t *out_remote_port,
                                    str *out_data, int max_data_len) {
   if (out_remote_ip) out_remote_ip->len = 0;
   if (out_remote_port) *out_remote_port = 0;
@@ -819,7 +819,7 @@ error:
   return 0;
 }
 
-int OwlModemSocket::listenUDP(uint8_t socket, uint16_t local_port, OwlModem_UDPDataHandler_f cb, void *cb_priv) {
+int OwlModemSocketRN4::listenUDP(uint8_t socket, uint16_t local_port, OwlModem_UDPDataHandler_f cb, void *cb_priv) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
@@ -842,7 +842,7 @@ int OwlModemSocket::listenUDP(uint8_t socket, uint16_t local_port, OwlModem_UDPD
   return result;
 }
 
-int OwlModemSocket::listenTCP(uint8_t socket, OwlModem_TCPDataHandler_f handler_tcp_data, void *handler_priv) {
+int OwlModemSocketRN4::listenTCP(uint8_t socket, OwlModem_TCPDataHandler_f handler_tcp_data, void *handler_priv) {
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket, MODEM_MAX_SOCKETS);
     return 0;
@@ -862,7 +862,7 @@ int OwlModemSocket::listenTCP(uint8_t socket, OwlModem_TCPDataHandler_f handler_
   return 1;
 }
 
-int OwlModemSocket::acceptTCP(uint8_t socket, uint16_t local_port, OwlModem_TCPAcceptHandler_f handler_tcp_accept,
+int OwlModemSocketRN4::acceptTCP(uint8_t socket, uint16_t local_port, OwlModem_TCPAcceptHandler_f handler_tcp_accept,
                               OwlModem_SocketClosedHandler_f handler_socket_closed,
                               OwlModem_TCPDataHandler_f handler_tcp_data, void *handler_tcp_accept_priv,
                               void *handler_socket_closed_priv, void *handler_tcp_data_priv) {
@@ -892,7 +892,7 @@ int OwlModemSocket::acceptTCP(uint8_t socket, uint16_t local_port, OwlModem_TCPA
   return result;
 }
 
-int OwlModemSocket::openListenUDP(uint16_t local_port, uint8_t *out_socket, OwlModem_UDPDataHandler_f handler_data,
+int OwlModemSocketRN4::openListenUDP(uint16_t local_port, uint8_t *out_socket, OwlModem_UDPDataHandler_f handler_data,
                                   void *handler_data_priv) {
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
@@ -907,7 +907,7 @@ error:
   return 0;
 }
 
-int OwlModemSocket::openConnectUDP(str remote_ip, uint16_t remote_port, uint8_t *out_socket,
+int OwlModemSocketRN4::openConnectUDP(str remote_ip, uint16_t remote_port, uint8_t *out_socket,
                                    OwlModem_UDPDataHandler_f handler_data, void *handler_data_priv) {
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
@@ -925,7 +925,7 @@ error:
   return 0;
 }
 
-int OwlModemSocket::openListenConnectUDP(uint16_t local_port, str remote_ip, uint16_t remote_port, uint8_t *out_socket,
+int OwlModemSocketRN4::openListenConnectUDP(uint16_t local_port, str remote_ip, uint16_t remote_port, uint8_t *out_socket,
                                          OwlModem_UDPDataHandler_f handler_data, void *handler_data_priv) {
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
@@ -941,7 +941,7 @@ error:
   return 0;
 }
 
-int OwlModemSocket::openListenConnectTCP(uint16_t local_port, str remote_ip, uint16_t remote_port, uint8_t *out_socket,
+int OwlModemSocketRN4::openListenConnectTCP(uint16_t local_port, str remote_ip, uint16_t remote_port, uint8_t *out_socket,
                                          OwlModem_SocketClosedHandler_f handler_close,
                                          OwlModem_TCPDataHandler_f handler_data, void *handler_close_priv,
                                          void *handler_data_priv) {
@@ -959,7 +959,7 @@ error:
   return 0;
 }
 
-int OwlModemSocket::openAcceptTCP(uint16_t local_port, uint8_t *out_socket, OwlModem_TCPAcceptHandler_f handler_accept,
+int OwlModemSocketRN4::openAcceptTCP(uint16_t local_port, uint8_t *out_socket, OwlModem_TCPAcceptHandler_f handler_accept,
                                   OwlModem_SocketClosedHandler_f handler_close, OwlModem_TCPDataHandler_f handler_data,
                                   void *handler_accept_priv, void *handler_close_priv, void *handler_data_priv) {
   if (out_socket) *out_socket = 255;
