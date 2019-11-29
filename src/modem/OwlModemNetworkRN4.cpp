@@ -26,7 +26,8 @@
 #include <stdio.h>
 
 
-OwlModemNetworkRN4::OwlModemNetworkRN4(OwlModemAT *atModem) : atModem_(atModem) {}
+OwlModemNetworkRN4::OwlModemNetworkRN4(OwlModemAT *atModem) : atModem_(atModem) {
+}
 
 static str s_umnoprof = STRDECL("+UMNOPROF: ");
 

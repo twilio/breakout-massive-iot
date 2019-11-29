@@ -284,16 +284,16 @@ class OwlModemNetwork {
    * this to disable or issue the AT command "AT+CPSMS=0"
    * @param n - mode to set
    * @param pt_interval - (optional, unless specifying Active Time Interval) requested periodic TAU interval
-   * @param pt - (optional, unless specifying Active Time Interval) requested periodic TAU (only values from 0 to 31 are valid)
+   * @param pt - (optional, unless specifying Active Time Interval) requested periodic TAU (only values from 0 to 31 are
+   * valid)
    * @param at_interval - (optional) requested active time interval
    * @param at - (optional) requested active time (only values from 0 to 31 are valid)
    * @return 1 on success, 0 on failure
    */
-  int setPSMMode(at_psm_mode_e n,
-                 at_psm_tau_interval pt_interval = AT_PSM_TAU_Interval__Timer_Unspecified,
-                 uint8_t pt = 0,
+  int setPSMMode(at_psm_mode_e n, at_psm_tau_interval pt_interval = AT_PSM_TAU_Interval__Timer_Unspecified,
+                 uint8_t pt                              = 0,
                  at_psm_active_time_interval at_interval = AT_PSM_Active_Time_Interval__Timer_Unspecified,
-                 uint8_t at = 0);
+                 uint8_t at                              = 0);
 
 
  private:
@@ -320,8 +320,7 @@ class OwlModemNetwork {
                                   uint32_t *out_ci, at_cereg_act_e *out_act, at_cereg_cause_type_e *out_cause_type,
                                   uint32_t *out_reject_cause);
   void parseEDRXStatus(str response, at_edrx_access_technology_e *out_network,
-                       at_edrx_cycle_length_e *out_requested_value,
-                       at_edrx_cycle_length_e *out_provided_value,
+                       at_edrx_cycle_length_e *out_requested_value, at_edrx_cycle_length_e *out_provided_value,
                        at_edrx_paging_time_window_e *out_paging_time_window);
 
   typedef struct {

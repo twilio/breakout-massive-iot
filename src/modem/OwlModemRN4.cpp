@@ -233,7 +233,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
 
 int OwlModemRN4::waitForNetworkRegistration(char *purpose, int testing_variant) {
   bool network_ready = false;
-  bool needs_reset = false;
+  bool needs_reset   = false;
   owl_time_t timeout = owl_time() + 30 * 1000;
   while (true) {
     at_cereg_stat_e stat;
