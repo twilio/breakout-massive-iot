@@ -24,6 +24,7 @@ add_executable(
   InformationRN4Test.cpp
   NetworkRN4Test.cpp
   SIMRN4Test.cpp
+  SocketRN4Test.cpp
   ${PLATFORM_SOURCES}
   )
 

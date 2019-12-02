@@ -25,7 +25,7 @@
 #include "modem/OwlModemRN4.h"
 #include "CharDeviceSerial.h"
 
-std::string device = std::string("/dev/ttyUSB0");
+std::string device = std::string("/dev/ttyACM0");
 int baudrate       = 115200;
 std::string pin    = std::string("0000");
 bool berlin        = false;

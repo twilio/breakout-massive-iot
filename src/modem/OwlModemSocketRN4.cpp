@@ -199,7 +199,8 @@ bool OwlModemSocketRN4::processURCTCPAccept(str urc, str data) {
       LOG(L_NOTICE,
           "Received URC for TCP-Accept on listening-socket %d local-ip %.*s, from %.*s:%u new socket %d. Set a handler "
           "when calling acceptTCP(), openAcceptTCP(), etc if you wish to receive this event in your application\r\n",
-          listening_socket, local_ip.len, local_ip.s, remote_ip.len, remote_ip.len, new_socket);
+          (int)listening_socket, local_ip.len, local_ip.s, remote_ip.len, remote_ip.s, (unsigned int)remote_port,
+          (int)new_socket);
     else
       (this->status[listening_socket].handler_TCPAccept)(new_socket, remote_ip, remote_port, listening_socket, local_ip,
                                                          local_port,
@@ -378,7 +379,12 @@ static str s_usocr = STRDECL("+USOCR: ");
 int OwlModemSocketRN4::open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t *out_socket) {
   if (out_socket) *out_socket = 255;
   int socket = 255;
-  atModem_->commandSprintf("AT+USOCR=%d,%u", protocol, local_port);
+
+  if (local_port != 0) {
+    atModem_->commandSprintf("AT+USOCR=%d,%u", protocol, local_port);
+  } else {
+    atModem_->commandSprintf("AT+USOCR=%d", protocol);
+  }
   int result = atModem_->doCommandBlocking(3000, &socket_response) == AT_Result_Code__OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usocr, socket_response, &socket_response);
@@ -888,7 +894,6 @@ int OwlModemSocketRN4::acceptTCP(uint8_t socket, uint16_t local_port, OwlModem_T
   this->status[socket].handler_SocketClosed_priv = handler_socket_closed_priv;
   this->status[socket].handler_TCPData           = handler_tcp_data;
   this->status[socket].handler_TCPData_priv      = handler_tcp_data_priv;
-
   return result;
 }
 
