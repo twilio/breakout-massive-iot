@@ -41,7 +41,7 @@ int main(int argc, const char* argv[]) {
              Opt(device, "device")["-m"]["--device"]("Path to the device or pcsc:N for a PC/SC interface") |
              Opt(baudrate, "baudrate")["-g"]["--baudrate"]("Baud rate for the serial device") |
              Opt(pin, "pin")["-p"]["--pin"]("PIN code for the Trust Onboard SIM") |
-             Opt(berlin)["-b"]["--berlin"]("Set modem to test in Berlin");
+             Opt(berlin)["-1"]["--berlin"]("Set modem to test in Berlin");
 
 
   // Now pass the new composite back to Catch so it uses that
