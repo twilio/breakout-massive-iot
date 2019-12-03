@@ -18,7 +18,7 @@
  */
 
 /**
- * \file log.g - logging utilities
+ * \file log.h - logging utilities
  */
 
 #ifndef __OWL_UTILS_LOG_H__
@@ -30,12 +30,10 @@
 /*
  * Parameters for logging - change here to disable logging or colors
  */
-#define LOG_DISABLED 0
-#define LOG_NO_ANSI_COLORS 0
-#define LOG_WITH_TIME 1
-#define LOG_LINE_MAX_LEN 1024
-#define LOG_OUTPUT SerialDebugPort
 
+#ifndef LOG_DISABLED
+#define LOG_DISABLED 0
+#endif
 
 /*
  * Log levels
@@ -72,11 +70,4 @@
 
 #endif
 
-#define GOTOERR(label)                                                                                                 \
-  do {                                                                                                                 \
-    LOG(L_ERR, "Going to label " #label "\r\n");                                                                       \
-    goto label;                                                                                                        \
-  } while (0)
-
-
-#endif // __OWL_UTILS_LOG_H__
+#endif  // __OWL_UTILS_LOG_H__
