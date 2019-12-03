@@ -71,32 +71,9 @@ int OwlModemSIM::getIMSI(str *out_response) {
   return (result == AT_Result_Code__OK);
 }
 
-static str s_cnum = STRDECL("+CNUM: ");
-
-int OwlModemSIM::getMSISDN(str *out_response) {
-  str command_response;
-
-  int result = atModem_->doCommandBlocking("AT+CNUM", 1000, &command_response) == AT_Result_Code__OK;
-  if (!result) return 0;
-  OwlModemAT::filterResponse(s_cnum, command_response, out_response);
-  return 1;
-}
-
 int OwlModemSIM::getPINStatus() {
   int result = 0;
   result     = atModem_->doCommandBlocking("AT+CPIN?", 10 * 1000, nullptr) == AT_Result_Code__OK;
-  return result;
-}
-
-int OwlModemSIM::verifyPIN(str pin) {
-  atModem_->commandSprintf("AT+CPIN=%.*s", pin.len, pin.s);
-  int result = atModem_->doCommandBlocking(10 * 1000, nullptr) == AT_Result_Code__OK;
-  return result;
-}
-
-int OwlModemSIM::verifyPUK(str puk, str pin) {
-  atModem_->commandSprintf("AT+CPIN=%.*s,%.*s", puk.len, puk.s, pin.len, pin.s);
-  int result = atModem_->doCommandBlocking(10 * 1000, nullptr) == AT_Result_Code__OK;
   return result;
 }
 

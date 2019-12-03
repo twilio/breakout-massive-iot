@@ -112,10 +112,10 @@ class OwlModemSSLRN4 {
 
  private:
   OwlModemAT* atModem_;
-  str ssl_response = {.s = nullptr, .len = 0};
+  str ssl_response   = {.s = nullptr, .len = 0};
   bool hasDeviceCert = false;
   bool hasDevicePkey = false;
-  bool hasServerCA = false;
+  bool hasServerCA   = false;
   bool shouldWriteCertificate(usecmng_certificate_type_e type, str name, str new_value);
   int calculateMD5ForCert(char* output, int max_len, str input);
   bool isPEM(str input);

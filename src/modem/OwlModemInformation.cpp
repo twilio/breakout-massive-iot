@@ -26,13 +26,6 @@
 OwlModemInformation::OwlModemInformation(OwlModemAT *atModem) : atModem_(atModem) {
 }
 
-
-int OwlModemInformation::getProductIdentification(str *out_response) {
-  int result = atModem_->doCommandBlocking("ATI", 1000, out_response);
-  str_strip(out_response);
-  return (result == AT_Result_Code__OK);
-}
-
 int OwlModemInformation::getManufacturer(str *out_response) {
   int result = atModem_->doCommandBlocking("AT+CGMI", 1000, out_response);
   str_strip(out_response);
@@ -55,43 +48,4 @@ int OwlModemInformation::getIMEI(str *out_response) {
   int result = atModem_->doCommandBlocking("AT+CGSN", 1000, out_response);
   str_strip(out_response);
   return (result == AT_Result_Code__OK);
-}
-
-static str s_cbc = STRDECL("+CBC: ");
-
-int OwlModemInformation::getBatteryChargeLevels(str *out_response) {
-  str command_response;
-  int result = atModem_->doCommandBlocking("AT+CBC", 1000, &command_response) == AT_Result_Code__OK;
-  if (!result) {
-    out_response->len = 0;
-    return 0;
-  }
-  OwlModemAT::filterResponse(s_cbc, command_response, out_response);
-  return 1;
-}
-
-static str s_cind = STRDECL("+CIND: ");
-
-int OwlModemInformation::getIndicators(str *out_response) {
-  str command_response;
-
-  int result = atModem_->doCommandBlocking("AT+CIND?", 1000, &command_response) == AT_Result_Code__OK;
-  if (!result) {
-    out_response->len = 0;
-    return 0;
-  }
-  OwlModemAT::filterResponse(s_cind, command_response, out_response);
-  return 1;
-}
-
-int OwlModemInformation::getIndicatorsHelp(str *out_response) {
-  str command_response;
-
-  int result = atModem_->doCommandBlocking("AT+CIND=?", 1000, &command_response) == AT_Result_Code__OK;
-  if (!result) {
-    out_response->len = 0;
-    return 0;
-  }
-  OwlModemAT::filterResponse(s_cind, command_response, out_response);
-  return 1;
 }

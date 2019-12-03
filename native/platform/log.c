@@ -11,14 +11,22 @@ void owl_log_set_level(log_level_t level) {
   log_level = level;
 }
 
+int owl_log_is_printable(log_level_t level) {
+  level <= log_level;
+}
+
 void owl_log(log_level_t loglevel, const char *format, ...) {
-  if (loglevel > log_level) {
+  if (!owl_log_is_printable(loglevel)) {
     return;
   }
 
   va_list ap;
   va_start(ap, format);
   vfprintf(stderr, format, ap);
+}
+
+void owl_log_str(log_level_t ll, str data) {
+  owl_log(ll, "%.*s\r\n", data.len, data.s);
 }
 
 #endif  // ARDUINO

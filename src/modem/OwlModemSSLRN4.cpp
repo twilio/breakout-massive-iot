@@ -20,13 +20,13 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_
 
   if (hasServerCA) {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
-        USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
+                             USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
     if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
       return false;
     }
   } else {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
-        USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name);
+                             USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name);
     if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
       return false;
     }
@@ -34,13 +34,13 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_
 
   if (hasDeviceCert) {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
-        USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
+                             USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
     if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
       return false;
     }
   } else {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
-        USECPRF_OP_CODE_Client_Certificate_Internal_Name);
+                             USECPRF_OP_CODE_Client_Certificate_Internal_Name);
     if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
       return false;
     }
@@ -48,13 +48,13 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_
 
   if (hasDevicePkey) {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
-        USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
+                             USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
     if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
       return false;
     }
   } else {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
-        USECPRF_OP_CODE_Client_Private_Key_Internal_Name);
+                             USECPRF_OP_CODE_Client_Private_Key_Internal_Name);
     if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
       return false;
     }

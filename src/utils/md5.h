@@ -8,9 +8,7 @@
 #include "config.h"
 #endif
 
-#if HAVE_STRING_H || STDC_HEADERS
 #include <string.h>	/* for memcpy() */
-#endif
 
 /* Unlike previous versions of this code, uint32 need not be exactly
    32 bits, merely 32 bits or more.  Choosing a data type which is 32

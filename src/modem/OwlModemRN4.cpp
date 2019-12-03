@@ -35,6 +35,7 @@ OwlModemRN4::OwlModemRN4(IOwlSerial *modem_port_in, IOwlSerial *debug_port_in, I
       information(&AT),
       SIM(&AT),
       network(&AT),
+      network_rn4(&AT),
       pdn(&AT),
       ssl(&AT),
       socket(&AT) {
@@ -114,7 +115,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
   }
 
   /* Resetting the modem network parameters */
-  if (!network.getModemMNOProfile(&current_profile)) {
+  if (!network_rn4.getModemMNOProfile(&current_profile)) {
     LOG(L_ERR, "Error retrieving current MNO Profile\r\n");
     return 0;
   }
@@ -128,7 +129,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
     if (current_profile != expected_profile) {
       LOG(L_WARN, "Updating MNO Profile to %d - %s\r\n", expected_profile,
           at_umnoprof_mno_profile_text(expected_profile));
-      if (!network.setModemMNOProfile(expected_profile)) {
+      if (!network_rn4.setModemMNOProfile(expected_profile)) {
         LOG(L_ERR, "Error re-setting MNO Profile from %d to %d\r\n", current_profile, expected_profile);
         return 0;
       }
@@ -232,7 +233,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
 
 int OwlModemRN4::waitForNetworkRegistration(char *purpose, int testing_variant) {
   bool network_ready = false;
-  bool needs_reset = false;
+  bool needs_reset   = false;
   owl_time_t timeout = owl_time() + 30 * 1000;
   while (true) {
     at_cereg_stat_e stat;

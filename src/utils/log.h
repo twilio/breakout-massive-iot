@@ -18,27 +18,27 @@
  */
 
 /**
- * \file log.g - logging utilities
+ * \file log.h - logging utilities
  */
 
 #ifndef __OWL_UTILS_LOG_H__
 #define __OWL_UTILS_LOG_H__
 
+#include <limits.h>
 #include "../platform/log.h"
 
 /*
  * Parameters for logging - change here to disable logging or colors
  */
-#define LOG_DISABLED 0
-#define LOG_NO_ANSI_COLORS 0
-#define LOG_WITH_TIME 1
-#define LOG_LINE_MAX_LEN 1024
-#define LOG_OUTPUT SerialDebugPort
 
+#ifndef LOG_DISABLED
+#define LOG_DISABLED 0
+#endif
 
 /*
  * Log levels
  */
+#define L_OFF INT_MIN
 #define L_CLI -4
 #define L_ALERT -3
 #define L_CRIT -2
@@ -54,8 +54,6 @@
 
 #if LOG_DISABLED == 0
 
-#define IS_PRINTABLE(level) (level <= debug_level || level == L_CLI)
-
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define LOG(level, format, ...) owl_log(level, "%s:%d:%s() " format, __FILENAME__, __LINE__, __func__, ##__VA_ARGS__)
 #define LOGE(level, format, ...) owl_log_empty(level, format, ##__VA_ARGS__)
@@ -63,8 +61,6 @@
 #define LOGSTR(level, x) owl_log_str(level, x)
 
 #else
-
-#define IS_PRINTABLE(level) 0
 
 #define LOG(level, format, args...)
 #define LOGE(level, format, args...)
@@ -74,11 +70,4 @@
 
 #endif
 
-#define GOTOERR(label)                                                                                                 \
-  do {                                                                                                                 \
-    LOG(L_ERR, "Going to label " #label "\r\n");                                                                       \
-    goto label;                                                                                                        \
-  } while (0)
-
-
-#endif // __OWL_UTILS_LOG_H__
+#endif  // __OWL_UTILS_LOG_H__

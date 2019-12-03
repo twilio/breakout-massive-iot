@@ -40,13 +40,6 @@ class OwlModemInformation {
    */
 
   /**
-   * Retrieve Product Identification Information
-   * @param out_response - str object that will point to the response buffer
-   * @return 1 on success, 0 on failure
-   */
-  int getProductIdentification(str *out_response);
-
-  /**
    * Retrieve Manufacturer Information
    * @param out_response - str object that will point to the response buffer
    * @return 1 on success, 0 on failure
@@ -73,27 +66,6 @@ class OwlModemInformation {
    * @return 1 on success, 0 on failure
    */
   int getIMEI(str *out_response);
-
-  /**
-   * Retrieve Battery Charge Levels
-   * @param out_response - str object that will point to the response buffer
-   * @return 1 on success, 0 on failure
-   */
-  int getBatteryChargeLevels(str *out_response);
-
-  /**
-   * Get indicators from the modem (various statuses, battery information, etc)
-   * @param out_response - str object that will point to the response buffer
-   * @return 1 on success, 0 on failure
-   */
-  int getIndicators(str *out_response);
-
-  /**
-   * Get help on the format of the indicators
-   * @param out_response - str object that will point to the response buffer
-   * @return 1 on success, 0 on failure
-   */
-  int getIndicatorsHelp(str *out_response);
 
  private:
   OwlModemAT *atModem_ = 0;

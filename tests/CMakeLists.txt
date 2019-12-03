@@ -29,3 +29,7 @@ add_executable(test_owlmodemat
 target_link_libraries(test_owlmodemat
   ${OPENSSL_LIBRARIES}
 )
+
+if(ENABLE_COVERAGE)
+	add_coverage(test_owlmodemat)
+endif()
