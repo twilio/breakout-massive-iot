@@ -8,7 +8,7 @@
 #include "config.h"
 #endif
 
-#include <string.h>	/* for memcpy() */
+#include <string.h> /* for memcpy() */
 
 /* Unlike previous versions of this code, uint32 need not be exactly
    32 bits, merely 32 bits or more.  Choosing a data type which is 32
@@ -18,9 +18,9 @@
 typedef unsigned int uint32;
 
 struct MD5Context {
-	uint32 buf[4];
-	uint32 bits[2];
-	unsigned char in[64];
+  uint32 buf[4];
+  uint32 bits[2];
+  unsigned char in[64];
 };
 
 void MD5Init(struct MD5Context *context);

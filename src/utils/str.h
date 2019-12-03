@@ -40,7 +40,7 @@ typedef struct {
 #define STRDEF(_string_, _value_) ((_string_).s = (_value_), (_string_).len = strlen(_value_))
 
 #define STRDECL(_value_)                                                                                               \
-  { .s = (char*) (_value_), .len = (int) strlen(_value_) }
+  { .s = (char *)(_value_), .len = (int)strlen(_value_) }
 
 
 
@@ -80,7 +80,8 @@ double str_to_double(str x);
  * Convert uint8_t to a binary string (e.g. "1010101010")
  * @param x - uint8_t input value
  * @param dst - str with at least [precision] (default 8) character capacity (only [precision] characters will be used)
- * @param precision - (optional) default is 8, can specify smaller precision to get a shorter result; bits that don't fit in input value are ignored
+ * @param precision - (optional) default is 8, can specify smaller precision to get a shorter result; bits that don't
+ * fit in input value are ignored
  */
 void uint8_t_to_binary_str(uint8_t x, str *dst, uint8_t precision);
 
