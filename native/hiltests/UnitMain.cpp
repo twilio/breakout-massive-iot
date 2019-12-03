@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
@@ -82,3 +84,5 @@ int main(int argc, const char* argv[]) {
 void spinProcessLineTestpoint(str line) {
   return;
 }
+
+#endif  // ARDUINO

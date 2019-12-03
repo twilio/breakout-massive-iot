@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #include "catch.hpp"
 
 #include <iostream>
@@ -124,3 +126,5 @@ TEST_CASE("CSQ", "[Network]") {
   // TODO: conditional check once BG96 is tested as well
   REQUIRE(qual == AT_CSQ__Qual__Not_Known_or_Not_Detectable);
 }
+
+#endif  // ARDUINO

@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #include "catch.hpp"
 
 #include <chrono>
@@ -200,3 +202,5 @@ TEST_CASE("TCP", "[SocketRN4]") {
     }
   }
 }
+
+#endif  // ARDUINO

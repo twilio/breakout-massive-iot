@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #include "catch.hpp"
 
 #include <iostream>
@@ -68,3 +70,5 @@ TEST_CASE("CGSN", "[information]") {
   REQUIRE(response.len <= 17);
   REQUIRE(response.len != 16);
 }
+
+#endif  // ARDUINO

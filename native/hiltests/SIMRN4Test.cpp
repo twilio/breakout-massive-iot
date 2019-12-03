@@ -17,7 +17,8 @@
  * limitations under the License.
  */
 
-//#define CATCH_CONFIG_RUNNER
+#ifndef ARDUINO  // arduino tries to compile everything in src directory, but this is not intended for the target
+
 #include "catch.hpp"
 
 #include <iostream>
@@ -25,14 +26,8 @@
 #include "modem/OwlModemRN4.h"
 #include "CharDeviceSerial.h"
 
-// std::string device = std::string("/dev/ttyUSB0");
-// int baudrate       = 115200;
-// std::string pin    = std::string("0000");
-// bool berlin = false;
-
 bool got_cpin_urc = false;
 
-// CharDeviceSerial* serial;
 extern OwlModemRN4* rn4;
 
 static void cpin_handler(str urc) {
@@ -78,52 +73,4 @@ TEST_CASE("CPIN", "[SIM]") {
   REQUIRE(got_cpin_urc == true);
 }
 
-/*int main(int argc, const char* argv[]) {
-  Catch::Session session;
-
-  using namespace Catch::clara;
-  auto cli = session.cli() |
-             Opt(device, "device")["-m"]["--device"]("Path to the device or pcsc:N for a PC/SC interface") |
-             Opt(baudrate, "baudrate")["-g"]["--baudrate"]("Baud rate for the serial device") |
-             Opt(pin, "pin")["-p"]["--pin"]("PIN code for the Trust Onboard SIM") |
-             Opt(berlin)["-b"]["--berlin"]("Set modem to test in Berlin");
-
-
-  // Now pass the new composite back to Catch so it uses that
-  session.cli(cli);
-
-  // Let Catch (using Clara) parse the command line
-  int returnCode = session.applyCommandLine(argc, argv);
-  if (returnCode != 0)  // Indicates a command line error
-    return returnCode;
-
-  owl_log_set_level(L_DBG);
-
-  serial = new CharDeviceSerial(device.c_str(), baudrate);
-  rn4 = new OwlModemRN4(serial);
-
-  if (!rn4->powerOn()) {
-    LOG(L_ERR, "Failed to power on the modem\n");
-    return 1;
-  }
-
-  if (berlin) {
-    if(!rn4->initModem(Testing__Set_MNO_Profile_to_Default | Testing__Set_APN_Bands_to_Berlin,
-                      "iot.1nce.net", "26201", AT_COPS__Format__Numeric)) {
-      LOG(L_ERR, "Failed to initialize modem\n");
-      return 1;
-    }
-  } else {
-    if(!rn4->initModem(0, "iot.nb")) {
-      LOG(L_ERR, "Failed to initialize modem\n");
-      return 1;
-    }
-  }
-
-  return session.run();
-}
-
-// TODO: find a better way to insert a test point
-void spinProcessLineTestpoint(str line) {
-  return;
-}*/
+#endif  // ARDUINO
