@@ -26,14 +26,7 @@
 
 #include <stdint.h>
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 typedef uint64_t owl_time_t;
-
 
 /**
  * Non-wrapping time in milliseconds. Must be called at least once every 49 days or so to detect the wrap-around.
@@ -43,10 +36,5 @@ typedef uint64_t owl_time_t;
 owl_time_t owl_time();
 
 void owl_delay(uint32_t ms);
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

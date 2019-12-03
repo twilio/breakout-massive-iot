@@ -14,9 +14,9 @@ set(MODEM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src/modem)
 
 set(MODEM_SOURCES
 	${MODEM_DIR}/enums.cpp
-	${MODEM_DIR}/../utils/str.c
-	${MODEM_DIR}/../utils/md5.c
-	${MODEM_DIR}/../utils/base64.c
+	${MODEM_DIR}/../utils/str.cpp
+	${MODEM_DIR}/../utils/md5.cpp
+	${MODEM_DIR}/../utils/base64.cpp
 	${MODEM_DIR}/OwlModemAT.cpp
 	)
 

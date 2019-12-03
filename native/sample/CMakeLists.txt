@@ -3,9 +3,9 @@
 find_package (Threads)
 
 set(PLATFORM_SOURCES
-	../platform/log.c
-	../platform/time.c
-	../platform/power.c
+	../platform/log.cpp
+	../platform/time.cpp
+	../platform/power.cpp
 	)
 
 if(BUILD_SAMPLE_BG96)

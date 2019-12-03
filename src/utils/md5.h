@@ -23,17 +23,9 @@ struct MD5Context {
 	unsigned char in[64];
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void MD5Init(struct MD5Context *context);
 void MD5Update(struct MD5Context *context, unsigned char const *buf, unsigned len);
 void MD5Final(unsigned char digest[16], struct MD5Context *context);
 void MD5Transform(uint32 buf[4], const unsigned char in[64]);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* !MD5_H */

@@ -43,10 +43,6 @@
 #define L_DBG 5
 #define L_MEM 6
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef int8_t log_level_t;
 
 /**
@@ -97,11 +93,5 @@ void owl_log_empty(log_level_t level, const char *format, ...);
  * @param x - the str to log
  */
 void owl_log_str(log_level_t level, str x);
-
-#ifdef __cplusplus
-}
-#endif
-
-
 
 #endif

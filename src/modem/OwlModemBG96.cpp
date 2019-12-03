@@ -43,7 +43,7 @@ OwlModemBG96::~OwlModemBG96() {
 }
 
 int OwlModemBG96::powerOn() {
-  owlPowerOn(OWL_POWER_BG96);
+  owl_power_on(OWL_POWER_BG96);
 
   owl_time_t timeout = owl_time() + 10 * 1000;
   while (!isPoweredOn()) {
@@ -60,7 +60,7 @@ int OwlModemBG96::powerOff() {
   AT.doCommandBlocking("AT+QPOWD=0", 500, nullptr);
   owl_delay(300);
 
-  owlPowerOff(OWL_POWER_BG96);
+  owl_power_off(OWL_POWER_BG96);
 }
 
 int OwlModemBG96::isPoweredOn() {

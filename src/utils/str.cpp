@@ -24,8 +24,7 @@
 #include "str.h"
 
 #include <stdlib.h>
-
-
+#include <ctype.h>
 
 void str_remove_prefix(str *x, char *prefix) {
   if (!x) return;
