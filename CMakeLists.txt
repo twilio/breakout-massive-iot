@@ -32,10 +32,9 @@ set(SDK_SOURCES
 	src/modem/OwlModemSocketRN4.cpp
 	src/modem/OwlModemSSLBG96.cpp
 	src/modem/OwlModemSSLRN4.cpp
-
-	src/utils/str.c
-	src/utils/md5.c
-	src/utils/base64.c
+	src/utils/str.cpp
+	src/utils/md5.cpp
+	src/utils/base64.cpp
 	)
 
 add_library(twilio_massive_sdk ${SDK_SOURCES})

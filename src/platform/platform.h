@@ -26,7 +26,6 @@
 
 #include "log.h"
 #include "time.h"
-#include "mem.h"
 #include "power.h"
 
 #endif

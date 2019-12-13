@@ -40,7 +40,7 @@ typedef struct {
 #define STRDEF(_string_, _value_) ((_string_).s = (_value_), (_string_).len = strlen(_value_))
 
 #define STRDECL(_value_)                                                                                               \
-  { .s = (char*) (_value_), .len = (int) strlen(_value_) }
+  { .s = (char *)(_value_), .len = (int)strlen(_value_) }
 
 
 
@@ -53,39 +53,6 @@ typedef struct {
 #define str_equalcase_char(a, c) ((a).len == strlen(c) && strncasecmp((a).s, (c), (a).len) == 0)
 #define str_equalcase_prefix(a, p) ((a).len >= (p).len && strncasecmp((a).s, (p).s, (p).len) == 0)
 #define str_equalcase_prefix_char(a, p) ((a).len >= strlen(p) && strncasecmp((a).s, (p), strlen(p)) == 0)
-
-
-#define str_free(x)                                                                                                    \
-  do {                                                                                                                 \
-    if ((x).s) owl_free((x).s);                                                                                        \
-    (x).s   = 0;                                                                                                       \
-    (x).len = 0;                                                                                                       \
-  } while (0)
-
-#define str_dup(dst, src)                                                                                              \
-  do {                                                                                                                 \
-    if ((src).len) {                                                                                                   \
-      (dst).s = (char *)owl_malloc((src).len);                                                                         \
-      if (!(dst).s) {                                                                                                  \
-        LOG(L_ERR, "Error allocating %d bytes\r\n", (src).len);                                                        \
-        (dst).len = 0;                                                                                                 \
-        break;                                                                                                         \
-      }                                                                                                                \
-      memcpy((dst).s, (src).s, (src).len);                                                                             \
-      (dst).len = (src).len;                                                                                           \
-    } else {                                                                                                           \
-      (dst).s   = 0;                                                                                                   \
-      (dst).len = 0;                                                                                                   \
-    }                                                                                                                  \
-  } while (0)
-
-#define str_dup_safe(dst, src)                                                                                         \
-  do {                                                                                                                 \
-    str_free(dst);                                                                                                     \
-    str_dup(dst, src);                                                                                                 \
-  } while (0)
-
-
 
 #define str_shrink_inside(dst, startp, size)                                                                           \
   do {                                                                                                                 \
@@ -101,13 +68,6 @@ typedef struct {
     }                                                                                                                  \
   } while (0)
 
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 void str_remove_prefix(str *x, char *prefix);
 void str_skipover_prefix(str *x, str prefix);
 int str_tok(str src, char *sep, str *dst);
@@ -120,7 +80,8 @@ double str_to_double(str x);
  * Convert uint8_t to a binary string (e.g. "1010101010")
  * @param x - uint8_t input value
  * @param dst - str with at least [precision] (default 8) character capacity (only [precision] characters will be used)
- * @param precision - (optional) default is 8, can specify smaller precision to get a shorter result; bits that don't fit in input value are ignored
+ * @param precision - (optional) default is 8, can specify smaller precision to get a shorter result; bits that don't
+ * fit in input value are ignored
  */
 void uint8_t_to_binary_str(uint8_t x, str *dst, uint8_t precision);
 
@@ -133,10 +94,5 @@ int str_find(str x, str y);
 int str_find_char(str x, char *y);
 
 void str_strip(str *s);
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif

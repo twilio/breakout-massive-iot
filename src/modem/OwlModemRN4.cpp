@@ -60,7 +60,7 @@ int OwlModemRN4::powerOn() {
 
   if (isPoweredOn()) return 1;
 
-  owlPowerOn(OWL_POWER_RN4);
+  owl_power_on(OWL_POWER_RN4);
 
   owl_time_t timeout = owl_time() + 10 * 1000;
   while (!isPoweredOn()) {
@@ -75,7 +75,7 @@ int OwlModemRN4::powerOn() {
 }
 
 void OwlModemRN4::powerOff() {
-  owlPowerOff(OWL_POWER_RN4);
+  owl_power_off(OWL_POWER_RN4);
 }
 
 int OwlModemRN4::isPoweredOn() {

@@ -11,9 +11,9 @@ link_libraries(
   )
 
 set(PLATFORM_SOURCES
-	../platform/log.c
-	../platform/time.c
-	../platform/power.c
+	../platform/log.cpp
+	../platform/time.cpp
+	../platform/power.cpp
 	)
 
 include_directories(../platform ../../src)

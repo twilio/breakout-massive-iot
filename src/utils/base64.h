@@ -16,19 +16,11 @@
 #ifndef _BASE64_H_
 #define _BASE64_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 int owl_base64encode_len(int len);
 int owl_base64encode(char *coded_dst, const unsigned char *plain_src, int len_plain_src);
 
 int owl_base64decode_len(const char *coded_src);
 int owl_base64decode(unsigned char *plain_dst, const char *coded_src);
 int owl_base64decode_md5(unsigned char digest[16], const char *coded_src);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  //_BASE64_H_

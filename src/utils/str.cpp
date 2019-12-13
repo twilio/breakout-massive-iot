@@ -24,8 +24,7 @@
 #include "str.h"
 
 #include <stdlib.h>
-
-
+#include <ctype.h>
 
 void str_remove_prefix(str *x, char *prefix) {
   if (!x) return;
@@ -175,7 +174,7 @@ uint32_t str_to_uint32_t(str x, int base) {
 double str_to_double(str x) {
   char buf[65];
   if (x.len > 64) {
-//    LOG(L_ERR, "The give string is too long to convert - %d > 64\n", x.len);
+    //    LOG(L_ERR, "The give string is too long to convert - %d > 64\n", x.len);
     return 0;
   }
   memcpy(buf, x.s, x.len);
@@ -186,8 +185,8 @@ double str_to_double(str x) {
 void uint8_t_to_binary_str(uint8_t x, str *dst, uint8_t precision) {
   int ndx = 0;
   if (precision == 0 || precision > 8) precision = 8;
-  for (ndx=0; ndx<=(precision-1); ndx++) {
-    dst->s[(precision-1)-ndx] = ((x >> ndx) & 1) ? '1' : '0';
+  for (ndx = 0; ndx <= (precision - 1); ndx++) {
+    dst->s[(precision - 1) - ndx] = ((x >> ndx) & 1) ? '1' : '0';
   }
   dst->len = precision;
 }
