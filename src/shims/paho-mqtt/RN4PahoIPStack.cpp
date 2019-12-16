@@ -3,7 +3,7 @@
 #define RN4_PAHO_LOCAL_PORT 8883
 
 bool RN4PahoIPStack::connect(const char* hostname, int port, bool use_tls, int tls_id) {
-  if (!modem_->open(AT_USO_Protocol__TCP, RN4_PAHO_LOCAL_PORT, &socket_id_)) {
+  if (!modem_->open(uso_protocol::TCP, RN4_PAHO_LOCAL_PORT, &socket_id_)) {
     LOG(L_ERR, "failed to open socket\r\n");
     return false;
   }

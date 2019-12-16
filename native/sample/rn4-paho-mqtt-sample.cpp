@@ -223,7 +223,7 @@ int main(int argc, const char** argv) {
 
   bool res;
   if (!cops.empty()) {
-    res = rn4.initModem(INIT_FLAGS, apn.c_str(), cops.c_str(), AT_COPS__Format__Numeric);
+    res = rn4.initModem(INIT_FLAGS, apn.c_str(), cops.c_str(), cops_format::Numeric);
   } else {
     res = rn4.initModem(INIT_FLAGS, apn.c_str());
   }

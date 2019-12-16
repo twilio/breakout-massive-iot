@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 
-void OwlModemSocketRN4Status::setOpened(at_uso_protocol_e proto) {
+void OwlModemSocketRN4Status::setOpened(uso_protocol proto) {
   is_opened    = 1;
   is_connected = 0;
 
@@ -48,7 +48,7 @@ void OwlModemSocketRN4Status::setClosed() {
   //  len_outstanding_receive_data     = 0;
   //  len_outstanding_receivefrom_data = 0;
 
-  protocol = AT_USO_Protocol__none;
+  protocol = uso_protocol::none;
 
   handler_UDPData      = nullptr;
   handler_TCPData      = nullptr;
@@ -188,7 +188,7 @@ bool OwlModemSocketRN4::processURCTCPAccept(str urc, str data) {
   } else if (listening_socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad listening_socket %d >= %d\r\n", listening_socket, MODEM_MAX_SOCKETS);
   } else {
-    this->status[new_socket].setOpened(AT_USO_Protocol__TCP);
+    this->status[new_socket].setOpened(uso_protocol::TCP);
     this->status[new_socket].is_connected              = 1;
     this->status[new_socket].handler_TCPData           = this->status[listening_socket].handler_TCPData;
     this->status[new_socket].handler_TCPData_priv      = this->status[listening_socket].handler_TCPData_priv;
@@ -302,7 +302,7 @@ void OwlModemSocketRN4::handleWaitingData() {
       remote_ip.len = 0;
       remote_port   = 0;
       switch (status[socket].protocol) {
-        case AT_USO_Protocol__UDP:
+        case uso_protocol::UDP:
           data_len = status[socket].len_outstanding_receivefrom_data;
           /* receive might include an event for the next data, so reset the current value now */
           status[socket].len_outstanding_receivefrom_data = 0;
@@ -329,7 +329,7 @@ void OwlModemSocketRN4::handleWaitingData() {
       remote_ip.len = 0;
       remote_port   = 0;
       switch (status[socket].protocol) {
-        case AT_USO_Protocol__UDP:
+        case uso_protocol::UDP:
           data_len = status[socket].len_outstanding_receive_data;
           /* receive might include an event for the next data, so reset the current value now */
           status[socket].len_outstanding_receive_data = 0;
@@ -344,7 +344,7 @@ void OwlModemSocketRN4::handleWaitingData() {
             /* Should we reset the indicator here and retry? Maybe that's an infinite loop, so probably not */
           }
           break;
-        case AT_USO_Protocol__TCP:
+        case uso_protocol::TCP:
           data_len = status[socket].len_outstanding_receive_data;
           /* receive might include an event for the next data, so reset the current value now */
           status[socket].len_outstanding_receive_data -= data_len;
@@ -376,7 +376,7 @@ void OwlModemSocketRN4::handleWaitingData() {
 
 static str s_usocr = STRDECL("+USOCR: ");
 
-int OwlModemSocketRN4::open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t *out_socket) {
+int OwlModemSocketRN4::open(uso_protocol protocol, uint16_t local_port, uint8_t *out_socket) {
   if (out_socket) *out_socket = 255;
   int socket = 255;
 
@@ -385,7 +385,7 @@ int OwlModemSocketRN4::open(at_uso_protocol_e protocol, uint16_t local_port, uin
   } else {
     atModem_->commandSprintf("AT+USOCR=%d", protocol);
   }
-  int result = atModem_->doCommandBlocking(3000, &socket_response) == AT_Result_Code__OK;
+  int result = atModem_->doCommandBlocking(3000, &socket_response) == at_result_code::OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usocr, socket_response, &socket_response);
   socket = str_to_uint32_t(socket_response, 10);
@@ -404,15 +404,15 @@ int OwlModemSocketRN4::close(uint8_t socket) {
     return 0;
   }
   switch (status[socket].protocol) {
-    case AT_USO_Protocol__TCP:
+    case uso_protocol::TCP:
       atModem_->commandSprintf("AT+USOCL=%u,0", socket);
       break;
-    case AT_USO_Protocol__UDP:
+    case uso_protocol::UDP:
     default:
       atModem_->commandSprintf("AT+USOCL=%u", socket);
       break;
   }
-  int result = (atModem_->doCommandBlocking(120 * 1000, nullptr) == AT_Result_Code__OK);
+  int result = (atModem_->doCommandBlocking(120 * 1000, nullptr) == at_result_code::OK);
   if (!result) return 0;
 
   this->status[socket].setClosed();
@@ -432,7 +432,7 @@ int OwlModemSocketRN4::enableTLS(uint8_t socket, int tls_id) {
   }
 
   atModem_->commandSprintf("AT+USOSEC=%u,1,%d", socket, tls_id);
-  return (atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK);
+  return (atModem_->doCommandBlocking(1000, nullptr) == at_result_code::OK);
 }
 
 int OwlModemSocketRN4::disableTLS(uint8_t socket) {
@@ -442,18 +442,18 @@ int OwlModemSocketRN4::disableTLS(uint8_t socket) {
   }
 
   atModem_->commandSprintf("AT+USOSEC=%u,0", socket);
-  return (atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK);
+  return (atModem_->doCommandBlocking(1000, nullptr) == at_result_code::OK);
 }
 
 static str s_usoer = STRDECL("+USOER: ");
 
-int OwlModemSocketRN4::getError(at_uso_error_e *out_error) {
-  if (out_error) *out_error = (at_uso_error_e)-1;
-  int result = (atModem_->doCommandBlocking("AT+USOER", 1000, &socket_response) == AT_Result_Code__OK);
+int OwlModemSocketRN4::getError(uso_error *out_error) {
+  if (out_error) *out_error = (uso_error)-1;
+  int result = (atModem_->doCommandBlocking("AT+USOER", 1000, &socket_response) == at_result_code::OK);
   if (!result) return 0;
   atModem_->filterResponse(s_usoer, socket_response, &socket_response);
 
-  if (out_error) *out_error = (at_uso_error_e)str_to_long_int(socket_response, 10);
+  if (out_error) *out_error = (uso_error)str_to_long_int(socket_response, 10);
 
   return result;
 }
@@ -470,17 +470,17 @@ int OwlModemSocketRN4::connect(uint8_t socket, str remote_ip, uint16_t remote_po
   }
   this->status[socket].is_connected = 0;
   switch (this->status[socket].protocol) {
-    case AT_USO_Protocol__TCP:
+    case uso_protocol::TCP:
       atModem_->commandSprintf("AT+USOCO=%u,\"%.*s\",%u,0", socket, remote_ip.len, remote_ip.s, remote_port);
       break;
-    case AT_USO_Protocol__UDP:
+    case uso_protocol::UDP:
       atModem_->commandSprintf("AT+USOCO=%u,\"%.*s\",%u", socket, remote_ip.len, remote_ip.s, remote_port);
       break;
     default:
       LOG(L_ERR, "Socket %d has unsupported protocol %d\r\n", this->status[socket].protocol);
       return 0;
   }
-  int result = (atModem_->doCommandBlocking(120 * 1000, &socket_response) == AT_Result_Code__OK);
+  int result = (atModem_->doCommandBlocking(120 * 1000, &socket_response) == at_result_code::OK);
   if (!result) return 0;
   this->status[socket].is_connected              = 1;
   this->status[socket].handler_SocketClosed      = cb;
@@ -495,7 +495,7 @@ int OwlModemSocketRN4::send(uint8_t socket, str data) {
   atModem_->commandSprintf("AT+USOWR=%u,%d,\"", socket, data.len);
   atModem_->commandAppendHex(data);
   atModem_->commandStrcat("\"");
-  int result = atModem_->doCommandBlocking(120 * 1000, &socket_response) == AT_Result_Code__OK;
+  int result = atModem_->doCommandBlocking(120 * 1000, &socket_response) == at_result_code::OK;
   if (!result) return -1;
   OwlModemAT::filterResponse(s_usowr, socket_response, &socket_response);
   str token = {0};
@@ -530,7 +530,7 @@ int OwlModemSocketRN4::sendUDP(uint8_t socket, str data, int *out_bytes_sent) {
     LOG(L_ERR, "Socket %d is not connected\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__UDP) {
+  if (this->status[socket].protocol != uso_protocol::UDP) {
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
@@ -557,7 +557,7 @@ int OwlModemSocketRN4::sendTCP(uint8_t socket, str data, int *out_bytes_sent) {
     LOG(L_ERR, "Socket %d is not connected\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__TCP) {
+  if (this->status[socket].protocol != uso_protocol::TCP) {
     LOG(L_ERR, "Socket %d is not an TCP socket\r\n", socket);
     return 0;
   }
@@ -583,14 +583,14 @@ int OwlModemSocketRN4::sendToUDP(uint8_t socket, str remote_ip, uint16_t remote_
     LOG(L_ERR, "Socket %d is not opened\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__UDP) {
+  if (this->status[socket].protocol != uso_protocol::UDP) {
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
   atModem_->commandSprintf("AT+USOST=%u,\"%.*s\",%u,%d,\"", socket, remote_ip.len, remote_ip.s, remote_port, data.len);
   atModem_->commandAppendHex(data);
   atModem_->commandStrcat("\"");
-  int result = atModem_->doCommandBlocking(10 * 1000, &socket_response) == AT_Result_Code__OK;
+  int result = atModem_->doCommandBlocking(10 * 1000, &socket_response) == at_result_code::OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usost, socket_response, &socket_response);
   str token = {0};
@@ -619,10 +619,10 @@ int OwlModemSocketRN4::getQueuedForReceive(uint8_t socket, int *out_receive_tcp,
     return 0;
   }
   switch (status[socket].protocol) {
-    case AT_USO_Protocol__TCP:
+    case uso_protocol::TCP:
       if (out_receive_tcp) *out_receive_tcp = status[socket].len_outstanding_receive_data;
       break;
-    case AT_USO_Protocol__UDP:
+    case uso_protocol::UDP:
       if (out_receive_udp) *out_receive_udp = status[socket].len_outstanding_receive_data;
       if (out_receivefrom_udp) *out_receivefrom_udp = status[socket].len_outstanding_receivefrom_data;
       break;
@@ -638,7 +638,7 @@ int OwlModemSocketRN4::receive(uint8_t socket, uint16_t len, str_mut *out_data, 
   if (out_data) out_data->len = 0;
 
   atModem_->commandSprintf("AT+USORD=%u,%u", socket, len);
-  int result = (atModem_->doCommandBlocking(1000, &socket_response) == AT_Result_Code__OK);
+  int result = (atModem_->doCommandBlocking(1000, &socket_response) == at_result_code::OK);
   if (!result) {
     return 0;
   }
@@ -706,7 +706,7 @@ int OwlModemSocketRN4::receiveUDP(uint8_t socket, uint16_t len, str_mut *out_dat
     LOG(L_ERR, "Socket %d is not connected - use receiveFromUDP\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__UDP) {
+  if (this->status[socket].protocol != uso_protocol::UDP) {
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
@@ -733,7 +733,7 @@ int OwlModemSocketRN4::receiveTCP(uint8_t socket, uint16_t len, str_mut *out_dat
     LOG(L_ERR, "Socket %d is not connected\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__TCP) {
+  if (this->status[socket].protocol != uso_protocol::TCP) {
     LOG(L_ERR, "Socket %d is not a TCP socket\r\n", socket);
     return 0;
   }
@@ -761,12 +761,12 @@ int OwlModemSocketRN4::receiveFromUDP(uint8_t socket, uint16_t len, str_mut *out
     LOG(L_ERR, "Socket %d is not opened\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__UDP) {
+  if (this->status[socket].protocol != uso_protocol::UDP) {
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
   atModem_->commandSprintf("AT+USORF=%u,%u", socket, len);
-  int result = (atModem_->doCommandBlocking(1000, &socket_response) == AT_Result_Code__OK);
+  int result = (atModem_->doCommandBlocking(1000, &socket_response) == at_result_code::OK);
   if (!result) return 0;
   OwlModemAT::filterResponse(s_usorf, socket_response, &socket_response);
   str token             = {0};
@@ -834,12 +834,12 @@ int OwlModemSocketRN4::listenUDP(uint8_t socket, uint16_t local_port, OwlModem_U
     LOG(L_ERR, "Socket %d is not opened\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__UDP) {
+  if (this->status[socket].protocol != uso_protocol::UDP) {
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
   atModem_->commandSprintf("AT+USOLI=%u,%u", socket, local_port);
-  int result = (atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK);
+  int result = (atModem_->doCommandBlocking(1000, nullptr) == at_result_code::OK);
   if (!result) return 0;
 
   this->status[socket].handler_UDPData      = cb;
@@ -857,7 +857,7 @@ int OwlModemSocketRN4::listenTCP(uint8_t socket, OwlModem_TCPDataHandler_f handl
     LOG(L_ERR, "Socket %d is not opened\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__TCP) {
+  if (this->status[socket].protocol != uso_protocol::TCP) {
     LOG(L_ERR, "Socket %d is not an TCP socket\r\n", socket);
     return 0;
   }
@@ -880,12 +880,12 @@ int OwlModemSocketRN4::acceptTCP(uint8_t socket, uint16_t local_port, OwlModem_T
     LOG(L_ERR, "Socket %d is not opened\r\n", socket);
     return 0;
   }
-  if (this->status[socket].protocol != AT_USO_Protocol__TCP) {
+  if (this->status[socket].protocol != uso_protocol::TCP) {
     LOG(L_ERR, "Socket %d is not an UDP socket\r\n", socket);
     return 0;
   }
   atModem_->commandSprintf("AT+USOLI=%u,%u", socket, local_port);
-  int result = atModem_->doCommandBlocking(1000, nullptr) == AT_Result_Code__OK;
+  int result = atModem_->doCommandBlocking(1000, nullptr) == at_result_code::OK;
   if (!result) return 0;
 
   this->status[socket].handler_TCPAccept         = handler_tcp_accept;
@@ -902,7 +902,7 @@ int OwlModemSocketRN4::openListenUDP(uint16_t local_port, uint8_t *out_socket, O
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
 
-  if (!this->open(AT_USO_Protocol__UDP, 0, &socket)) goto error;
+  if (!this->open(uso_protocol::UDP, 0, &socket)) goto error;
   if (!this->listenUDP(socket, local_port, handler_data, handler_data_priv)) goto error;
 
   if (out_socket) *out_socket = socket;
@@ -917,7 +917,7 @@ int OwlModemSocketRN4::openConnectUDP(str remote_ip, uint16_t remote_port, uint8
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
 
-  if (!this->open(AT_USO_Protocol__UDP, 0, &socket)) goto error;
+  if (!this->open(uso_protocol::UDP, 0, &socket)) goto error;
   if (!this->connect(socket, remote_ip, remote_port, (OwlModem_SocketClosedHandler_f)0)) goto error;
 
   this->status[socket].handler_UDPData      = handler_data;
@@ -936,7 +936,7 @@ int OwlModemSocketRN4::openListenConnectUDP(uint16_t local_port, str remote_ip, 
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
 
-  if (!this->open(AT_USO_Protocol__UDP, 0, &socket)) goto error;
+  if (!this->open(uso_protocol::UDP, 0, &socket)) goto error;
   if (!this->listenUDP(socket, local_port, handler_data, handler_data_priv)) goto error;
   if (!this->connect(socket, remote_ip, remote_port, (OwlModem_SocketClosedHandler_f)0)) goto error;
 
@@ -954,7 +954,7 @@ int OwlModemSocketRN4::openListenConnectTCP(uint16_t local_port, str remote_ip, 
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
 
-  if (!this->open(AT_USO_Protocol__TCP, local_port, &socket)) goto error;
+  if (!this->open(uso_protocol::TCP, local_port, &socket)) goto error;
   if (!this->listenTCP(socket, handler_data, handler_data_priv)) goto error;
   if (!this->connect(socket, remote_ip, remote_port, handler_close, handler_close_priv)) goto error;
 
@@ -973,7 +973,7 @@ int OwlModemSocketRN4::openAcceptTCP(uint16_t local_port, uint8_t *out_socket,
   if (out_socket) *out_socket = 255;
   uint8_t socket = 255;
 
-  if (!this->open(AT_USO_Protocol__TCP, 0, &socket)) goto error;
+  if (!this->open(uso_protocol::TCP, 0, &socket)) goto error;
   if (!this->acceptTCP(socket, local_port, handler_accept, handler_close, handler_data, handler_accept_priv,
                        handler_close_priv, handler_data_priv))
     goto error;

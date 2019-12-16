@@ -187,7 +187,7 @@ TEST_CASE("OwlModemAT processes simple commands correctly", "[command]") {
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 }
@@ -237,7 +237,7 @@ TEST_CASE("OwlModemAT processes URC while command is running", "[command-urc]") 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
 
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 }
@@ -280,7 +280,7 @@ TEST_CASE("Command response data is not affected by previous responses", "[comma
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
 
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 
@@ -305,7 +305,7 @@ TEST_CASE("Command response data is not affected by previous responses", "[comma
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
 
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 }
@@ -356,7 +356,7 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "");
 }

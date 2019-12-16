@@ -66,7 +66,7 @@ int main(int argc, const char* argv[]) {
 
   if (berlin) {
     if (!rn4->initModem(Testing__Set_MNO_Profile_to_Default | Testing__Set_APN_Bands_to_Berlin, "iot.1nce.net", "26201",
-                        AT_COPS__Format__Numeric)) {
+                        cops_format::Numeric)) {
       LOG(L_ERR, "Failed to initialize modem\n");
       return 1;
     }

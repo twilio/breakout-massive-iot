@@ -14,20 +14,20 @@ static str s_key_name  = STRDECL("Key");
 bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_e cipher_suite) {
   atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_profile_slot, USECPRF_OP_CODE_Certificate_Validation_Level,
                            USECPRF_VALIDATION_LEVEL_No_Validation);
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
     return false;
   }
 
   if (hasServerCA) {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
                              USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name, s_ca_name.len, s_ca_name.s);
-    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   } else {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
                              USECPRF_OP_CODE_Trusted_Root_Certificate_Internal_Name);
-    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   }
@@ -35,13 +35,13 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_
   if (hasDeviceCert) {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
                              USECPRF_OP_CODE_Client_Certificate_Internal_Name, s_cert_name.len, s_cert_name.s);
-    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   } else {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
                              USECPRF_OP_CODE_Client_Certificate_Internal_Name);
-    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   }
@@ -49,19 +49,19 @@ bool OwlModemSSLRN4::initContext(uint8_t ssl_profile_slot, usecprf_cipher_suite_
   if (hasDevicePkey) {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"%.*s\"", ssl_profile_slot,
                              USECPRF_OP_CODE_Client_Private_Key_Internal_Name, s_key_name.len, s_key_name.s);
-    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   } else {
     atModem_->commandSprintf("AT+USECPRF=%d,%d,\"\"", ssl_profile_slot,
                              USECPRF_OP_CODE_Client_Private_Key_Internal_Name);
-    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   }
 
   atModem_->commandSprintf("AT+USECPRF=%d,%d,%d", ssl_profile_slot, USECPRF_OP_CODE_Cipher_Suite, cipher_suite);
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
     return false;
   }
 
@@ -82,7 +82,7 @@ bool OwlModemSSLRN4::setDeviceCert(str cert) {
     atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Certificate, s_cert_name.len, s_cert_name.s, (int)cert.len);
 
-    if (atModem_->doCommandBlocking(10 * 1000, nullptr, cert) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(10 * 1000, nullptr, cert) != at_result_code::OK) {
       return false;
     }
   }
@@ -105,7 +105,7 @@ bool OwlModemSSLRN4::setDevicePkey(str pkey) {
     atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Key, s_key_name.len, s_key_name.s, (int)pkey.len);
 
-    if (atModem_->doCommandBlocking(10 * 1000, nullptr, pkey) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(10 * 1000, nullptr, pkey) != at_result_code::OK) {
       return false;
     }
   }
@@ -128,7 +128,7 @@ bool OwlModemSSLRN4::setServerCA(str ca) {
     atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\",%d", USECMNG_OPERATION_Import_From_Serial,
                              USECMNG_CERTIFICATE_TYPE_Trusted_Root_CA, s_ca_name.len, s_ca_name.s, (int)ca.len);
 
-    if (atModem_->doCommandBlocking(10 * 1000, nullptr, ca) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking(10 * 1000, nullptr, ca) != at_result_code::OK) {
       return false;
     }
   }
@@ -172,7 +172,7 @@ bool OwlModemSSLRN4::shouldWriteCertificate(usecmng_certificate_type_e type, str
 
   atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, type, name.len, name.s);
 
-  if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == at_result_code::OK) {
     const char *match = strstr(ssl_response.s, md5_buf);
     if (match != NULL) {
       should_write = false;

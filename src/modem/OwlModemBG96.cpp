@@ -65,7 +65,7 @@ int OwlModemBG96::powerOff() {
 }
 
 int OwlModemBG96::isPoweredOn() {
-  return AT.doCommandBlocking("AT", 1000, nullptr) == AT_Result_Code__OK;
+  return AT.doCommandBlocking("AT", 1000, nullptr) == at_result_code::OK;
 }
 
 /**
@@ -80,7 +80,7 @@ void OwlModemBG96::initCheckPIN(str message) {
   }
 }
 
-int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e cops_format) {
+int OwlModemBG96::initModem(const char* apn, const char* cops, cops_format cops_format) {
   OwlModem_PINHandler_f saved_handler = 0;
 
   if (!AT.initTerminal()) {
@@ -89,7 +89,7 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
 
   if (cops != nullptr) {
     // deregister from the network before the modem hangs
-    if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
+    if (!network.setOperatorSelection(cops_mode::Deregister_From_Network, nullptr, nullptr, nullptr)) {
       LOG(L_ERR, "Potential deregistering from network\r\n");
     }
   }
@@ -97,41 +97,41 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
   // TODO: skip if modem is already in the desired state. Writing some magic number to a file maybe?
   if (true) {
     /* A modem reset is required */
-    if (!network.setModemFunctionality(AT_CFUN__FUN__Minimum_Functionality, 0)) {
+    if (!network.setModemFunctionality(cfun_fun::Minimum_Functionality, 0)) {
       LOG(L_WARN, "Error turning modem off\r\n");
     }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"nwscanseq\",03,1", 5000, nullptr) != AT_Result_Code__OK) {
+    if (AT.doCommandBlocking("AT+QCFG=\"nwscanseq\",03,1", 5000, nullptr) != at_result_code::OK) {
       LOG(L_WARN, "Error setting RAT priority to NB1\r\n");
     }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"nwscanmode\",3,1", 5000, nullptr) != AT_Result_Code__OK) {
+    if (AT.doCommandBlocking("AT+QCFG=\"nwscanmode\",3,1", 5000, nullptr) != at_result_code::OK) {
       LOG(L_WARN, "Error setting RAT technology to LTE\r\n");
     }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"iotopmode\",1,1", 5000, nullptr) != AT_Result_Code__OK) {
+    if (AT.doCommandBlocking("AT+QCFG=\"iotopmode\",1,1", 5000, nullptr) != at_result_code::OK) {
       LOG(L_WARN, "Error setting network node to NB1\r\n");
     }
 
-    if (AT.doCommandBlocking("AT+QCFG=\"band\",0,0,A0E189F,1", 5000, nullptr) != AT_Result_Code__OK) {
+    if (AT.doCommandBlocking("AT+QCFG=\"band\",0,0,A0E189F,1", 5000, nullptr) != at_result_code::OK) {
       LOG(L_WARN, "Error setting NB bands to \"all bands\"\r\n");
     }
 
     // TODO: celevel and servicedomain
 
-    if (AT.doCommandBlocking("AT+QURCCFG=\"urcport\",\"uart1\"", 5000, nullptr) != AT_Result_Code__OK) {
+    if (AT.doCommandBlocking("AT+QURCCFG=\"urcport\",\"uart1\"", 5000, nullptr) != at_result_code::OK) {
       LOG(L_WARN, "Error directing URCs to the main UART\r\n");
     }
 
     AT.commandSprintf("AT+QICSGP=1,1,\"%s\"", apn);
-    if (AT.doCommandBlocking(1000, nullptr) != AT_Result_Code__OK) {
+    if (AT.doCommandBlocking(1000, nullptr) != at_result_code::OK) {
       LOG(L_WARN, "Error setting custom APN\r\n");
     }
 
 
     // at_cfun_rst_e rst = AT_CFUN__RST__Modem_and_SIM_Silent_Reset;
     // NOTE: BG96 seens to go to power down instead of resetting
-    if (!network.setModemFunctionality(AT_CFUN__FUN__Full_Functionality, 0)) {
+    if (!network.setModemFunctionality(cfun_fun::Full_Functionality, 0)) {
       LOG(L_WARN, "Error resetting modem\r\n");
     }
 
@@ -147,7 +147,7 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
 
     if (cops != nullptr) {
       // deregister from the network before the modem hangs
-      if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
+      if (!network.setOperatorSelection(cops_mode::Deregister_From_Network, nullptr, nullptr, nullptr)) {
         LOG(L_ERR, "Potential deregistering from network\r\n");
       }
     }
@@ -155,30 +155,30 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
 
 
   if (cops != nullptr) {
-    at_cops_act_e cops_act = AT_COPS__Access_Technology__LTE_NB_S1;
-    str oper               = STRDECL(cops);
+    cops_act cops_act = cops_act::LTE_NB_S1;
+    str oper          = STRDECL(cops);
 
     LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", cops);
-    if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
+    if (!network.setOperatorSelection(cops_mode::Manual_Selection, &cops_format, &oper, &cops_act)) {
       LOG(L_ERR, "Error selecting mobile operator\r\n");
       return 0;
     }
   }
 
-  if (AT.doCommandBlocking("AT+CSCS=\"GSM\"", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CSCS=\"GSM\"", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Potential error setting character set to GSM\r\n");
   }
 
-  if (AT.doCommandBlocking("AT+CREG=2", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CREG=2", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN,
         "Potential error setting URC to Registration and Location Updates for Network Registration Status events\r\n");
   }
-  if (AT.doCommandBlocking("AT+CGREG=2", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CGREG=2", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN,
         "Potential error setting GPRS URC to Registration and Location Updates for Network Registration Status "
         "events\r\n");
   }
-  if (AT.doCommandBlocking("AT+CEREG=2", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CEREG=2", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN,
         "Potential error setting EPS URC to Registration and Location Updates for Network Registration Status "
         "events\r\n");
@@ -186,14 +186,14 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
 
   if (sim.handler_cpin) saved_handler = sim.handler_cpin;
   sim.setHandlerPIN(initCheckPIN);
-  if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Error checking PIN status\r\n");
   }
   sim.setHandlerPIN(saved_handler);
 
   AT.doCommandBlocking("AT+QIACT=1", 5000, nullptr);  // ignore the result, which will be an error if already activated
 
-  if (AT.doCommandBlocking("AT+QIDNSCFG=1,\"8.8.8.8\"", 2000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+QIDNSCFG=1,\"8.8.8.8\"", 2000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Potential error setting DNS server\n");
   }
 
@@ -206,9 +206,9 @@ int OwlModemBG96::waitForNetworkRegistration(owl_time_t timeout) {
   owl_time_t begin_time = owl_time();
 
   while (true) {
-    at_cereg_stat_e stat;
+    cereg_stat stat;
     if (network.getEPSRegistrationStatus(0, &stat, 0, 0, 0, 0, 0)) {
-      network_ready = (stat == AT_CEREG__Stat__Registered_Home_Network || stat == AT_CEREG__Stat__Registered_Roaming);
+      network_ready = (stat == cereg_stat::Registered_Home_Network || stat == cereg_stat::Registered_Roaming);
       if (network_ready) break;
     }
     if (timeout != 0 && owl_time() > begin_time + timeout) {

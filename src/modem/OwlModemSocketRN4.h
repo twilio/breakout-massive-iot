@@ -81,7 +81,7 @@ class OwlModemSocketRN4Status {
   int len_outstanding_receive_data     = 0;
   int len_outstanding_receivefrom_data = 0;
 
-  at_uso_protocol_e protocol = AT_USO_Protocol__none;
+  uso_protocol protocol = uso_protocol::none;
 
   // TODO: consider using just one piece of private data for all handlers
   OwlModem_UDPDataHandler_f handler_UDPData           = nullptr;
@@ -93,7 +93,7 @@ class OwlModemSocketRN4Status {
   OwlModem_SocketClosedHandler_f handler_SocketClosed = nullptr;
   void* handler_SocketClosed_priv                     = nullptr;
 
-  void setOpened(at_uso_protocol_e protocol);
+  void setOpened(uso_protocol protocol);
   void setClosed();
 };
 
@@ -131,7 +131,7 @@ class OwlModemSocketRN4 {
    * @param out_socket - socket id
    * @return 1 on success, 0 on failure
    */
-  int open(at_uso_protocol_e protocol, uint16_t local_port, uint8_t* out_socket);
+  int open(uso_protocol protocol, uint16_t local_port, uint8_t* out_socket);
 
   /**
    * Close socket
@@ -162,7 +162,7 @@ class OwlModemSocketRN4 {
    * @param out_error - output error
    * @return 1 on success, 0 on failure
    */
-  int getError(at_uso_error_e* out_error);
+  int getError(uso_error* out_error);
 
   /**
    * Connect a socket to a remote IP and port. Use this for both UDP and TCP. For UDP, this allows the use of

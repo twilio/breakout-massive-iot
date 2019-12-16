@@ -23,645 +23,275 @@
 
 #include "enums.h"
 
-
-
-struct {
-  str value;
-  at_result_code_e code;
-} at_result_codes[] = {
-    {.value = {.s = "OK", .len = 2}, .code = AT_Result_Code__OK},
-    {.value = {.s = "CONNECT", .len = 7}, .code = AT_Result_Code__CONNECT},
-    {.value = {.s = "RING", .len = 4}, .code = AT_Result_Code__RING},
-    {.value = {.s = "NO CARRIER", .len = 10}, .code = AT_Result_Code__NO_CARRIER},
-    {.value = {.s = "ERROR", .len = 5}, .code = AT_Result_Code__ERROR},
-    {.value = {.s = "CONNECT 1200", .len = 12}, .code = AT_Result_Code__CONNECT_1200},
-    {.value = {.s = "NO DIALTONE", .len = 11}, .code = AT_Result_Code__NO_DIALTONE},
-    {.value = {.s = "BUSY", .len = 4}, .code = AT_Result_Code__BUSY},
-    {.value = {.s = "NO ANSWER", .len = 9}, .code = AT_Result_Code__NO_ANSWER},
-    {.value = {0}, .code = AT_Result_Code__unknown},
-};
-
-static char c_cme_error[] = "+CME ERROR: ";
-
-at_result_code_e at_result_code_extract(const char *value, unsigned int max_len) {
-  if (max_len < 3) {  // prompt for data '\r\n>'
-    return AT_Result_Code__unknown;
-  }
-
-  if (value[0] == '\r' && value[1] == '\n' && value[2] == '>') {
-    return AT_Result_Code__wait_input;
-  }
-
-  /* "Normal" result code, must be at least <CR><LF>OK<CR><LF>, so 6 bytes */
-  if (max_len < 6) return AT_Result_Code__unknown;
-  if (value[0] != '\r' || value[1] != '\n') return AT_Result_Code__unknown;
-  if (strncmp(value + 2, c_cme_error, strlen(c_cme_error)) == 0) {
-    return AT_Result_Code__cme_error;
-  }
-  for (unsigned int i = 0; at_result_codes[i].code != AT_Result_Code__unknown; i++) {
-    if (at_result_codes[i].value.len <= max_len - 4 &&
-        strncmp(value + 2, at_result_codes[i].value.s, at_result_codes[i].value.len) == 0 &&
-        value[2 + at_result_codes[i].value.len] == '\r' && value[3 + at_result_codes[i].value.len] == '\n') {
-      return at_result_codes[i].code;
+const char* at_enum_stringify(int code, const at_enum_text_match* match_table) {
+  for (int i = 0; match_table[i].text != nullptr; i++) {
+    if (match_table[i].code == code) {
+      return match_table[i].text;
     }
-  }
-
-  return AT_Result_Code__unknown;
+  };
+  return "unknown enum value";
 }
 
-const char *at_result_code_text(at_result_code_e code) {
-  switch (code) {
-    case AT_Result_Code__cme_error:
-      return c_cme_error;
-    case AT_Result_Code__failure:
-      return "failure";
-    case AT_Result_Code__timeout:
-      return "timeout";
-    case AT_Result_Code__unknown:
-      return "unknown";
-    default:
-      if (code <= AT_Result_Code__NO_ANSWER)
-        return at_result_codes[code].value.s;
-      else
-        return "unknown-hayes";
-  }
-}
-
-
-
-struct {
-  const char *value;
-  at_cfun_fun_e code;
-} at_cfun_funs[] = {
-    {.value = "minimum functionality", .code = AT_CFUN__FUN__Minimum_Functionality},
-    {.value = "full functionality", .code = AT_CFUN__FUN__Full_Functionality},
-    {.value = "airplane mode", .code = AT_CFUN__FUN__Airplane_Mode},
-    {.value = "enable SIM-toolkit interface - SIM-APPL", .code = AT_CFUN__FUN__Enable_SIM_Toolkit_Interface},
-    {.value = "disable SIM-toolkit interface - SIM-APPL (7)", .code = AT_CFUN__FUN__Disable_SIM_Toolkit_Interface_7},
-    {.value = "disable SIM-toolkit interface - SIM-APPL (8)", .code = AT_CFUN__FUN__Disable_SIM_Toolkit_Interface_8},
-    {.value = "enable SIM-toolkit interface - raw", .code = AT_CFUN__FUN__Enable_SIM_Toolkit_Interface_Raw_Mode},
-    {.value = "silent modem reset, no SIM reset", .code = AT_CFUN__FUN__Modem_Silent_Reset__No_SIM_Reset},
-    {.value = "silent modem reset, with SIM reset", .code = AT_CFUN__FUN__Modem_Silent_Reset__With_SIM_Reset},
-    {.value = "minimum functionality, CS/PS/SIM deactivation",
-     .code  = AT_CFUN__FUN__Minimum_Functionality_with_CS_PS_and_SIM_Deactivated},
-    {.value = "modem deep low power mode", .code = AT_CFUN__FUN__Modem_Deep_Low_Power_Mode},
-    {.value = 0, .code = (at_cfun_fun_e)-1},
-};
-
-const char *at_cfun_fun_text(at_cfun_fun_e code) {
-  int i;
-  for (i = 0; at_cfun_funs[i].value != 0; i++)
-    if (at_cfun_funs[i].code == code) return at_cfun_funs[i].value;
-  return "<unknown-cfun-fun>";
-}
-
-struct {
-  const char *value;
-  at_cfun_rst_e code;
-} at_cfun_rsts[] = {
-    {.value = "no modem/SIM reset", .code = AT_CFUN__RST__No_Modem_Reset},
-    {.value = "modem/SIM silent reset", .code = AT_CFUN__RST__Modem_and_SIM_Silent_Reset},
-    {.value = 0, .code = (at_cfun_rst_e)-1},
-};
-
-const char *at_cfun_rst_text(at_cfun_rst_e code) {
-  int i;
-  for (i = 0; at_cfun_rsts[i].value != 0; i++)
-    if (at_cfun_rsts[i].code == code) return at_cfun_rsts[i].value;
-  return "<unknown-cfun-rst>";
-}
-
-struct {
-  const char *value;
-  at_cfun_power_mode_e code;
-} at_cfun_power_modes[] = {
-    {.value = "minimum functionality", .code = AT_CFUN__POWER_MODE__Minimum_Functionality},
-    {.value = "full functionality", .code = AT_CFUN__POWER_MODE__Full_Functionality},
-    {.value = "airplane mode", .code = AT_CFUN__POWER_MODE__Airplane_Mode},
-    {.value = "minimum functionality, CS/PS/SIM deactivated",
-     .code  = AT_CFUN__POWER_MODE__Minimum_Functionality_with_CS_PS_and_SIM_Deactivated},
-    {.value = 0, .code = (at_cfun_power_mode_e)-1},
-};
-
-const char *at_cfun_power_mode_text(at_cfun_power_mode_e code) {
-  int i;
-  for (i = 0; at_cfun_power_modes[i].value != 0; i++)
-    if (at_cfun_power_modes[i].code == code) return at_cfun_power_modes[i].value;
-  return "<unknown-cfun-power-mode>";
-}
-
-struct {
-  const char *value;
-  at_cfun_stk_mode_e code;
-} at_cfun_stk_modes[] = {
-    {.value = "Interface_Disabled_Proactive_SIM_APPL_Enabled_0",
-     .code  = AT_CFUN__STK_MODE__Interface_Disabled_Proactive_SIM_APPL_Enabled_0},
-    {.value = "Dedicated_Mode_Proactive_SIM_APPL_Enabled",
-     .code  = AT_CFUN__STK_MODE__Dedicated_Mode_Proactive_SIM_APPL_Enabled},
-    {.value = "Interface_Disabled_Proactive_SIM_APPL_Enabled_7",
-     .code  = AT_CFUN__STK_MODE__Interface_Disabled_Proactive_SIM_APPL_Enabled_7},
-    {.value = "Interface_Disabled_Proactive_SIM_APPL_Enabled_8",
-     .code  = AT_CFUN__STK_MODE__Interface_Disabled_Proactive_SIM_APPL_Enabled_8},
-    {.value = "Interface_Raw_Mode_Proactive_SIM_APPL_Enabled",
-     .code  = AT_CFUN__STK_MODE__Interface_Raw_Mode_Proactive_SIM_APPL_Enabled},
-    {.value = 0, .code = (at_cfun_stk_mode_e)-1},
-};
-
-const char *at_cfun_stk_mode_text(at_cfun_stk_mode_e code) {
-  int i;
-  for (i = 0; at_cfun_stk_modes[i].value != 0; i++)
-    if (at_cfun_stk_modes[i].code == code) return at_cfun_stk_modes[i].value;
-  return "<unknown-cfun-stk-mode>";
-}
-
-const struct {
-  const char *value;
-  at_umnoprof_mno_profile_e code;
-} at_umnoprof_mno_profiles[] = {
-    {.value = "SW default", .code = AT_UMNOPROF__MNO_PROFILE__SW_Default},
-    {.value = "SIM ICCID select", .code = AT_UMNOPROF__MNO_PROFILE__SIM_ICCID_Select},
-    {.value = "AT&T", .code = AT_UMNOPROF__MNO_PROFILE__ATT},
-    {.value = "Verizon", .code = AT_UMNOPROF__MNO_PROFILE__Verizon},
-    {.value = "Telstra", .code = AT_UMNOPROF__MNO_PROFILE__Telstra},
-    {.value = "T-Mobile", .code = AT_UMNOPROF__MNO_PROFILE__TMO},
-    {.value = "CT", .code = AT_UMNOPROF__MNO_PROFILE__CT},
-    {.value = 0, .code = (at_umnoprof_mno_profile_e)-1},
-};
-
-const char *at_umnoprof_mno_profile_text(at_umnoprof_mno_profile_e code) {
-  int i;
-  for (i = 0; at_umnoprof_mno_profiles[i].value != 0; i++)
-    if (at_umnoprof_mno_profiles[i].code == code) return at_umnoprof_mno_profiles[i].value;
-  return "<unknown-umnoprof-mno-profile>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cops_mode_e code;
-} at_cops_modes[] = {
-    {.value = "automatic selection", .code = AT_COPS__Mode__Automatic_Selection},
-    {.value = "manual selection", .code = AT_COPS__Mode__Manual_Selection},
-    {.value = "deregister from network", .code = AT_COPS__Mode__Deregister_from_Network},
-    {.value = "set only <format>", .code = AT_COPS__Mode__Set_Only_Format},
-    {.value = "manual/automatic selection", .code = AT_COPS__Mode__Manual_Automatic},
-    {.value = 0, .code = (at_cops_mode_e)-1},
-};
-
-const char *at_cops_mode_text(at_cops_mode_e code) {
-  int i;
-  for (i = 0; at_cops_modes[i].value != 0; i++)
-    if (at_cops_modes[i].code == code) return at_cops_modes[i].value;
-  return "<unknown-cops-mode>";
-}
-
-struct {
-  const char *value;
-  at_cops_format_e code;
-} at_cops_formats[] = {
-    {.value = "long alphanumeric", .code = AT_COPS__Format__Long_Alphanumeric},
-    {.value = "short alphanumeric", .code = AT_COPS__Format__Short_Alphanumeric},
-    {.value = "numeric", .code = AT_COPS__Format__Numeric},
-    {.value = 0, .code = (at_cops_format_e)-1},
-};
-
-const char *at_cops_format_text(at_cops_format_e code) {
-  int i;
-  for (i = 0; at_cops_formats[i].value != 0; i++)
-    if (at_cops_formats[i].code == code) return at_cops_formats[i].value;
-  return "<unknown-cops-format>";
-}
-
-struct {
-  const char *value;
-  at_cops_stat_e code;
-} at_cops_stats[] = {
-    {.value = "unknown", .code = AT_COPS__Stat__Unknown},
-    {.value = "available", .code = AT_COPS__Stat__Available},
-    {.value = "current", .code = AT_COPS__Stat__Current},
-    {.value = "forbidden", .code = AT_COPS__Stat__Forbidden},
-    {.value = 0, .code = (at_cops_stat_e)-1},
-};
-
-const char *at_cops_stat_text(at_cops_stat_e code) {
-  int i;
-  for (i = 0; at_cops_stats[i].value != 0; i++)
-    if (at_cops_stats[i].code == code) return at_cops_stats[i].value;
-  return "<unknown-cops-stat>";
-}
-
-struct {
-  const char *value;
-  at_cops_act_e code;
-} at_cops_acts[] = {
-    {.value = "LTE", .code = AT_COPS__Access_Technology__LTE},
-    {.value = "EC-GSM-IoT or LTE-Cat-M1", .code = AT_COPS__Access_Technology__EC_GSM_IoT},
-    {.value = "LTE NB-S1", .code = AT_COPS__Access_Technology__LTE_NB_S1},
-    {.value = 0, .code = (at_cops_act_e)-1},
-};
-
-const char *at_cops_act_text(at_cops_act_e code) {
-  int i;
-  for (i = 0; at_cops_acts[i].value != 0; i++)
-    if (at_cops_acts[i].code == code) return at_cops_acts[i].value;
-  return "<unknown-cops-act>";
-}
-
-
-
-struct {
-  const char *value;
-  at_creg_n_e code;
-} at_creg_ns[] = {
-    {.value = "URC disabled", .code = AT_CREG__N__URC_Disabled},
-    {.value = "URC for Network Registration", .code = AT_CREG__N__Network_Registration_URC},
-    {.value = "URC for Network Registration and Location Information",
-     .code  = AT_CREG__N__Network_Registration_and_Location_Information_URC},
-
-    {.value = 0, .code = (at_creg_n_e)-1},
-};
-
-const char *at_creg_n_text(at_creg_n_e code) {
-  int i;
-  for (i = 0; at_creg_ns[i].value != 0; i++)
-    if (at_creg_ns[i].code == code) return at_creg_ns[i].value;
-  return "<unknown-creg-n>";
-}
-
-
-
-struct {
-  const char *value;
-  at_creg_stat_e code;
-} at_creg_stats[] = {
-    {.value = "not-registered, not-searching", .code = AT_CREG__Stat__Not_Registered},
-    {.value = "registered, home network", .code = AT_CREG__Stat__Registered_Home_Network},
-    {.value = "not-registered, but searching", .code = AT_CREG__Stat__Not_Registered_but_Searching},
-    {.value = "registration denied", .code = AT_CREG__Stat__Registration_Denied},
-    {.value = "unknown", .code = AT_CREG__Stat__Unknown},
-    {.value = "registered, roaming", .code = AT_CREG__Stat__Registered_Roaming},
-    {.value = "registered, for SMS only, home network", .code = AT_CREG__Stat__Registered_for_SMS_Only_Home_Network},
-    {.value = "registered, for SMS only, roaming", .code = AT_CREG__Stat__Registered_for_SMS_Only_Roaming},
-    {.value = "registered, for CSFB-not-preferred, home network,",
-     .code  = AT_CREG__Stat__Registered_for_CSFB_Only_Home_Network},
-    {.value = "registered, for CSFB-not-preferred, roaming", .code = AT_CREG__Stat__Registered_for_CSFB_Only_Roaming},
-
-    {.value = 0, .code = (at_creg_stat_e)-1},
-};
-
-const char *at_creg_stat_text(at_creg_stat_e code) {
-  int i;
-  for (i = 0; at_creg_stats[i].value != 0; i++)
-    if (at_creg_stats[i].code == code) return at_creg_stats[i].value;
-  return "<unknown-creg-stat>";
-}
-
-
-
-struct {
-  const char *value;
-  at_creg_act_e code;
-} at_creg_acts[] = {
-    {.value = "2G/GSM", .code = AT_CREG__AcT__GSM},
-    {.value = "GSM-Compact", .code = AT_CREG__AcT__GSM_Compact},
-    {.value = "3G/UTRAN", .code = AT_CREG__AcT__UTRAN},
-    {.value = "2.5G/GSM+EDGE", .code = AT_CREG__AcT__GSM_with_EDGE_Availability},
-    {.value = "3.5G/UTRAN+HSDPA", .code = AT_CREG__AcT__UTRAN_with_HSDPA_Availability},
-    {.value = "3.5G/UTRAN+HSUPA", .code = AT_CREG__AcT__UTRAN_with_HSUPA_Availability},
-    {.value = "3.5G/UTRAN+HSDPA+HSUPA", .code = AT_CREG__AcT__UTRAN_with_HSDPA_and_HSUPA_Availability},
-    {.value = "4G/LTE", .code = AT_CREG__AcT__E_UTRAN},
-    {.value = "2G/Extended-Coverage GSM for IoT", .code = AT_CREG__AcT__EC_GSM_IoT},
-    {.value = "LTE/NB-S1", .code = AT_CREG__AcT__E_UTRAN_NB},
-    {.value = "invalid", .code = AT_CREG__AcT__invalid},
-
-    {.value = 0, .code = (at_creg_act_e)-1},
-};
-
-const char *at_creg_act_text(at_creg_act_e code) {
-  int i;
-  for (i = 0; at_creg_acts[i].value != 0; i++)
-    if (at_creg_acts[i].code == code) return at_creg_acts[i].value;
-  return "<unknown-creg-act>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cgreg_n_e code;
-} at_cgreg_ns[] = {
-    {.value = "URC disabled", .code = AT_CGREG__N__URC_Disabled},
-    {.value = "URC for Network Registration", .code = AT_CGREG__N__Network_Registration_URC},
-    {.value = "URC for Network Registration and Location Information",
-     .code  = AT_CGREG__N__Network_Registration_and_Location_Information_URC},
-
-    {.value = 0, .code = (at_cgreg_n_e)-1},
-};
-
-const char *at_cgreg_n_text(at_cgreg_n_e code) {
-  int i;
-  for (i = 0; at_cgreg_ns[i].value != 0; i++)
-    if (at_cgreg_ns[i].code == code) return at_cgreg_ns[i].value;
-  return "<unknown-cgreg-n>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cgreg_stat_e code;
-} at_cgreg_stats[] = {
-    {.value = "not-registered, not-searching", .code = AT_CGREG__Stat__Not_Registered},
-    {.value = "registered, home network", .code = AT_CGREG__Stat__Registered_Home_Network},
-    {.value = "not-registered, but searching", .code = AT_CGREG__Stat__Not_Registered_but_Searching},
-    {.value = "registration denied", .code = AT_CGREG__Stat__Registration_Denied},
-    {.value = "unknown", .code = AT_CGREG__Stat__Unknown},
-    {.value = "registered, roaming", .code = AT_CGREG__Stat__Registered_Roaming},
-    {.value = "attached for emergency bearer services only",
-     .code  = AT_CGREG__Stat__Attached_for_Emergency_Bearer_Services_Only},
-
-    {.value = 0, .code = (at_cgreg_stat_e)-1},
-};
-
-const char *at_cgreg_stat_text(at_cgreg_stat_e code) {
-  int i;
-  for (i = 0; at_cgreg_stats[i].value != 0; i++)
-    if (at_cgreg_stats[i].code == code) return at_cgreg_stats[i].value;
-  return "<unknown-cgreg-stat>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cgreg_act_e code;
-} at_cgreg_acts[] = {
-    {.value = "2G/GSM", .code = AT_CGREG__AcT__GSM},
-    {.value = "GSM-Compact", .code = AT_CGREG__AcT__GSM_Compact},
-    {.value = "3G/UTRAN", .code = AT_CGREG__AcT__UTRAN},
-    {.value = "2.5G/GSM+EDGE", .code = AT_CGREG__AcT__GSM_with_EDGE_Availability},
-    {.value = "3.5G/UTRAN+HSDPA", .code = AT_CGREG__AcT__UTRAN_with_HSDPA_Availability},
-    {.value = "3.5G/UTRAN+HSUPA", .code = AT_CGREG__AcT__UTRAN_with_HSUPA_Availability},
-    {.value = "3.5G/UTRAN+HSDPA+HSUPA", .code = AT_CGREG__AcT__UTRAN_with_HSDPA_and_HSUPA_Availability},
-    {.value = "invalid", .code = AT_CGREG__AcT__invalid},
-
-    {.value = 0, .code = (at_cgreg_act_e)-1},
-};
-
-const char *at_cgreg_act_text(at_cgreg_act_e code) {
-  int i;
-  for (i = 0; at_cgreg_acts[i].value != 0; i++)
-    if (at_cgreg_acts[i].code == code) return at_cgreg_acts[i].value;
-  return "<unknown-cgreg-act>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cereg_n_e code;
-} at_cereg_ns[] = {
-    {.value = "URC disabled", .code = AT_CEREG__N__URC_Disabled},
-    {.value = "URC for Network Registration", .code = AT_CEREG__N__Network_Registration_URC},
-    {.value = "URC for Network Registration and Location Information",
-     .code  = AT_CEREG__N__Network_Registration_and_Location_Information_URC},
-    {.value = "URC for Network Registration, Location Information and EMM",
-     .code  = AT_CEREG__N__Network_Registration_Location_Information_and_EMM_URC},
-    {.value = "URC for PSM, Network Registration and Location Information",
-     .code  = AT_CEREG__N__PSM_Network_Registration_and_Location_Information_URC},
-    {.value = "URC for PSM, Network Registration, Location Information and EMM",
-     .code  = AT_CEREG__N__PSM_Network_Registration_Location_Information_and_EMM_URC},
-
-    {.value = 0, .code = (at_cereg_n_e)-1},
-};
-
-const char *at_cereg_n_text(at_cereg_n_e code) {
-  int i;
-  for (i = 0; at_cereg_ns[i].value != 0; i++)
-    if (at_cereg_ns[i].code == code) return at_cereg_ns[i].value;
-  return "<unknown-cereg-n>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cereg_stat_e code;
-} at_cereg_stats[] = {
-    {.value = "not-registered, not-searching", .code = AT_CEREG__Stat__Not_Registered},
-    {.value = "registered, home network", .code = AT_CEREG__Stat__Registered_Home_Network},
-    {.value = "not-registered, but searching", .code = AT_CEREG__Stat__Not_Registered_but_Searching},
-    {.value = "registration denied", .code = AT_CEREG__Stat__Registration_Denied},
-    {.value = "unknown", .code = AT_CEREG__Stat__Unknown},
-    {.value = "registered, roaming", .code = AT_CEREG__Stat__Registered_Roaming},
-    {.value = "attached for emergency bearer services only",
-     .code  = AT_CEREG__Stat__Attached_for_Emergency_Bearer_Services_Only},
-
-    {.value = 0, .code = (at_cereg_stat_e)-1},
-};
-
-const char *at_cereg_stat_text(at_cereg_stat_e code) {
-  int i;
-  for (i = 0; at_cereg_stats[i].value != 0; i++)
-    if (at_cereg_stats[i].code == code) return at_cereg_stats[i].value;
-  return "<unknown-cereg-stat>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cereg_act_e code;
-} at_cereg_acts[] = {
-    {.value = "4G/LTE", .code = AT_CEREG__AcT__E_UTRAN},
-    {.value = "2G/Extended-Coverage GSM for IoT", .code = AT_CEREG__AcT__EC_GSM_IoT},
-    {.value = "LTE/NB-S1", .code = AT_CEREG__AcT__E_UTRAN_NB},
-    {.value = "invalid", .code = AT_CEREG__AcT__invalid},
-
-    {.value = 0, .code = (at_cereg_act_e)-1},
-};
-
-const char *at_cereg_act_text(at_cereg_act_e code) {
-  int i;
-  for (i = 0; at_cereg_acts[i].value != 0; i++)
-    if (at_cereg_acts[i].code == code) return at_cereg_acts[i].value;
-  return "<unknown-cereg-act>";
-}
-
-
-
-struct {
-  const char *value;
-  at_cereg_cause_type_e code;
-} at_cereg_cause_types[] = {
-    {.value = "EMM-Cause", .code = AT_CEREG__Cause_Type__EMM_Cause},
-    {.value = "Manufacturer-Specific Cause", .code = AT_CEREG__Cause_Type__Manufacturer_Specific_Cause},
-
-    {.value = 0, .code = (at_cereg_cause_type_e)-1},
-};
-
-const char *at_cereg_cause_type_text(at_cereg_cause_type_e code) {
-  int i;
-  for (i = 0; at_cereg_cause_types[i].value != 0; i++)
-    if (at_cereg_cause_types[i].code == code) return at_cereg_cause_types[i].value;
-  return "<unknown-cereg-cause_type>";
-}
-
-
-
-struct {
-  const char *value;
-  at_uso_protocol_e code;
-} at_uso_protocols[] = {
-    {.value = "<none>", .code = AT_USO_Protocol__none},
-    {.value = "TCP", .code = AT_USO_Protocol__TCP},
-    {.value = "UDP", .code = AT_USO_Protocol__UDP},
-
-    {.value = 0, .code = (at_uso_protocol_e)-1},
-};
-
-const char *at_uso_protocol_text(at_uso_protocol_e code) {
-  int i;
-  for (i = 0; at_uso_protocols[i].value != 0; i++)
-    if (at_uso_protocols[i].code == code) return at_uso_protocols[i].value;
-  return "<unknown-uso-protocol>";
-}
-
-
-
-struct {
-  const char *value;
-  at_uso_error_e code;
-} at_uso_error_types[] = {
-    {.value = "No Error", .code = AT_USO_Error__Success},
-    {.value = "Operation not permitted (internal error)", .code = AT_USO_Error__EPERM},
-    {.value = "No such resource (internal error)", .code = AT_USO_Error__ENOENT},
-    {.value = "Interrupted system call (internal error)", .code = AT_USO_Error__EINTR},
-    {.value = "I/O error (internal error)", .code = AT_USO_Error__EIO},
-    {.value = "Bad file descriptor (internal error)", .code = AT_USO_Error__EBADF},
-    {.value = "No child processes (internal error)", .code = AT_USO_Error__ECHILD},
-    {.value = "Current operation would block, try again", .code = AT_USO_Error__EWOULDBLOCK_EAGAIN},
-    {.value = "Out of memory (internal error)", .code = AT_USO_Error__ENOMEM},
-    {.value = "Bad address (internal error)", .code = AT_USO_Error__EFAULT},
-    {.value = "Invalid argument", .code = AT_USO_Error__EINVAL},
-    {.value = "Broken pipe (internal error)", .code = AT_USO_Error__EPIPE},
-    {.value = "Function not implemented", .code = AT_USO_Error__ENOSYS},
-    {.value = "Machine is not on the internet", .code = AT_USO_Error__ENONET},
-    {.value = "End of file", .code = AT_USO_Error__EEOF},
-    {.value = "Protocol error", .code = AT_USO_Error__EPROTO},
-    {.value = "File descriptor in bad state (internal error)", .code = AT_USO_Error__EBADFD},
-    {.value = "Remote address changed", .code = AT_USO_Error__EREMCHG},
-    {.value = "Destination address required", .code = AT_USO_Error__EDESTADDRREQ},
-    {.value = "Wrong protocol type for socket", .code = AT_USO_Error__EPROTOTYPE},
-    {.value = "Protocol not available", .code = AT_USO_Error__ENOPROTOOPT},
-    {.value = "Protocol not supported", .code = AT_USO_Error__EPROTONOSUPPORT},
-    {.value = "Socket type not supported", .code = AT_USO_Error__ESOCKTNNOSUPPORT},
-    {.value = "Operation not supported on transport endpoint", .code = AT_USO_Error__EOPNOTSUPP},
-    {.value = "Protocol family not supported", .code = AT_USO_Error__EPFNOSUPPORT},
-    {.value = "Address family not supported by protocol", .code = AT_USO_Error__EAFNOSUPPORT},
-    {.value = "Address already in use", .code = AT_USO_Error__EADDRINUSE},
-    {.value = "Cannot assign requested address", .code = AT_USO_Error__EADDRNOTAVAIL},
-    {.value = "Network is down", .code = AT_USO_Error__ENETDOWN},
-    {.value = "Network is unreachable", .code = AT_USO_Error__ENETUNREACH},
-    {.value = "Network dropped connection because of reset", .code = AT_USO_Error__ENETRESET},
-    {.value = "Software caused connection abort", .code = AT_USO_Error__ECONNABORTED},
-    {.value = "Connection reset by peer", .code = AT_USO_Error__ECONNRESET},
-    {.value = "No buffer space available", .code = AT_USO_Error__ENOBUFS},
-    {.value = "Transport endpoint is already connected", .code = AT_USO_Error__EISCONN},
-    {.value = "Transport endpoint is not connected", .code = AT_USO_Error__ENOTCONN},
-    {.value = "Cannot send after transport endpoint  shutdown", .code = AT_USO_Error__ESHUTDOWN},
-    {.value = "Connection timed out", .code = AT_USO_Error__ETIMEDOUT},
-    {.value = "Connection refused", .code = AT_USO_Error__ECONNREFUSED},
-    {.value = "Host is down", .code = AT_USO_Error__EHOSTDOWN},
-    {.value = "No route to host", .code = AT_USO_Error__EHOSTUNREACH},
-    {.value = "Operation now in progress", .code = AT_USO_Error__EINPROGRESS},
-    {.value = "DNS server returned answer with no data", .code = AT_USO_Error__ENSRNODATA},
-    {.value = "DNS server claims query was misformatted", .code = AT_USO_Error__ENSRFORMERR},
-    {.value = "DNS server returned general failure", .code = AT_USO_Error__ENSRSERVFAIL},
-    {.value = "Domain name not found", .code = AT_USO_Error__ENSRNOTFOUND},
-    {.value = "DNS server does not implement requested operation", .code = AT_USO_Error__ENSRNOTIMP},
-    {.value = "DNS server refused query", .code = AT_USO_Error__ENSRREFUSED},
-    {.value = "Misformatted DNS query", .code = AT_USO_Error__ENSRBADQUERY},
-    {.value = "Misformatted domain name", .code = AT_USO_Error__ENSRBADNAME},
-    {.value = "Unsupported address family", .code = AT_USO_Error__ENSRBADFAMILY},
-    {.value = "Misformatted DNS reply", .code = AT_USO_Error__ENSRBADRESP},
-    {.value = "Could not contact DNS servers", .code = AT_USO_Error__ENSRCONNREFUSED},
-    {.value = "Timeout while contacting DNS servers", .code = AT_USO_Error__ENSRTIMEOUT},
-    {.value = "End of file", .code = AT_USO_Error__ENSROF},
-    {.value = "Error reading file", .code = AT_USO_Error__ENSRFILE},
-    {.value = "Out of memory", .code = AT_USO_Error__ENSRNOMEM},
-    {.value = "Application terminated lookup", .code = AT_USO_Error__ENSRDESTRUCTION},
-    {.value = "Domain name is too long", .code = AT_USO_Error__ENSRQUERYDOMAINTOOLONG},
-    {.value = "Domain name is too long", .code = AT_USO_Error__ENSRCNAMELOOP},
-
-    {.value = 0, .code = (at_uso_error_e)-1},
-
-};
-
-const char *at_uso_error_text(at_uso_error_e code) {
-  int i;
-  for (i = 0; at_uso_error_types[i].value != 0; i++)
-    if (at_uso_error_types[i].code == code) return at_uso_error_types[i].value;
-  return "<unknown-uso-error>";
-}
-
-
-struct {
-  const char *value;
-  at_edrx_mode_e code;
-} at_edrx_mode_types[] = {
-    {.value = "Disabled", .code = AT_EDRX_Mode__Disabled},
-    {.value = "Enabled", .code = AT_EDRX_Mode__Enabled},
-    {.value = "Enabled with URC", .code = AT_EDRX_Mode__Enabled_With_URC},
-    {.value = "Disabled with Reset", .code = AT_EDRX_Mode__Disable_And_Reset_Defaults},
-
-    {.value = 0, .code = (at_edrx_mode_e)-1},
-};
-
-const char *at_edrx_mode_text(at_edrx_mode_e code) {
-  int i;
-  for (i = 0; at_edrx_mode_types[i].value != 0; i++)
-    if (at_edrx_mode_types[i].code == code) return at_edrx_mode_types[i].value;
-  return "<unknown-edrx-mode>";
-}
-
-
-
-struct {
-  const char *value;
-  at_edrx_access_technology_e code;
-} at_edrx_access_technology_types[] = {
-    {.value = "GSM", .code = AT_EDRX_Access_Technology__GSM},
-    {.value = "UTRAN", .code = AT_EDRX_Access_Technology__UTRAN},
-    {.value = "LTE Cat M1", .code = AT_EDRX_Access_Technology__LTE_Cat_M1},
-    {.value = "LTE Cat NB1", .code = AT_EDRX_Access_Technology__LTE_Cat_NB1},
-    {.value = "Unspecified", .code = AT_EDRX_Access_Technology__Unspecified},
-
-    {.value = 0, .code = (at_edrx_access_technology_e)-1},
-};
-
-const char *at_edrx_access_technology_text(at_edrx_access_technology_e code) {
-  int i;
-  for (i = 0; at_edrx_access_technology_types[i].value != 0; i++)
-    if (at_edrx_access_technology_types[i].code == code) return at_edrx_access_technology_types[i].value;
-  return "<unknown-edrx-technology>";
-}
-
-struct {
-  const char *value;
-  at_psm_mode_e code;
-} at_psm_mode_types[] = {
-    {.value = "Disabled", .code = AT_PSM_Mode__Disabled},
-    {.value = "Enabled", .code = AT_PSM_Mode__Enabled},
-    {.value = "Disabled with Reset", .code = AT_PSM_Mode__Disable_And_Reset_Defaults},
-
-    {.value = 0, .code = (at_psm_mode_e)-1},
-};
-
-const char *at_psm_mode_text(at_psm_mode_e code) {
-  int i;
-  for (i = 0; at_psm_mode_types[i].value != 0; i++)
-    if (at_psm_mode_types[i].code == code) return at_psm_mode_types[i].value;
-  return "<unknown-psm-mode>";
-}
+const at_enum_text_match result_code_text_match[] = {{static_cast<int>(at_result_code::cme_error), "CME Error"},
+                                                     {static_cast<int>(at_result_code::failure), "failure"},
+                                                     {static_cast<int>(at_result_code::timeout), "timeout"},
+                                                     {static_cast<int>(at_result_code::unknown), "unknown"},
+                                                     {static_cast<int>(at_result_code::OK), "OK"},
+                                                     {static_cast<int>(at_result_code::CONNECT), "CONNECT"},
+                                                     {static_cast<int>(at_result_code::RING), "RING"},
+                                                     {static_cast<int>(at_result_code::NO_CARRIER), "NO CARRIER"},
+                                                     {static_cast<int>(at_result_code::ERROR), "ERROR"},
+                                                     {static_cast<int>(at_result_code::CONNECT_1200), "CONNECT 1200"},
+                                                     {static_cast<int>(at_result_code::NO_DIALTONE), "NO DIALTONE"},
+                                                     {static_cast<int>(at_result_code::BUSY), "BUSY"},
+                                                     {static_cast<int>(at_result_code::NO_ANSWER), "NO ANSWER"},
+                                                     {0, nullptr}};
+
+const at_enum_text_match cfun_fun_text_match[] = {
+    {static_cast<int>(cfun_fun::Minimum_Functionality), "minimum functionality"},
+    {static_cast<int>(cfun_fun::Full_Functionality), "full functionality"},
+    {static_cast<int>(cfun_fun::Airplane_Mode), "airplane mode"},
+    {static_cast<int>(cfun_fun::Enable_SIM_Toolkit_Interface), "enable SIM-toolkit interface - SIM-APPL"},
+    {static_cast<int>(cfun_fun::Disable_SIM_Toolkit_Interface_7), "disable SIM-toolkit interface - SIM-APPL (7)"},
+    {static_cast<int>(cfun_fun::Disable_SIM_Toolkit_Interface_8), "disable SIM-toolkit interface - SIM-APPL (8)"},
+    {static_cast<int>(cfun_fun::Enable_SIM_Toolkit_Interface_Raw_Mode), "enable SIM-toolkit interface - raw"},
+    {static_cast<int>(cfun_fun::Modem_Silent_Reset_No_SIM_Reset), "silent modem reset, no SIM reset"},
+    {static_cast<int>(cfun_fun::Modem_Silent_Reset_With_SIM_Reset), "silent modem reset, with SIM reset"},
+    {static_cast<int>(cfun_fun::Minimum_Functionality_with_CS_PS_and_SIM_Deactivated),
+     "minimum functionality, CS/PS/SIM deactivated"},
+    {static_cast<int>(cfun_fun::Modem_Deep_Low_Power_Mode), "modem deep low power mode"},
+    {0, nullptr}};
+
+const at_enum_text_match cfun_rst_text_match[] = {
+    {static_cast<int>(cfun_rst::No_Modem_Reset), "no modem/SIM reset"},
+    {static_cast<int>(cfun_rst::Modem_and_SIM_Silent_Reset), "modem/SIM silent reset"},
+    {0, nullptr}};
+
+const at_enum_text_match cfun_power_mode_text_match[] = {
+    {static_cast<int>(cfun_power_mode::Minimum_Functionality), "minimum functionality"},
+    {static_cast<int>(cfun_power_mode::Full_Functionality), "full functionality"},
+    {static_cast<int>(cfun_power_mode::Airplane_Mode), "airplane mode"},
+    {static_cast<int>(cfun_power_mode::Minimum_Functionality_with_CS_PS_and_SIM_Deactivated),
+     "minimum functionality, CS/PS/SIM deactivated"},
+    {0, nullptr}};
+
+const at_enum_text_match umnoprof_mno_profile_text_match[] = {
+    {static_cast<int>(umnoprof_mno_profile::SW_Default), "SW default"},
+    {static_cast<int>(umnoprof_mno_profile::SIM_ICCID_Select), "SIM_ICCID_Select"},
+    {static_cast<int>(umnoprof_mno_profile::ATT), "AT&T"},
+    {static_cast<int>(umnoprof_mno_profile::Verizon), "Verizon"},
+    {static_cast<int>(umnoprof_mno_profile::Telstra), "Telstra"},
+    {static_cast<int>(umnoprof_mno_profile::TMO), "TMO"},
+    {static_cast<int>(umnoprof_mno_profile::CT), "CT"},
+    {0, nullptr}};
+
+const at_enum_text_match cops_mode_text_match[] = {
+    {static_cast<int>(cops_mode::Automatic_Selection), "automatic selection"},
+    {static_cast<int>(cops_mode::Manual_Selection), "manual selection"},
+    {static_cast<int>(cops_mode::Deregister_From_Network), "deregister from network"},
+    {static_cast<int>(cops_mode::Set_Only_Format), "set only <format>"},
+    {static_cast<int>(cops_mode::Manual_Automatic), "manual/automatic selection"},
+    {0, nullptr}};
+
+const at_enum_text_match cops_format_text_match[] = {
+    {static_cast<int>(cops_format::Long_Alphanumeric), "long alphanumeric"},
+    {static_cast<int>(cops_format::Short_Alphanumeric), "short alphanumeric"},
+    {static_cast<int>(cops_format::Numeric), "numeric"},
+    {0, nullptr}};
+
+const at_enum_text_match cops_stat_text_match[] = {{static_cast<int>(cops_stat::Unknown), "unknown"},
+                                                   {static_cast<int>(cops_stat::Available), "available"},
+                                                   {static_cast<int>(cops_stat::Current), "current"},
+                                                   {static_cast<int>(cops_stat::Forbidden), "forbidden"},
+                                                   {0, nullptr}};
+
+const at_enum_text_match cops_act_text_match[] = {{static_cast<int>(cops_act::LTE), "LTE"},
+                                                  {static_cast<int>(cops_act::EC_GSM_IoT), "EC-GSM-IoT or LTE-Cat-M1"},
+                                                  {static_cast<int>(cops_act::LTE_NB_S1), "LTE NB-S1"},
+                                                  {0, nullptr}};
+
+const at_enum_text_match creg_n_text_match[] = {
+    {static_cast<int>(creg_n::URC_Disabled), "URC disabled"},
+    {static_cast<int>(creg_n::Network_Registration_URC), "URC for Network Registration"},
+    {static_cast<int>(creg_n::Network_Registration_and_Location_Information_URC),
+     "URC for Network Registration and Location Information"},
+    {0, nullptr}};
+
+const at_enum_text_match creg_stat_text_match[] = {
+    {static_cast<int>(creg_stat::Not_Registered), "not registered, not searching"},
+    {static_cast<int>(creg_stat::Registered_Home_Network), "registered, home network"},
+    {static_cast<int>(creg_stat::Not_Registered_Searching), "not registered, searching"},
+    {static_cast<int>(creg_stat::Registered_Roaming), "registered, roaming"},
+    {static_cast<int>(creg_stat::Registration_Denied), "registration denied"},
+    {static_cast<int>(creg_stat::Unknown), "unknown"},
+    {static_cast<int>(creg_stat::Registered_for_SMS_Only_Home_Network), "registered for SMS only, home network"},
+    {static_cast<int>(creg_stat::Registered_for_SMS_Only_Roaming), "registered for SMS only, roaming"},
+    {static_cast<int>(creg_stat::Registered_for_CSFB_Only_Home_Network), "registered for CSFB only, home network"},
+    {static_cast<int>(creg_stat::Registered_for_CSFB_Only_Roaming), "registered for CSFB only, roaming"},
+    {0, nullptr}};
+
+const at_enum_text_match creg_act_text_match[] = {
+    {static_cast<int>(creg_act::GSM), "2G/GSM"},
+    {static_cast<int>(creg_act::GSM_Compact), "GSM-Compact"},
+    {static_cast<int>(creg_act::UTRAN), "3G/UTRAN"},
+    {static_cast<int>(creg_act::GSM_with_EDGE_Availability), "2.5G/GSM+EDGE"},
+    {static_cast<int>(creg_act::UTRAN_with_HSDPA_Availability), "3.5G/UTRAN+HSDPA"},
+    {static_cast<int>(creg_act::UTRAN_with_HSUPA_Availability), "3.5G/UTRAN+HSUPA"},
+    {static_cast<int>(creg_act::UTRAN_with_HSDPA_and_HSUPA_Availability), "3.5G/UTRAN+HSDPA+HSUPA"},
+    {static_cast<int>(creg_act::E_UTRAN), "4G/LTE"},
+    {static_cast<int>(creg_act::EC_GSM_IoT), "2G/Extended-Coverage GSM for IoT"},
+    {static_cast<int>(creg_act::E_UTRAN_NB), "LTE/NB-S1"},
+    {static_cast<int>(creg_act::invalid), "invalid"},
+    {0, nullptr}};
+
+const at_enum_text_match cgreg_n_text_match[] = {
+    {static_cast<int>(cgreg_n::URC_Disabled), "URC disabled"},
+    {static_cast<int>(cgreg_n::Network_Registration_URC), "URC for Network Registration"},
+    {static_cast<int>(cgreg_n::Network_Registration_and_Location_Information_URC),
+     "URC for Network Registration and Location Information"},
+    {0, nullptr}};
+
+const at_enum_text_match cgreg_stat_text_match[] = {
+    {static_cast<int>(cgreg_stat::Not_Registered), "not registered, not searching"},
+    {static_cast<int>(cgreg_stat::Registered_Home_Network), "registered, home network"},
+    {static_cast<int>(cgreg_stat::Not_Registered_Searching), "not registered, searching"},
+    {static_cast<int>(cgreg_stat::Registration_Denied), "registration denied"},
+    {static_cast<int>(cgreg_stat::Unknown), "unknown"},
+    {static_cast<int>(cgreg_stat::Registered_Roaming), "registered, roaming"},
+    {static_cast<int>(cgreg_stat::Attached_for_Emergency_Bearer_Services_Only),
+     "attached for emergency bearer services only"},
+    {0, nullptr}};
+
+const at_enum_text_match cgreg_act_text_match[] = {
+    {static_cast<int>(cgreg_act::GSM), "2G/GSM"},
+    {static_cast<int>(cgreg_act::GSM_Compact), "GSM-Compact"},
+    {static_cast<int>(cgreg_act::UTRAN), "3G/UTRAN"},
+    {static_cast<int>(cgreg_act::GSM_with_EDGE_Availability), "2.5G/GSM+EDGE"},
+    {static_cast<int>(cgreg_act::UTRAN_with_HSDPA_Availability), "3.5G/UTRAN+HSDPA"},
+    {static_cast<int>(cgreg_act::UTRAN_with_HSUPA_Availability), "3.5G/UTRAN+HSUPA"},
+    {static_cast<int>(cgreg_act::UTRAN_with_HSDPA_and_HSUPA_Availability), "3.5G/UTRAN+HSDPA+HSUPA"},
+    {static_cast<int>(cgreg_act::invalid), "invalid"},
+    {0, nullptr}};
+
+const at_enum_text_match cereg_n_text_match[] = {
+    {static_cast<int>(cereg_n::URC_Disabled), "URC disabled"},
+    {static_cast<int>(cereg_n::Network_Registration_URC), "URC for Network Registration"},
+    {static_cast<int>(cereg_n::Network_Registration_and_Location_Information_URC),
+     "URC for Network Registration and Location Information"},
+    {static_cast<int>(cereg_n::PSM_Network_Registration_and_Location_Information_URC),
+     "URC for PSM, Network Registration and Location Information"},
+    {static_cast<int>(cereg_n::PSM_Network_Registration_Location_Information_and_EMM_URC),
+     "URC for PSM, Network Registration and Location Information and EMM"},
+    {0, nullptr}};
+
+const at_enum_text_match cereg_stat_text_match[] = {
+    {static_cast<int>(cereg_stat::Not_Registered), "not registered, not searching"},
+    {static_cast<int>(cereg_stat::Registered_Home_Network), "registered, home network"},
+    {static_cast<int>(cereg_stat::Not_Registered_Searching), "not registered, searching"},
+    {static_cast<int>(cereg_stat::Registration_Denied), "registration denied"},
+    {static_cast<int>(cereg_stat::Unknown), "unknown"},
+    {static_cast<int>(cereg_stat::Registered_Roaming), "registered, roaming"},
+    {static_cast<int>(cereg_stat::Attached_for_Emergency_Bearer_Services_Only),
+     "attached for emergency bearer services only"},
+    {0, nullptr}};
+
+const at_enum_text_match cereg_act_text_match[] = {
+    {static_cast<int>(cereg_act::E_UTRAN), "4G/LTE"},
+    {static_cast<int>(cereg_act::EC_GSM_IoT), "2G/Extended-Coverage GSM for IoT"},
+    {static_cast<int>(cereg_act::E_UTRAN_NB), "LTE/NB-S1"},
+    {static_cast<int>(cereg_act::invalid), "invalid"},
+    {0, nullptr}};
+
+const at_enum_text_match cereg_cause_type_text_match[] = {
+    {static_cast<int>(cereg_cause_type::EMM_Cause), "EMM Cause"},
+    {static_cast<int>(cereg_cause_type::Manufacturer_Specific_Cause), "Manufacturer-specific cause"},
+    {0, nullptr}};
+
+const at_enum_text_match uso_protocol_text_match[] = {{static_cast<int>(uso_protocol::none), "<none>"},
+                                                      {static_cast<int>(uso_protocol::TCP), "TCP"},
+                                                      {static_cast<int>(uso_protocol::UDP), "UDP"},
+                                                      {0, nullptr}};
+
+const at_enum_text_match uso_error_text_match[] = {
+    {static_cast<int>(uso_error::Success), "No Error"},
+    {static_cast<int>(uso_error::U_EPERM), "Operation not permitted (internal error)"},
+    {static_cast<int>(uso_error::U_ENOENT), "No such resource (internal error)"},
+    {static_cast<int>(uso_error::U_EINTR), "Interrupted system call (internal error)"},
+    {static_cast<int>(uso_error::U_EIO), "I/O error (internal error)"},
+    {static_cast<int>(uso_error::U_EBADF), "Bad file descriptor (internal error)"},
+    {static_cast<int>(uso_error::U_ECHILD), "No child processes (internal error)"},
+    {static_cast<int>(uso_error::U_EWOULDBLOCK_EAGAIN), "Current operation would block, try again"},
+    {static_cast<int>(uso_error::U_ENOMEM), "Out of memory (internal error)"},
+    {static_cast<int>(uso_error::U_EFAULT), "Bad address (internal error)"},
+    {static_cast<int>(uso_error::U_EINVAL), "Invalid argument"},
+    {static_cast<int>(uso_error::U_EPIPE), "Broken pipe (internal error)"},
+    {static_cast<int>(uso_error::U_ENOSYS), "Function not implemented"},
+    {static_cast<int>(uso_error::U_ENONET), "Machine is not on the internet"},
+    {static_cast<int>(uso_error::U_EEOF), "End of file"},
+    {static_cast<int>(uso_error::U_EPROTO), "Protocol error"},
+    {static_cast<int>(uso_error::U_EBADFD), "File descriptor in bad state (internal error)"},
+    {static_cast<int>(uso_error::U_EREMCHG), "Remote address changed"},
+    {static_cast<int>(uso_error::U_EDESTADDRREQ), "Destination address required"},
+    {static_cast<int>(uso_error::U_EPROTOTYPE), "Wrong protocol type for socket"},
+    {static_cast<int>(uso_error::U_ENOPROTOOPT), "Protocol not available"},
+    {static_cast<int>(uso_error::U_EPROTONOSUPPORT), "Protocol not supported"},
+    {static_cast<int>(uso_error::U_ESOCKTNNOSUPPORT), "Socket type not supported"},
+    {static_cast<int>(uso_error::U_EOPNOTSUPP), "Operation not supported on transport endpoint"},
+    {static_cast<int>(uso_error::U_EPFNOSUPPORT), "Protocol family not supported"},
+    {static_cast<int>(uso_error::U_EAFNOSUPPORT), "Address family not supported by protocol"},
+    {static_cast<int>(uso_error::U_EADDRINUSE), "Address already in use"},
+    {static_cast<int>(uso_error::U_EADDRNOTAVAIL), "Cannot assign requested address"},
+    {static_cast<int>(uso_error::U_ENETDOWN), "Network is down"},
+    {static_cast<int>(uso_error::U_ENETUNREACH), "Network is unreachable"},
+    {static_cast<int>(uso_error::U_ENETRESET), "Network dropped connection because of reset"},
+    {static_cast<int>(uso_error::U_ECONNABORTED), "Software caused connection abort"},
+    {static_cast<int>(uso_error::U_ECONNRESET), "Connection reset by peer"},
+    {static_cast<int>(uso_error::U_ENOBUFS), "No buffer space available"},
+    {static_cast<int>(uso_error::U_EISCONN), "Transport endpoint is already connected"},
+    {static_cast<int>(uso_error::U_ENOTCONN), "Transport endpoint is not connected"},
+    {static_cast<int>(uso_error::U_ESHUTDOWN), "Cannot send after transport endpoint  shutdown"},
+    {static_cast<int>(uso_error::U_ETIMEDOUT), "Connection timed out"},
+    {static_cast<int>(uso_error::U_ECONNREFUSED), "Connection refused"},
+    {static_cast<int>(uso_error::U_EHOSTDOWN), "Host is down"},
+    {static_cast<int>(uso_error::U_EHOSTUNREACH), "No route to host"},
+    {static_cast<int>(uso_error::U_EINPROGRESS), "Operation now in progress"},
+    {static_cast<int>(uso_error::U_ENSRNODATA), "DNS server returned answer with no data"},
+    {static_cast<int>(uso_error::U_ENSRFORMERR), "DNS server claims query was misformatted"},
+    {static_cast<int>(uso_error::U_ENSRSERVFAIL), "DNS server returned general failure"},
+    {static_cast<int>(uso_error::U_ENSRNOTFOUND), "Domain name not found"},
+    {static_cast<int>(uso_error::U_ENSRNOTIMP), "DNS server does not implement requested operation"},
+    {static_cast<int>(uso_error::U_ENSRREFUSED), "DNS server refused query"},
+    {static_cast<int>(uso_error::U_ENSRBADQUERY), "Misformatted DNS query"},
+    {static_cast<int>(uso_error::U_ENSRBADNAME), "Misformatted domain name"},
+    {static_cast<int>(uso_error::U_ENSRBADFAMILY), "Unsupported address family"},
+    {static_cast<int>(uso_error::U_ENSRBADRESP), "Misformatted DNS reply"},
+    {static_cast<int>(uso_error::U_ENSRCONNREFUSED), "Could not contact DNS servers"},
+    {static_cast<int>(uso_error::U_ENSRTIMEOUT), "Timeout while contacting DNS servers"},
+    {static_cast<int>(uso_error::U_ENSROF), "End of file"},
+    {static_cast<int>(uso_error::U_ENSRFILE), "Error reading file"},
+    {static_cast<int>(uso_error::U_ENSRNOMEM), "Out of memory"},
+    {static_cast<int>(uso_error::U_ENSRDESTRUCTION), "Application terminated lookup"},
+    {static_cast<int>(uso_error::U_ENSRQUERYDOMAINTOOLONG), "Domain name is too long"},
+    {static_cast<int>(uso_error::U_ENSRCNAMELOOP), "Domain name is too long"},
+    {0, nullptr}};
+
+const at_enum_text_match edrx_mode_text_match[] = {
+    {static_cast<int>(edrx_mode::Disabled), "Disabled"},
+    {static_cast<int>(edrx_mode::Enabled), "Enabled"},
+    {static_cast<int>(edrx_mode::Enabled_With_URC), "Enabled with URC"},
+    {static_cast<int>(edrx_mode::Disable_And_Reset_Defaults), "Disabled with reset"},
+    {0, nullptr}};
+
+const at_enum_text_match edrx_act_text_match[] = {{static_cast<int>(edrx_act::GSM), "GSM"},
+                                                  {static_cast<int>(edrx_act::UTRAN), "UTRAN"},
+                                                  {static_cast<int>(edrx_act::LTE_Cat_M1), "LTE Cat M1"},
+                                                  {static_cast<int>(edrx_act::LTE_Cat_NB1), "LTE Cat NB1"},
+                                                  {static_cast<int>(edrx_act::Unspecified), "Unspecified"},
+                                                  {0, nullptr}};
+
+
+const at_enum_text_match psm_mode_text_match[] = {
+    {static_cast<int>(psm_mode::Disabled), "Disabled"},
+    {static_cast<int>(psm_mode::Enabled), "Enabled"},
+    {static_cast<int>(psm_mode::Disable_And_Reset_Defaults), "Disabled with reset"},
+    {0, nullptr}};

@@ -29,15 +29,15 @@ void OwlModemAT::spinProcessLine() {
       if (processURC()) {
         break;
       }
-      at_result_code_e code = tryParseCode();
+      at_result_code code = tryParseCode();
 
-      if (code == AT_Result_Code__unknown) {
+      if (code == at_result_code::unknown) {
         processPrefix();
         appendLineToResponse();
         break;
       }
 
-      if (state_ == modem_state_t::wait_prompt && code == AT_Result_Code__CONNECT) {
+      if (state_ == modem_state_t::wait_prompt && code == at_result_code::CONNECT) {
         processInputPrompt();
       } else {
         last_response_code_ = code;
@@ -72,10 +72,10 @@ void OwlModemAT::spinProcessTime() {
 
       if (owl_time() > command_started_ + command_timeout_) {
         if (response_handler_ != nullptr &&
-            response_handler_(AT_Result_Code__timeout, response_buffer_, response_handler_param_)) {
+            response_handler_(at_result_code::timeout, response_buffer_, response_handler_param_)) {
           state_ = modem_state_t::idle;
         } else {
-          last_response_code_ = AT_Result_Code__timeout;
+          last_response_code_ = at_result_code::timeout;
           state_              = modem_state_t::response_ready;
         }
       }
@@ -257,21 +257,21 @@ void OwlModemAT::appendLineToResponse() {
   }
 }
 
-at_result_code_e OwlModemAT::tryParseCode() {
+at_result_code OwlModemAT::tryParseCode() {
   using at_code_entry = struct {
     str value;
-    at_result_code_e code;
+    at_result_code code;
   };
 
   static at_code_entry at_result_codes[] = {
-      {.value = {.s = "OK", .len = 2}, .code = AT_Result_Code__OK},
-      {.value = {.s = "CONNECT", .len = 7}, .code = AT_Result_Code__CONNECT},
-      {.value = {.s = "RING", .len = 4}, .code = AT_Result_Code__RING},
-      {.value = {.s = "NO CARRIER", .len = 10}, .code = AT_Result_Code__NO_CARRIER},
-      {.value = {.s = "ERROR", .len = 5}, .code = AT_Result_Code__ERROR},
-      {.value = {.s = "NO DIALTONE", .len = 11}, .code = AT_Result_Code__NO_DIALTONE},
-      {.value = {.s = "BUSY", .len = 4}, .code = AT_Result_Code__BUSY},
-      {.value = {.s = "NO ANSWER", .len = 9}, .code = AT_Result_Code__NO_ANSWER}};
+      {.value = {.s = "OK", .len = 2}, .code = at_result_code::OK},
+      {.value = {.s = "CONNECT", .len = 7}, .code = at_result_code::CONNECT},
+      {.value = {.s = "RING", .len = 4}, .code = at_result_code::RING},
+      {.value = {.s = "NO CARRIER", .len = 10}, .code = at_result_code::NO_CARRIER},
+      {.value = {.s = "ERROR", .len = 5}, .code = at_result_code::ERROR},
+      {.value = {.s = "NO DIALTONE", .len = 11}, .code = at_result_code::NO_DIALTONE},
+      {.value = {.s = "BUSY", .len = 4}, .code = at_result_code::BUSY},
+      {.value = {.s = "NO ANSWER", .len = 9}, .code = at_result_code::NO_ANSWER}};
 
   for (unsigned int i = 0; i < sizeof(at_result_codes) / sizeof(at_code_entry); ++i) {
     if (str_equal(line_buffer_, at_result_codes[i].value)) {
@@ -281,21 +281,21 @@ at_result_code_e OwlModemAT::tryParseCode() {
 
   // CONNECT code also comes in a vendor-customized flavour with a postfix
   if (str_equal_prefix_char(line_buffer_, "CONNECT ")) {
-    return AT_Result_Code__CONNECT;
+    return at_result_code::CONNECT;
   }
 
   if (str_equal_prefix_char(line_buffer_, "+CME ERROR")) {
-    return AT_Result_Code__cme_error;
+    return at_result_code::cme_error;
   }
 
-  return AT_Result_Code__unknown;
+  return at_result_code::unknown;
 }
 
 void OwlModemAT::processInputPrompt() {
   state_               = modem_state_t::send_data;
   send_data_ts_        = 0;
   response_buffer_.len = 0;
-  last_response_code_  = AT_Result_Code__unknown;
+  last_response_code_  = at_result_code::unknown;
 }
 
 bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_term) {
@@ -344,10 +344,10 @@ bool OwlModemAT::startATCommand(owl_time_t timeout_ms, str data, uint16_t data_t
   return true;
 }
 
-at_result_code_e OwlModemAT::doCommandBlocking(owl_time_t timeout_millis, str *out_response, str command_data,
-                                               uint16_t data_term) {
+at_result_code OwlModemAT::doCommandBlocking(owl_time_t timeout_millis, str *out_response, str command_data,
+                                             uint16_t data_term) {
   if (!startATCommand(timeout_millis, command_data, data_term)) {
-    return AT_Result_Code__ERROR;
+    return at_result_code::ERROR;
   }
 
   for (;;) {
@@ -363,7 +363,7 @@ at_result_code_e OwlModemAT::doCommandBlocking(owl_time_t timeout_millis, str *o
         return getLastCommandResponse(out_response);
       case modem_state_t::idle:
       default:
-        return AT_Result_Code__unknown;
+        return at_result_code::unknown;
     }
   }
 }
@@ -405,9 +405,9 @@ bool OwlModemAT::sendData(str data) {
   return true;
 }
 
-at_result_code_e OwlModemAT::getLastCommandResponse(str *out_response) {
+at_result_code OwlModemAT::getLastCommandResponse(str *out_response) {
   if (state_ != modem_state_t::response_ready) {
-    return AT_Result_Code__unknown;
+    return at_result_code::unknown;
   } else {
     state_ = modem_state_t::idle;
     if (out_response) {
@@ -418,30 +418,30 @@ at_result_code_e OwlModemAT::getLastCommandResponse(str *out_response) {
 }
 
 bool OwlModemAT::initTerminal() {
-  if (doCommandBlocking("ATV1", 1000, nullptr) != AT_Result_Code__OK) {
+  if (doCommandBlocking("ATV1", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Potential error setting commands to always return response codes\r\n");
   }
 
-  if (doCommandBlocking("ATQ0", 1000, nullptr) != AT_Result_Code__OK) {
+  if (doCommandBlocking("ATQ0", 1000, nullptr) != at_result_code::OK) {
     LOG(L_ERR, "Error setting commands to return text response codes\r\n");
     return false;
   }
 
-  if (doCommandBlocking("ATE0", 1000, nullptr) != AT_Result_Code__OK) {
+  if (doCommandBlocking("ATE0", 1000, nullptr) != at_result_code::OK) {
     LOG(L_ERR, "Error setting echo off\r\n");
     return false;
   }
 
-  if (doCommandBlocking("AT+CMEE=2", 1000, nullptr) != AT_Result_Code__OK) {
+  if (doCommandBlocking("AT+CMEE=2", 1000, nullptr) != at_result_code::OK) {
     LOG(L_ERR, "Error setting Modem Errors output to verbose (not numeric) values\r\n");
     return false;
   }
 
-  if (doCommandBlocking("ATS3=13", 1000, nullptr) != AT_Result_Code__OK) {
+  if (doCommandBlocking("ATS3=13", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Error setting command terminating character\r\n");
   }
 
-  if (doCommandBlocking("ATS4=10", 1000, nullptr) != AT_Result_Code__OK) {
+  if (doCommandBlocking("ATS4=10", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Error setting response separator character\r\n");
   }
 

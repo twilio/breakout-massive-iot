@@ -31,16 +31,16 @@ OwlModemNetworkRN4::OwlModemNetworkRN4(OwlModemAT *atModem) : atModem_(atModem) 
 
 static str s_umnoprof = STRDECL("+UMNOPROF: ");
 
-int OwlModemNetworkRN4::getModemMNOProfile(at_umnoprof_mno_profile_e *out_profile) {
-  if (out_profile) *out_profile = AT_UMNOPROF__MNO_PROFILE__SW_Default;
-  int result = atModem_->doCommandBlocking("AT+UMNOPROF?", 15 * 1000, &network_response) == AT_Result_Code__OK;
+int OwlModemNetworkRN4::getModemMNOProfile(umnoprof_mno_profile *out_profile) {
+  if (out_profile) *out_profile = umnoprof_mno_profile::SW_Default;
+  int result = atModem_->doCommandBlocking("AT+UMNOPROF?", 15 * 1000, &network_response) == at_result_code::OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_umnoprof, network_response, &network_response);
-  *out_profile = (at_umnoprof_mno_profile_e)str_to_long_int(network_response, 10);
+  *out_profile = (umnoprof_mno_profile)str_to_long_int(network_response, 10);
   return 1;
 }
 
-int OwlModemNetworkRN4::setModemMNOProfile(at_umnoprof_mno_profile_e profile) {
+int OwlModemNetworkRN4::setModemMNOProfile(umnoprof_mno_profile profile) {
   atModem_->commandSprintf("AT+UMNOPROF=%d", profile);
-  return atModem_->doCommandBlocking(3 * 60 * 1000, nullptr) == AT_Result_Code__OK;
+  return atModem_->doCommandBlocking(3 * 60 * 1000, nullptr) == at_result_code::OK;
 }

@@ -27,25 +27,25 @@ OwlModemInformation::OwlModemInformation(OwlModemAT *atModem) : atModem_(atModem
 }
 
 int OwlModemInformation::getManufacturer(str *out_response) {
-  int result = atModem_->doCommandBlocking("AT+CGMI", 1000, out_response);
+  auto result = atModem_->doCommandBlocking("AT+CGMI", 1000, out_response);
   str_strip(out_response);
-  return (result == AT_Result_Code__OK);
+  return (result == at_result_code::OK);
 }
 
 int OwlModemInformation::getModel(str *out_response) {
-  int result = atModem_->doCommandBlocking("AT+CGMM", 1000, out_response);
+  auto result = atModem_->doCommandBlocking("AT+CGMM", 1000, out_response);
   str_strip(out_response);
-  return (result == AT_Result_Code__OK);
+  return (result == at_result_code::OK);
 }
 
 int OwlModemInformation::getVersion(str *out_response) {
-  int result = atModem_->doCommandBlocking("AT+CGMR", 1000, out_response);
+  auto result = atModem_->doCommandBlocking("AT+CGMR", 1000, out_response);
   str_strip(out_response);
-  return (result == AT_Result_Code__OK);
+  return (result == at_result_code::OK);
 }
 
 int OwlModemInformation::getIMEI(str *out_response) {
-  int result = atModem_->doCommandBlocking("AT+CGSN", 1000, out_response);
+  auto result = atModem_->doCommandBlocking("AT+CGSN", 1000, out_response);
   str_strip(out_response);
-  return (result == AT_Result_Code__OK);
+  return (result == at_result_code::OK);
 }
