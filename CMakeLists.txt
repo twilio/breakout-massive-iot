@@ -38,6 +38,7 @@ set(SDK_SOURCES
 	)
 
 add_library(twilio_massive_sdk ${SDK_SOURCES})
+set_target_properties(twilio_massive_sdk PROPERTIES COMPILE_FLAGS "-Wall -Werror")
 
 if(ENABLE_COVERAGE)
 	add_coverage(twilio_massive_sdk)

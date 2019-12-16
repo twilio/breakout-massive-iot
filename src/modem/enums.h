@@ -53,9 +53,7 @@ typedef enum {
 
 at_result_code_e at_result_code_resolve(str value);
 at_result_code_e at_result_code_extract(const char *value, int max_len);
-char *at_result_code_text(at_result_code_e code);
-
-
+const char *at_result_code_text(at_result_code_e code);
 
 typedef enum {
   AT_CFUN__FUN__Minimum_Functionality                 = 0,
@@ -74,14 +72,14 @@ typedef enum {
                                                of NVM parameters; wake up with power cycle or module reset */
 } at_cfun_fun_e;
 
-char *at_cfun_fun_text(at_cfun_fun_e code);
+const char *at_cfun_fun_text(at_cfun_fun_e code);
 
 typedef enum {
   AT_CFUN__RST__No_Modem_Reset             = 0,
   AT_CFUN__RST__Modem_and_SIM_Silent_Reset = 1, /**< do a modem & SIM silent reset before setting fun mode */
 } at_cfun_rst_e;
 
-char *at_cfun_rst_text(at_cfun_rst_e code);
+const char *at_cfun_rst_text(at_cfun_rst_e code);
 
 typedef enum {
   AT_CFUN__POWER_MODE__Minimum_Functionality                                = 0,
@@ -90,7 +88,7 @@ typedef enum {
   AT_CFUN__POWER_MODE__Minimum_Functionality_with_CS_PS_and_SIM_Deactivated = 19, /**< only for SARA-R4/N4 series */
 } at_cfun_power_mode_e;
 
-char *at_cfun_power_mode_text(at_cfun_power_mode_e code);
+const char *at_cfun_power_mode_text(at_cfun_power_mode_e code);
 
 typedef enum {
   AT_CFUN__STK_MODE__Interface_Disabled_Proactive_SIM_APPL_Enabled_0 = 0,
@@ -100,7 +98,7 @@ typedef enum {
   AT_CFUN__STK_MODE__Interface_Raw_Mode_Proactive_SIM_APPL_Enabled   = 9,
 } at_cfun_stk_mode_e; /**< ? only for SARA-R4/N4 series */
 
-char *at_cfun_stk_mode_text(at_cfun_stk_mode_e code);
+const char *at_cfun_stk_mode_text(at_cfun_stk_mode_e code);
 
 typedef enum {
   AT_UMNOPROF__MNO_PROFILE__SW_Default       = 0,
@@ -112,9 +110,7 @@ typedef enum {
   AT_UMNOPROF__MNO_PROFILE__CT               = 6,
 } at_umnoprof_mno_profile_e;
 
-char *at_umnoprof_mno_profile_text(at_umnoprof_mno_profile_e code);
-
-
+const char *at_umnoprof_mno_profile_text(at_umnoprof_mno_profile_e code);
 
 typedef enum {
   AT_COPS__Mode__Automatic_Selection     = 0,
@@ -125,7 +121,7 @@ typedef enum {
                                                * stay there. */
 } at_cops_mode_e;
 
-char *at_cops_mode_text(at_cops_mode_e code);
+const char *at_cops_mode_text(at_cops_mode_e code);
 
 typedef enum {
   AT_COPS__Format__Long_Alphanumeric  = 0, /**< Up to 24 characters */
@@ -133,7 +129,7 @@ typedef enum {
   AT_COPS__Format__Numeric            = 2, /**< 5 or 6 characters MCC/MNC codes - FFFF means undefined */
 } at_cops_format_e;
 
-char *at_cops_format_text(at_cops_format_e code);
+const char *at_cops_format_text(at_cops_format_e code);
 
 typedef enum {
   AT_COPS__Stat__Unknown   = 0,
@@ -142,7 +138,7 @@ typedef enum {
   AT_COPS__Stat__Forbidden = 3,
 } at_cops_stat_e;
 
-char *at_cops_stat_text(at_cops_stat_e code);
+const char *at_cops_stat_text(at_cops_stat_e code);
 
 typedef enum {
   // TODO - define more values , for other modems too
@@ -152,9 +148,7 @@ typedef enum {
   AT_COPS__Access_Technology__LTE_NB_S1  = 9, /**< NB-S1 mode - on the SARA-R410M-52B, SARA-N4 */
 } at_cops_act_e;
 
-char *at_cops_act_text(at_cops_act_e code);
-
-
+const char *at_cops_act_text(at_cops_act_e code);
 
 typedef enum {
   AT_CREG__N__URC_Disabled             = 0, /**< No Unsolicited Registration Codes reported */
@@ -163,7 +157,7 @@ typedef enum {
       2, /**< Unsolicited Registration Codes reported for Network Registration and Location Information */
 } at_creg_n_e;
 
-char *at_creg_n_text(at_creg_n_e code);
+const char *at_creg_n_text(at_creg_n_e code);
 
 typedef enum {
   AT_CREG__Stat__Not_Registered                       = 0, /**< Not registered and not searching */
@@ -180,7 +174,7 @@ typedef enum {
       10, /**< Applicable only for AcT E-UTRAN; Only ublox SARA-R4/N4 modems */
 } at_creg_stat_e;
 
-char *at_creg_stat_text(at_creg_stat_e code);
+const char *at_creg_stat_text(at_creg_stat_e code);
 
 typedef enum {
   AT_CREG__AcT__GSM                                     = 0, /**< 2G */
@@ -196,9 +190,7 @@ typedef enum {
   AT_CREG__AcT__invalid    = 255, /**< Indicates that the current AcT is invalid */
 } at_creg_act_e;
 
-char *at_creg_act_text(at_creg_act_e code);
-
-
+const char *at_creg_act_text(at_creg_act_e code);
 
 typedef enum {
   AT_CGREG__N__URC_Disabled             = 0, /**< No Unsolicited Registration Codes reported */
@@ -207,7 +199,7 @@ typedef enum {
       2, /**< Unsolicited Registration Codes reported for Network Registration and Location Information */
 } at_cgreg_n_e;
 
-char *at_cgreg_n_text(at_cgreg_n_e code);
+const char *at_cgreg_n_text(at_cgreg_n_e code);
 
 typedef enum {
   AT_CGREG__Stat__Not_Registered                              = 0, /**< Not registered and not searching */
@@ -219,7 +211,7 @@ typedef enum {
   AT_CGREG__Stat__Attached_for_Emergency_Bearer_Services_Only = 8,
 } at_cgreg_stat_e;
 
-char *at_cgreg_stat_text(at_cgreg_stat_e code);
+const char *at_cgreg_stat_text(at_cgreg_stat_e code);
 
 typedef enum {
   AT_CGREG__AcT__GSM                                     = 0,   /**< 2G */
@@ -232,9 +224,7 @@ typedef enum {
   AT_CGREG__AcT__invalid                                 = 255, /**< Indicates that the current AcT is invalid */
 } at_cgreg_act_e;
 
-char *at_cgreg_act_text(at_cgreg_act_e code);
-
-
+const char *at_cgreg_act_text(at_cgreg_act_e code);
 
 typedef enum {
   AT_CEREG__N__URC_Disabled             = 0, /**< No Unsolicited Registration Codes reported */
@@ -246,7 +236,7 @@ typedef enum {
   AT_CEREG__N__PSM_Network_Registration_Location_Information_and_EMM_URC = 5,
 } at_cereg_n_e;
 
-char *at_cereg_n_text(at_cereg_n_e code);
+const char *at_cereg_n_text(at_cereg_n_e code);
 
 typedef enum {
   AT_CEREG__Stat__Not_Registered                              = 0, /**< Not registered and not searching */
@@ -258,7 +248,7 @@ typedef enum {
   AT_CEREG__Stat__Attached_for_Emergency_Bearer_Services_Only = 8,
 } at_cereg_stat_e;
 
-char *at_cereg_stat_text(at_cereg_stat_e code);
+const char *at_cereg_stat_text(at_cereg_stat_e code);
 
 typedef enum {
   AT_CEREG__AcT__E_UTRAN    = 7,   /**< 4G */
@@ -267,16 +257,14 @@ typedef enum {
   AT_CEREG__AcT__invalid    = 255, /**< Indicates that the current AcT is invalid */
 } at_cereg_act_e;
 
-char *at_cereg_act_text(at_cereg_act_e code);
+const char *at_cereg_act_text(at_cereg_act_e code);
 
 typedef enum {
   AT_CEREG__Cause_Type__EMM_Cause                   = 0,
   AT_CEREG__Cause_Type__Manufacturer_Specific_Cause = 1,
 } at_cereg_cause_type_e;
 
-char *at_cereg_cause_type_text(at_cereg_cause_type_e code);
-
-
+const char *at_cereg_cause_type_text(at_cereg_cause_type_e code);
 
 typedef enum {
   AT_CSQ__RSSI__0 = 0,                           /**< -113 dBm or less */
@@ -377,8 +365,7 @@ typedef enum {
   AT_USO_Error__ENSRCNAMELOOP          = 177, /**< Domain name is too long */
 } at_uso_error_e;
 
-char *at_uso_error_text(at_uso_error_e code);
-
+const char *at_uso_error_text(at_uso_error_e code);
 
 typedef enum {
   AT_EDRX_Mode__Disabled                   = 0, /**< eDRX Mode Disabled, retain parameters */
@@ -387,7 +374,7 @@ typedef enum {
   AT_EDRX_Mode__Disable_And_Reset_Defaults = 3, /**< eDRX Mode Disabled, reset default params */
 } at_edrx_mode_e;
 
-char *at_edrx_mode_text(at_edrx_mode_e code);
+const char *at_edrx_mode_text(at_edrx_mode_e code);
 
 typedef enum {
   AT_EDRX_Access_Technology__GSM         = 2, /**< Not valid for SARA-RN4 or BG96 */
@@ -398,7 +385,7 @@ typedef enum {
       255, /**< Used to indicate unspecified, will use the current active technology type */
 } at_edrx_access_technology_e;
 
-char *at_edrx_access_technology_text(at_edrx_access_technology_e code);
+const char *at_edrx_access_technology_text(at_edrx_access_technology_e code);
 
 typedef enum {
   AT_EDRX_Cycle_Length__0000        = 0,   /**< 5.12 seconds; WB-S1 mode only otherwise interpreted as 0010 */
@@ -446,7 +433,7 @@ typedef enum {
   AT_PSM_Mode__Disable_And_Reset_Defaults = 2, /**< PSM Mode Disabled, reset default params */
 } at_psm_mode_e;
 
-char *at_psm_mode_text(at_psm_mode_e code);
+const char *at_psm_mode_text(at_psm_mode_e code);
 
 typedef enum {
   AT_PSM_TAU_Interval__10_Minutes        = 0x0, /**< 10 minutes (000) */

@@ -58,7 +58,7 @@ int RN4PahoIPStack::read(unsigned char* buffer, int len, int timeout_ms) {
     return -1;
   }
 
-  str out_data;
+  str_mut out_data;
   out_data.s   = (char*)buffer;
   out_data.len = 0;
   if (!modem_->receiveTCP(socket_id_, len, &out_data, len)) {

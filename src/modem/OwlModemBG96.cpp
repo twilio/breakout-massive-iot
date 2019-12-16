@@ -61,6 +61,7 @@ int OwlModemBG96::powerOff() {
   owl_delay(300);
 
   owl_power_off(OWL_POWER_BG96);
+  return 1;
 }
 
 int OwlModemBG96::isPoweredOn() {
@@ -80,7 +81,6 @@ void OwlModemBG96::initCheckPIN(str message) {
 }
 
 int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e cops_format) {
-  at_result_code_e rc;
   OwlModem_PINHandler_f saved_handler = 0;
 
   if (!AT.initTerminal()) {
@@ -189,6 +189,7 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
   if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != AT_Result_Code__OK) {
     LOG(L_WARN, "Error checking PIN status\r\n");
   }
+  sim.setHandlerPIN(saved_handler);
 
   AT.doCommandBlocking("AT+QIACT=1", 5000, nullptr);  // ignore the result, which will be an error if already activated
 

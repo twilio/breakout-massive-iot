@@ -43,7 +43,7 @@ struct {
 
 static char c_cme_error[] = "+CME ERROR: ";
 
-at_result_code_e at_result_code_extract(const char *value, int max_len) {
+at_result_code_e at_result_code_extract(const char *value, unsigned int max_len) {
   if (max_len < 3) {  // prompt for data '\r\n>'
     return AT_Result_Code__unknown;
   }
@@ -58,8 +58,7 @@ at_result_code_e at_result_code_extract(const char *value, int max_len) {
   if (strncmp(value + 2, c_cme_error, strlen(c_cme_error)) == 0) {
     return AT_Result_Code__cme_error;
   }
-  int i;
-  for (i = 0; at_result_codes[i].code != AT_Result_Code__unknown; i++) {
+  for (unsigned int i = 0; at_result_codes[i].code != AT_Result_Code__unknown; i++) {
     if (at_result_codes[i].value.len <= max_len - 4 &&
         strncmp(value + 2, at_result_codes[i].value.s, at_result_codes[i].value.len) == 0 &&
         value[2 + at_result_codes[i].value.len] == '\r' && value[3 + at_result_codes[i].value.len] == '\n') {
@@ -70,7 +69,7 @@ at_result_code_e at_result_code_extract(const char *value, int max_len) {
   return AT_Result_Code__unknown;
 }
 
-char *at_result_code_text(at_result_code_e code) {
+const char *at_result_code_text(at_result_code_e code) {
   switch (code) {
     case AT_Result_Code__cme_error:
       return c_cme_error;
@@ -91,7 +90,7 @@ char *at_result_code_text(at_result_code_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cfun_fun_e code;
 } at_cfun_funs[] = {
     {.value = "minimum functionality", .code = AT_CFUN__FUN__Minimum_Functionality},
@@ -109,7 +108,7 @@ struct {
     {.value = 0, .code = (at_cfun_fun_e)-1},
 };
 
-char *at_cfun_fun_text(at_cfun_fun_e code) {
+const char *at_cfun_fun_text(at_cfun_fun_e code) {
   int i;
   for (i = 0; at_cfun_funs[i].value != 0; i++)
     if (at_cfun_funs[i].code == code) return at_cfun_funs[i].value;
@@ -117,7 +116,7 @@ char *at_cfun_fun_text(at_cfun_fun_e code) {
 }
 
 struct {
-  char *value;
+  const char *value;
   at_cfun_rst_e code;
 } at_cfun_rsts[] = {
     {.value = "no modem/SIM reset", .code = AT_CFUN__RST__No_Modem_Reset},
@@ -125,7 +124,7 @@ struct {
     {.value = 0, .code = (at_cfun_rst_e)-1},
 };
 
-char *at_cfun_rst_text(at_cfun_rst_e code) {
+const char *at_cfun_rst_text(at_cfun_rst_e code) {
   int i;
   for (i = 0; at_cfun_rsts[i].value != 0; i++)
     if (at_cfun_rsts[i].code == code) return at_cfun_rsts[i].value;
@@ -133,7 +132,7 @@ char *at_cfun_rst_text(at_cfun_rst_e code) {
 }
 
 struct {
-  char *value;
+  const char *value;
   at_cfun_power_mode_e code;
 } at_cfun_power_modes[] = {
     {.value = "minimum functionality", .code = AT_CFUN__POWER_MODE__Minimum_Functionality},
@@ -144,7 +143,7 @@ struct {
     {.value = 0, .code = (at_cfun_power_mode_e)-1},
 };
 
-char *at_cfun_power_mode_text(at_cfun_power_mode_e code) {
+const char *at_cfun_power_mode_text(at_cfun_power_mode_e code) {
   int i;
   for (i = 0; at_cfun_power_modes[i].value != 0; i++)
     if (at_cfun_power_modes[i].code == code) return at_cfun_power_modes[i].value;
@@ -152,7 +151,7 @@ char *at_cfun_power_mode_text(at_cfun_power_mode_e code) {
 }
 
 struct {
-  char *value;
+  const char *value;
   at_cfun_stk_mode_e code;
 } at_cfun_stk_modes[] = {
     {.value = "Interface_Disabled_Proactive_SIM_APPL_Enabled_0",
@@ -168,15 +167,15 @@ struct {
     {.value = 0, .code = (at_cfun_stk_mode_e)-1},
 };
 
-char *at_cfun_stk_mode_text(at_cfun_stk_mode_e code) {
+const char *at_cfun_stk_mode_text(at_cfun_stk_mode_e code) {
   int i;
   for (i = 0; at_cfun_stk_modes[i].value != 0; i++)
     if (at_cfun_stk_modes[i].code == code) return at_cfun_stk_modes[i].value;
   return "<unknown-cfun-stk-mode>";
 }
 
-struct {
-  char *value;
+const struct {
+  const char *value;
   at_umnoprof_mno_profile_e code;
 } at_umnoprof_mno_profiles[] = {
     {.value = "SW default", .code = AT_UMNOPROF__MNO_PROFILE__SW_Default},
@@ -189,7 +188,7 @@ struct {
     {.value = 0, .code = (at_umnoprof_mno_profile_e)-1},
 };
 
-char *at_umnoprof_mno_profile_text(at_umnoprof_mno_profile_e code) {
+const char *at_umnoprof_mno_profile_text(at_umnoprof_mno_profile_e code) {
   int i;
   for (i = 0; at_umnoprof_mno_profiles[i].value != 0; i++)
     if (at_umnoprof_mno_profiles[i].code == code) return at_umnoprof_mno_profiles[i].value;
@@ -199,7 +198,7 @@ char *at_umnoprof_mno_profile_text(at_umnoprof_mno_profile_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cops_mode_e code;
 } at_cops_modes[] = {
     {.value = "automatic selection", .code = AT_COPS__Mode__Automatic_Selection},
@@ -210,7 +209,7 @@ struct {
     {.value = 0, .code = (at_cops_mode_e)-1},
 };
 
-char *at_cops_mode_text(at_cops_mode_e code) {
+const char *at_cops_mode_text(at_cops_mode_e code) {
   int i;
   for (i = 0; at_cops_modes[i].value != 0; i++)
     if (at_cops_modes[i].code == code) return at_cops_modes[i].value;
@@ -218,7 +217,7 @@ char *at_cops_mode_text(at_cops_mode_e code) {
 }
 
 struct {
-  char *value;
+  const char *value;
   at_cops_format_e code;
 } at_cops_formats[] = {
     {.value = "long alphanumeric", .code = AT_COPS__Format__Long_Alphanumeric},
@@ -227,7 +226,7 @@ struct {
     {.value = 0, .code = (at_cops_format_e)-1},
 };
 
-char *at_cops_format_text(at_cops_format_e code) {
+const char *at_cops_format_text(at_cops_format_e code) {
   int i;
   for (i = 0; at_cops_formats[i].value != 0; i++)
     if (at_cops_formats[i].code == code) return at_cops_formats[i].value;
@@ -235,7 +234,7 @@ char *at_cops_format_text(at_cops_format_e code) {
 }
 
 struct {
-  char *value;
+  const char *value;
   at_cops_stat_e code;
 } at_cops_stats[] = {
     {.value = "unknown", .code = AT_COPS__Stat__Unknown},
@@ -245,7 +244,7 @@ struct {
     {.value = 0, .code = (at_cops_stat_e)-1},
 };
 
-char *at_cops_stat_text(at_cops_stat_e code) {
+const char *at_cops_stat_text(at_cops_stat_e code) {
   int i;
   for (i = 0; at_cops_stats[i].value != 0; i++)
     if (at_cops_stats[i].code == code) return at_cops_stats[i].value;
@@ -253,7 +252,7 @@ char *at_cops_stat_text(at_cops_stat_e code) {
 }
 
 struct {
-  char *value;
+  const char *value;
   at_cops_act_e code;
 } at_cops_acts[] = {
     {.value = "LTE", .code = AT_COPS__Access_Technology__LTE},
@@ -262,7 +261,7 @@ struct {
     {.value = 0, .code = (at_cops_act_e)-1},
 };
 
-char *at_cops_act_text(at_cops_act_e code) {
+const char *at_cops_act_text(at_cops_act_e code) {
   int i;
   for (i = 0; at_cops_acts[i].value != 0; i++)
     if (at_cops_acts[i].code == code) return at_cops_acts[i].value;
@@ -272,7 +271,7 @@ char *at_cops_act_text(at_cops_act_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_creg_n_e code;
 } at_creg_ns[] = {
     {.value = "URC disabled", .code = AT_CREG__N__URC_Disabled},
@@ -283,7 +282,7 @@ struct {
     {.value = 0, .code = (at_creg_n_e)-1},
 };
 
-char *at_creg_n_text(at_creg_n_e code) {
+const char *at_creg_n_text(at_creg_n_e code) {
   int i;
   for (i = 0; at_creg_ns[i].value != 0; i++)
     if (at_creg_ns[i].code == code) return at_creg_ns[i].value;
@@ -293,7 +292,7 @@ char *at_creg_n_text(at_creg_n_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_creg_stat_e code;
 } at_creg_stats[] = {
     {.value = "not-registered, not-searching", .code = AT_CREG__Stat__Not_Registered},
@@ -311,7 +310,7 @@ struct {
     {.value = 0, .code = (at_creg_stat_e)-1},
 };
 
-char *at_creg_stat_text(at_creg_stat_e code) {
+const char *at_creg_stat_text(at_creg_stat_e code) {
   int i;
   for (i = 0; at_creg_stats[i].value != 0; i++)
     if (at_creg_stats[i].code == code) return at_creg_stats[i].value;
@@ -321,7 +320,7 @@ char *at_creg_stat_text(at_creg_stat_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_creg_act_e code;
 } at_creg_acts[] = {
     {.value = "2G/GSM", .code = AT_CREG__AcT__GSM},
@@ -339,7 +338,7 @@ struct {
     {.value = 0, .code = (at_creg_act_e)-1},
 };
 
-char *at_creg_act_text(at_creg_act_e code) {
+const char *at_creg_act_text(at_creg_act_e code) {
   int i;
   for (i = 0; at_creg_acts[i].value != 0; i++)
     if (at_creg_acts[i].code == code) return at_creg_acts[i].value;
@@ -349,7 +348,7 @@ char *at_creg_act_text(at_creg_act_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cgreg_n_e code;
 } at_cgreg_ns[] = {
     {.value = "URC disabled", .code = AT_CGREG__N__URC_Disabled},
@@ -360,7 +359,7 @@ struct {
     {.value = 0, .code = (at_cgreg_n_e)-1},
 };
 
-char *at_cgreg_n_text(at_cgreg_n_e code) {
+const char *at_cgreg_n_text(at_cgreg_n_e code) {
   int i;
   for (i = 0; at_cgreg_ns[i].value != 0; i++)
     if (at_cgreg_ns[i].code == code) return at_cgreg_ns[i].value;
@@ -370,7 +369,7 @@ char *at_cgreg_n_text(at_cgreg_n_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cgreg_stat_e code;
 } at_cgreg_stats[] = {
     {.value = "not-registered, not-searching", .code = AT_CGREG__Stat__Not_Registered},
@@ -385,7 +384,7 @@ struct {
     {.value = 0, .code = (at_cgreg_stat_e)-1},
 };
 
-char *at_cgreg_stat_text(at_cgreg_stat_e code) {
+const char *at_cgreg_stat_text(at_cgreg_stat_e code) {
   int i;
   for (i = 0; at_cgreg_stats[i].value != 0; i++)
     if (at_cgreg_stats[i].code == code) return at_cgreg_stats[i].value;
@@ -395,7 +394,7 @@ char *at_cgreg_stat_text(at_cgreg_stat_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cgreg_act_e code;
 } at_cgreg_acts[] = {
     {.value = "2G/GSM", .code = AT_CGREG__AcT__GSM},
@@ -410,7 +409,7 @@ struct {
     {.value = 0, .code = (at_cgreg_act_e)-1},
 };
 
-char *at_cgreg_act_text(at_cgreg_act_e code) {
+const char *at_cgreg_act_text(at_cgreg_act_e code) {
   int i;
   for (i = 0; at_cgreg_acts[i].value != 0; i++)
     if (at_cgreg_acts[i].code == code) return at_cgreg_acts[i].value;
@@ -420,7 +419,7 @@ char *at_cgreg_act_text(at_cgreg_act_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cereg_n_e code;
 } at_cereg_ns[] = {
     {.value = "URC disabled", .code = AT_CEREG__N__URC_Disabled},
@@ -437,7 +436,7 @@ struct {
     {.value = 0, .code = (at_cereg_n_e)-1},
 };
 
-char *at_cereg_n_text(at_cereg_n_e code) {
+const char *at_cereg_n_text(at_cereg_n_e code) {
   int i;
   for (i = 0; at_cereg_ns[i].value != 0; i++)
     if (at_cereg_ns[i].code == code) return at_cereg_ns[i].value;
@@ -447,7 +446,7 @@ char *at_cereg_n_text(at_cereg_n_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cereg_stat_e code;
 } at_cereg_stats[] = {
     {.value = "not-registered, not-searching", .code = AT_CEREG__Stat__Not_Registered},
@@ -462,7 +461,7 @@ struct {
     {.value = 0, .code = (at_cereg_stat_e)-1},
 };
 
-char *at_cereg_stat_text(at_cereg_stat_e code) {
+const char *at_cereg_stat_text(at_cereg_stat_e code) {
   int i;
   for (i = 0; at_cereg_stats[i].value != 0; i++)
     if (at_cereg_stats[i].code == code) return at_cereg_stats[i].value;
@@ -472,7 +471,7 @@ char *at_cereg_stat_text(at_cereg_stat_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cereg_act_e code;
 } at_cereg_acts[] = {
     {.value = "4G/LTE", .code = AT_CEREG__AcT__E_UTRAN},
@@ -483,7 +482,7 @@ struct {
     {.value = 0, .code = (at_cereg_act_e)-1},
 };
 
-char *at_cereg_act_text(at_cereg_act_e code) {
+const char *at_cereg_act_text(at_cereg_act_e code) {
   int i;
   for (i = 0; at_cereg_acts[i].value != 0; i++)
     if (at_cereg_acts[i].code == code) return at_cereg_acts[i].value;
@@ -493,7 +492,7 @@ char *at_cereg_act_text(at_cereg_act_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_cereg_cause_type_e code;
 } at_cereg_cause_types[] = {
     {.value = "EMM-Cause", .code = AT_CEREG__Cause_Type__EMM_Cause},
@@ -502,7 +501,7 @@ struct {
     {.value = 0, .code = (at_cereg_cause_type_e)-1},
 };
 
-char *at_cereg_cause_type_text(at_cereg_cause_type_e code) {
+const char *at_cereg_cause_type_text(at_cereg_cause_type_e code) {
   int i;
   for (i = 0; at_cereg_cause_types[i].value != 0; i++)
     if (at_cereg_cause_types[i].code == code) return at_cereg_cause_types[i].value;
@@ -512,7 +511,7 @@ char *at_cereg_cause_type_text(at_cereg_cause_type_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_uso_protocol_e code;
 } at_uso_protocols[] = {
     {.value = "<none>", .code = AT_USO_Protocol__none},
@@ -522,7 +521,7 @@ struct {
     {.value = 0, .code = (at_uso_protocol_e)-1},
 };
 
-char *at_uso_protocol_text(at_uso_protocol_e code) {
+const char *at_uso_protocol_text(at_uso_protocol_e code) {
   int i;
   for (i = 0; at_uso_protocols[i].value != 0; i++)
     if (at_uso_protocols[i].code == code) return at_uso_protocols[i].value;
@@ -532,7 +531,7 @@ char *at_uso_protocol_text(at_uso_protocol_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_uso_error_e code;
 } at_uso_error_types[] = {
     {.value = "No Error", .code = AT_USO_Error__Success},
@@ -600,7 +599,7 @@ struct {
 
 };
 
-char *at_uso_error_text(at_uso_error_e code) {
+const char *at_uso_error_text(at_uso_error_e code) {
   int i;
   for (i = 0; at_uso_error_types[i].value != 0; i++)
     if (at_uso_error_types[i].code == code) return at_uso_error_types[i].value;
@@ -608,9 +607,8 @@ char *at_uso_error_text(at_uso_error_e code) {
 }
 
 
-
 struct {
-  char *value;
+  const char *value;
   at_edrx_mode_e code;
 } at_edrx_mode_types[] = {
     {.value = "Disabled", .code = AT_EDRX_Mode__Disabled},
@@ -621,7 +619,7 @@ struct {
     {.value = 0, .code = (at_edrx_mode_e)-1},
 };
 
-char *at_edrx_mode_text(at_edrx_mode_e code) {
+const char *at_edrx_mode_text(at_edrx_mode_e code) {
   int i;
   for (i = 0; at_edrx_mode_types[i].value != 0; i++)
     if (at_edrx_mode_types[i].code == code) return at_edrx_mode_types[i].value;
@@ -631,7 +629,7 @@ char *at_edrx_mode_text(at_edrx_mode_e code) {
 
 
 struct {
-  char *value;
+  const char *value;
   at_edrx_access_technology_e code;
 } at_edrx_access_technology_types[] = {
     {.value = "GSM", .code = AT_EDRX_Access_Technology__GSM},
@@ -643,17 +641,15 @@ struct {
     {.value = 0, .code = (at_edrx_access_technology_e)-1},
 };
 
-char *at_edrx_access_technology_text(at_edrx_access_technology_e code) {
+const char *at_edrx_access_technology_text(at_edrx_access_technology_e code) {
   int i;
   for (i = 0; at_edrx_access_technology_types[i].value != 0; i++)
     if (at_edrx_access_technology_types[i].code == code) return at_edrx_access_technology_types[i].value;
   return "<unknown-edrx-technology>";
 }
 
-
-
 struct {
-  char *value;
+  const char *value;
   at_psm_mode_e code;
 } at_psm_mode_types[] = {
     {.value = "Disabled", .code = AT_PSM_Mode__Disabled},
@@ -663,7 +659,7 @@ struct {
     {.value = 0, .code = (at_psm_mode_e)-1},
 };
 
-char *at_psm_mode_text(at_psm_mode_e code) {
+const char *at_psm_mode_text(at_psm_mode_e code) {
   int i;
   for (i = 0; at_psm_mode_types[i].value != 0; i++)
     if (at_psm_mode_types[i].code == code) return at_psm_mode_types[i].value;

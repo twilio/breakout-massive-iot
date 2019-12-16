@@ -98,8 +98,8 @@ class OwlModemAT {
    * @return success status
    */
   bool sendData(str data);
-  bool sendData(char *data) {
-    return sendData({.s = data, .len = static_cast<int>(strlen(data))});
+  bool sendData(const char *data) {
+    return sendData({.s = data, .len = static_cast<unsigned int>(strlen(data))});
   }
 
   /**
@@ -217,17 +217,17 @@ class OwlModemAT {
   at_result_code_e last_response_code_{AT_Result_Code__unknown};
 
   char command_buffer_c_[AT_COMMAND_BUFFER_SIZE];
-  str command_buffer_ = {.s = command_buffer_c_, .len = 0};
+  str_mut command_buffer_ = {.s = command_buffer_c_, .len = 0};
   bool command_valid_{false};
 
   char input_buffer_c_[AT_INPUT_BUFFER_SIZE];
-  str input_buffer_ = {.s = input_buffer_c_, .len = 0};
+  str_mut input_buffer_ = {.s = input_buffer_c_, .len = 0};
 
   char line_buffer_c_[AT_LINE_BUFFER_SIZE];
-  str line_buffer_ = {.s = line_buffer_c_, .len = 0};
+  str_mut line_buffer_ = {.s = line_buffer_c_, .len = 0};
 
   char response_buffer_c_[AT_RESPONSE_BUFFER_SIZE];
-  str response_buffer_ = {.s = response_buffer_c_, .len = 0};
+  str_mut response_buffer_ = {.s = response_buffer_c_, .len = 0};
 
   UrcHandler urc_handlers_[MaxUrcHandlers];
   const char *urc_handler_ids_[MaxUrcHandlers];

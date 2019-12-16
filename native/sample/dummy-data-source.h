@@ -49,9 +49,9 @@ class DummyDataSource : IDataSource<float> {
  private:
   float datapoint = NAN;
   std::default_random_engine generator;
+  std::chrono::system_clock::time_point ts;
   std::uniform_real_distribution<float> time_distribution;
   std::uniform_real_distribution<float> data_distribution;
-  std::chrono::system_clock::time_point ts;
   float next_data_in_s;
 };
 

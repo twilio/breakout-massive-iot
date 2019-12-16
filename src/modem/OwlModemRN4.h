@@ -92,7 +92,7 @@ class OwlModemRN4 {
    * @param purpose - purpose string identifying the use-case for the integration.
    * @return 1 on success, 0 on failure
    */
-  int waitForNetworkRegistration(char *purpose, int testing_variant = 0);
+  int waitForNetworkRegistration(const char *purpose, int testing_variant = 0);
 
 
   /**
@@ -180,9 +180,9 @@ class OwlModemRN4 {
   bool has_gnss_port{false};
 
   char c_hostdevice_information[MODEM_HOSTDEVICE_INFORMATION_SIZE + 1];
-  str hostdevice_information = {.s = c_hostdevice_information, .len = 0};
+  str_mut hostdevice_information = {.s = c_hostdevice_information, .len = 0};
   char c_short_hostdevice_information[MODEM_HOSTDEVICE_INFORMATION_SIZE + 1];
-  str short_hostdevice_information = {.s = c_short_hostdevice_information, .len = 0};
+  str_mut short_hostdevice_information = {.s = c_short_hostdevice_information, .len = 0};
 
   /**
    * Perform Object-16 network registration. Initial attempts often are not successful, so may take a bit of time
@@ -190,7 +190,7 @@ class OwlModemRN4 {
    * @param purpose - purpose string identifying the usecase for the integration.
    * @return 1 on success, 0 on failure
    */
-  int setHostDeviceInformation(char *purpose = 0);
+  int setHostDeviceInformation(const char *purpose = 0);
 
   /**
    * Perform Object-16 network registration. Initial attempts often are not successful, so may take a bit of time
@@ -207,7 +207,7 @@ class OwlModemRN4 {
   void computeHostDeviceInformation(str purpose);
 
  public:  // These things are not part of the API. TODO - make them private
-  int drainGNSSRx(str *gnss_buffer, int gnss_buffer_len);
+  int drainGNSSRx(str_mut *gnss_buffer, unsigned int gnss_buffer_len);
 };
 
 /**

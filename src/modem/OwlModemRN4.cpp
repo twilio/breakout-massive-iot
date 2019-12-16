@@ -96,7 +96,6 @@ void initCheckPIN(str message) {
 }
 
 int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cops, at_cops_format_e cops_format) {
-  at_result_code_e rc;
   OwlModem_PINHandler_f saved_handler = 0;
   at_umnoprof_mno_profile_e current_profile;
   at_umnoprof_mno_profile_e expected_profile = (testing_variant & Testing__Set_MNO_Profile_to_Default) == 0 ?
@@ -231,7 +230,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
   return 1;
 }
 
-int OwlModemRN4::waitForNetworkRegistration(char *purpose, int testing_variant) {
+int OwlModemRN4::waitForNetworkRegistration(const char *purpose, int testing_variant) {
   bool network_ready = false;
   bool needs_reset   = false;
   owl_time_t timeout = owl_time() + 30 * 1000;
@@ -240,7 +239,7 @@ int OwlModemRN4::waitForNetworkRegistration(char *purpose, int testing_variant) 
     if (network.getEPSRegistrationStatus(0, &stat, 0, 0, 0, 0, 0)) {
       network_ready = (stat == AT_CEREG__Stat__Registered_Home_Network || stat == AT_CEREG__Stat__Registered_Roaming);
       if (network_ready) break;
-      if (stat == AT_CEREG__Stat__Registration_Denied || stat == AT_CREG__Stat__Not_Registered) needs_reset = true;
+      if (stat == AT_CEREG__Stat__Registration_Denied || stat == AT_CEREG__Stat__Not_Registered) needs_reset = true;
     }
     if ((testing_variant & Testing__Timeout_Network_Registration_30_Sec) != 0 && owl_time() > timeout) {
       LOG(L_ERR, "Bailing out from network registration - for testing purposes only\r\n");
@@ -283,7 +282,7 @@ void OwlModemRN4::bypassCLI() {
   // TODO - set echo on/off - maybe with parameter to this function? but that will mess with other code
   in_bypass = 1;
   uint8_t c;
-  int index = 0;
+  unsigned int index = 0;
   while (1) {
     if (modem_port->available()) {
       modem_port->read(&c, 1);
@@ -311,7 +310,7 @@ void OwlModemRN4::bypassGNSSCLI() {
   }
   // TODO - set echo on/off - maybe with parameter to this function? but that will mess with other code
   uint8_t c;
-  int index = 0;
+  unsigned int index = 0;
   while (1) {
     if (gnss_port->available()) {
       gnss_port->read(&c, 1);
@@ -363,7 +362,7 @@ void OwlModemRN4::bypassGNSS() {
 
 static str s_dev_kit = STRDECL("devkit");
 
-int OwlModemRN4::setHostDeviceInformation(char *purpose) {
+int OwlModemRN4::setHostDeviceInformation(const char *purpose) {
   str s_purpose;
   if (purpose) {
     s_purpose.s   = purpose;
@@ -376,10 +375,10 @@ int OwlModemRN4::setHostDeviceInformation(char *purpose) {
 }
 
 void OwlModemRN4::computeHostDeviceInformation(str purpose) {
-  char *hostDeviceID      = "Twilio-Alfa";
-  char *hostDeviceIDShort = "alfa";
-  char *board_name        = "WioLTE-Cat-NB1";
-  char *sdk_ver           = "0.1.0";
+  const char *hostDeviceID      = "Twilio-Alfa";
+  const char *hostDeviceIDShort = "alfa";
+  const char *board_name        = "WioLTE-Cat-NB1";
+  const char *sdk_ver           = "0.1.0";
 
   // Param 2: Twilio_Seeed_(AT+CGMI -> u-blox) // OwlModemInformation::getManufacturer()
   char module_mfgr_buffer[64];
@@ -462,7 +461,7 @@ str OwlModemRN4::getShortHostDeviceInformation() {
 }
 
 
-int OwlModemRN4::drainGNSSRx(str *gnss_buffer, int gnss_buffer_len) {
+int OwlModemRN4::drainGNSSRx(str_mut *gnss_buffer, unsigned int gnss_buffer_len) {
   if (gnss_buffer == nullptr || !has_gnss_port) {
     return 0;
   }
@@ -470,9 +469,8 @@ int OwlModemRN4::drainGNSSRx(str *gnss_buffer, int gnss_buffer_len) {
   LOG(L_MEM, "Trying to drain GNSS data\r\n");
   int available, received, total = 0, full = 0;
   while ((available = gnss_port->available()) > 0) {
-    if (available > gnss_buffer_len) available = gnss_buffer_len;
-    //    LOG(L_DBG, "Available %d bytes\r\n", available);
-    if (available > gnss_buffer_len - gnss_buffer->len) {
+    if (static_cast<unsigned int>(available) > gnss_buffer_len) available = gnss_buffer_len;
+    if (static_cast<unsigned int>(available) > gnss_buffer_len - gnss_buffer->len) {
       int shift = available - (gnss_buffer_len - gnss_buffer->len);
       LOG(L_WARN, "GNSS buffer full with %d bytes. Dropping oldest %d bytes.\r\n", gnss_buffer->len, shift);
       gnss_buffer->len -= shift;

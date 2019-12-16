@@ -117,8 +117,8 @@ class OwlModemNetwork {
    * @param out_act - output radio access technology type
    * @return 1 on success, 0 on failure
    */
-  int getOperatorSelection(at_cops_mode_e *out_mode, at_cops_format_e *out_format, str *out_oper, int max_oper_len,
-                           at_cops_act_e *out_act);
+  int getOperatorSelection(at_cops_mode_e *out_mode, at_cops_format_e *out_format, str_mut *out_oper,
+                           unsigned int max_oper_len, at_cops_act_e *out_act);
 
   /**
    * Set operator selection mode and/or select manually operator/access technology

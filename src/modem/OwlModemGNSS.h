@@ -95,7 +95,7 @@ class OwlModemGNSS {
   OwlModemRN4 *owlModem = 0;
 
   char GNSS_response_buffer[MODEM_GNSS_RESPONSE_BUFFER_SIZE];
-  str GNSS_response = {.s = GNSS_response_buffer, .len = 0};
+  str_mut GNSS_response = {.s = GNSS_response_buffer, .len = 0};
 };
 
 #endif

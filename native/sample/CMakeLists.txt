@@ -15,6 +15,7 @@ if(BUILD_SAMPLE_BG96)
 	target_link_libraries(bg96_mqtt_sample twilio_massive_sdk)
 	target_link_libraries(bg96_mqtt_sample edit)
 	target_link_libraries(bg96_mqtt_sample ${CMAKE_THREAD_LIBS_INIT})
+	set_target_properties(bg96_mqtt_sample PROPERTIES COMPILE_FLAGS "-Wall -Werror")
 endif(BUILD_SAMPLE_BG96)
 
 if(BUILD_SAMPLE_PAHO)
@@ -33,7 +34,9 @@ if(BUILD_SAMPLE_PAHO)
 			 "${PAHO_PROJECT_PATH}/src/MQTTPacket/MQTTUnsubscribeClient.c"
 			 "${PAHO_PROJECT_PATH}/src/MQTTPacket/MQTTUnsubscribeServer.c"
 	)
-	add_executable(rn4_paho_mqtt_sample rn4-paho-mqtt-sample.cpp ../../src/shims/paho-mqtt/RN4PahoIPStack.cpp ${PLATFORM_SOURCES} ${MQTT_SOURCES})
+        set(SAMPLE_SOURCES rn4-paho-mqtt-sample.cpp ../../src/shims/paho-mqtt/RN4PahoIPStack.cpp)
+	add_executable(rn4_paho_mqtt_sample ${SAMPLE_SOURCES} ${PLATFORM_SOURCES} ${MQTT_SOURCES})
+	set_source_files_properties(${SAMPLE_SOURCES} ${PLATFORM_SOURCES} PROPERTIES COMPILE_FLAGS "-Wall -Werror")
 
 	target_include_directories(rn4_paho_mqtt_sample PUBLIC ../platform ../../src "${PAHO_PROJECT_PATH}/src")
 	target_link_libraries(rn4_paho_mqtt_sample twilio_massive_sdk)

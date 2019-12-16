@@ -31,16 +31,25 @@
 /* str type & friends */
 
 typedef struct {
-  char *s;
-  int len;
+  const char *s;
+  unsigned int len;
 } str;
+
+typedef struct {
+  char *s;
+  unsigned int len;
+
+  operator str() const {
+    return str{.s = s, .len = len};
+  }
+} str_mut;
 
 
 
 #define STRDEF(_string_, _value_) ((_string_).s = (_value_), (_string_).len = strlen(_value_))
 
 #define STRDECL(_value_)                                                                                               \
-  { .s = (char *)(_value_), .len = (int)strlen(_value_) }
+  { .s = (char *)(_value_), .len = (unsigned int)strlen(_value_) }
 
 
 
@@ -54,24 +63,9 @@ typedef struct {
 #define str_equalcase_prefix(a, p) ((a).len >= (p).len && strncasecmp((a).s, (p).s, (p).len) == 0)
 #define str_equalcase_prefix_char(a, p) ((a).len >= strlen(p) && strncasecmp((a).s, (p), strlen(p)) == 0)
 
-#define str_shrink_inside(dst, startp, size)                                                                           \
-  do {                                                                                                                 \
-    int before_len = startp - (dst).s;                                                                                 \
-    int after_len  = (dst).len - before_len - (size);                                                                  \
-    if (after_len > 0) {                                                                                               \
-      memmove(startp, (startp) + (size), after_len);                                                                   \
-      (dst).len -= size;                                                                                               \
-    } else if (after_len == 0) {                                                                                       \
-      (dst).len -= size;                                                                                               \
-    } else {                                                                                                           \
-      LOG(L_ERR, "Bad len calculation %d\r\n", after_len);                                                             \
-    }                                                                                                                  \
-  } while (0)
-
-void str_remove_prefix(str *x, char *prefix);
 void str_skipover_prefix(str *x, str prefix);
-int str_tok(str src, char *sep, str *dst);
-int str_tok_with_empty_tokens(str src, char *sep, str *dst);
+int str_tok(str src, const char *sep, str *dst);
+int str_tok_with_empty_tokens(str src, const char *sep, str *dst);
 long int str_to_long_int(str x, int base);
 uint32_t str_to_uint32_t(str x, int base);
 double str_to_double(str x);
@@ -83,15 +77,15 @@ double str_to_double(str x);
  * @param precision - (optional) default is 8, can specify smaller precision to get a shorter result; bits that don't
  * fit in input value are ignored
  */
-void uint8_t_to_binary_str(uint8_t x, str *dst, uint8_t precision);
+void uint8_t_to_binary_str(uint8_t x, str_mut *dst, uint8_t precision);
 
 int hex_to_int(char c);
 
-int hex_to_str(char *dst, int max_dst_len, str src);
-int str_to_hex(char *dst, int max_dst_len, str src);
+unsigned int hex_to_str(char *dst, unsigned int max_dst_len, str src);
+unsigned int str_to_hex(char *dst, unsigned int max_dst_len, str src);
 
 int str_find(str x, str y);
-int str_find_char(str x, char *y);
+int str_find_char(str x, const char *y);
 
 void str_strip(str *s);
 

@@ -35,10 +35,6 @@
 
 bool sleep_state = false;
 
-static void print_message(str topic, str data) {
-  LOG(L_ERR, "MQTT message: %.*s - %.*s\n", topic.len, topic.s, data.len, data.s);
-}
-
 class ChronoPahoSystem : public MqttClient::System {
  public:
   unsigned long millis() const {
@@ -69,7 +65,7 @@ static void device_state_callback(MqttClient::MessageData& message) {
   LOG(L_WARN, "Unknown state: %.*s\r\n", message.message.payloadLen, (char*)message.message.payload);
 }
 
-static bool map_file(const char* filename, char** buf, int* len) {
+static bool map_file(const char* filename, char** buf, unsigned int* len) {
   struct stat sb;
   int fd = open(filename, O_RDONLY);
 
@@ -113,7 +109,7 @@ int main(int argc, const char** argv) {
   }
 
   const char* config_path = argv[1];
-  str config_str;
+  str_mut config_str;
   if (!map_file(config_path, &config_str.s, &config_str.len)) {
     LOG(L_ERR, "Failed to read configuration\n");
     return 1;
@@ -191,9 +187,9 @@ int main(int argc, const char** argv) {
     }
   }
 
-  str tls_cert;
-  str tls_pkey;
-  str tls_cacert;
+  str_mut tls_cert;
+  str_mut tls_pkey;
+  str_mut tls_cacert;
 
   if (!tls_ca_path.empty()) {
     if (!map_file(tls_ca_path.c_str(), &tls_cacert.s, &tls_cacert.len)) {

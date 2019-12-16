@@ -27,6 +27,7 @@ add_executable(
   SocketRN4Test.cpp
   ${PLATFORM_SOURCES}
   )
+set_target_properties(test_modem PROPERTIES COMPILE_FLAGS "-Wall -Werror")
 
 if(ENABLE_COVERAGE)
 	add_coverage(test_modem)

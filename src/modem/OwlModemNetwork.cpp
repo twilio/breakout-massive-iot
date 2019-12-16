@@ -372,11 +372,10 @@ int OwlModemNetwork::setModemFunctionality(at_cfun_fun_e fun, at_cfun_rst_e *res
 
 static str s_cops = STRDECL("+COPS: ");
 
-int OwlModemNetwork::getOperatorSelection(at_cops_mode_e *out_mode, at_cops_format_e *out_format, str *out_oper,
-                                          int max_oper_len, at_cops_act_e *out_act) {
+int OwlModemNetwork::getOperatorSelection(at_cops_mode_e *out_mode, at_cops_format_e *out_format, str_mut *out_oper,
+                                          unsigned int max_oper_len, at_cops_act_e *out_act) {
   int cnt   = 0;
   str token = {0};
-  char save = 0;
   if (out_mode) *out_mode = AT_COPS__Mode__Automatic_Selection;
   if (out_format) *out_format = AT_COPS__Format__Long_Alphanumeric;
   if (out_oper) out_oper->len = 0;
@@ -535,7 +534,6 @@ static str s_csq = STRDECL("+CSQ: ");
 int OwlModemNetwork::getSignalQuality(at_csq_rssi_e *out_rssi, at_csq_qual_e *out_qual) {
   int cnt   = 0;
   str token = {0};
-  char save = 0;
   if (out_rssi) *out_rssi = AT_CSQ__RSSI__Not_Known_or_Detectable_99;
   if (out_qual) *out_qual = AT_CSQ__Qual__Not_Known_or_Not_Detectable;
   int result = atModem_->doCommandBlocking("AT+CSQ", 1000, &network_response) == AT_Result_Code__OK;
@@ -564,7 +562,7 @@ int OwlModemNetwork::setEDRXMode(at_edrx_mode_e n, at_edrx_access_technology_e t
     if ((n == AT_EDRX_Mode__Enabled || n == AT_EDRX_Mode__Enabled_With_URC) &&
         (v != AT_EDRX_Cycle_Length__Unspecified)) {
       char v_str_[8];
-      str v_str = {.s = v_str_, .len = 0};
+      str_mut v_str = {.s = v_str_, .len = 0};
       uint8_t_to_binary_str(v, &v_str, 4);
       atModem_->commandSprintf("AT+CEDRXS=%d,%d,\"%.*s\"", n, t, v_str.len, v_str.s);
     } else {
@@ -592,7 +590,7 @@ int OwlModemNetwork::setPSMMode(at_psm_mode_e n, at_psm_tau_interval pt_interval
   } else {
     uint8_t pt_value = ((uint8_t)pt_interval << 5) | (pt & 0x1F);  // msb 3 bits are interval, lsb 5 bits are value
     char pt_str_[8];
-    str pt_str = {.s = pt_str_, .len = 0};
+    str_mut pt_str = {.s = pt_str_, .len = 0};
     uint8_t_to_binary_str(pt_value, &pt_str, 8);
 
     if (at_interval == AT_PSM_Active_Time_Interval__Timer_Unspecified) {
@@ -600,7 +598,7 @@ int OwlModemNetwork::setPSMMode(at_psm_mode_e n, at_psm_tau_interval pt_interval
     } else {
       uint8_t at_value = ((uint8_t)at_interval << 5) | (at & 0x1F);  // msb 3 bits are interval, lsb 5 bits are value
       char at_str_[8];
-      str at_str = {.s = at_str_, .len = 0};
+      str_mut at_str = {.s = at_str_, .len = 0};
       uint8_t_to_binary_str(at_value, &at_str, 8);
       atModem_->commandSprintf("AT+CPSMS=%d,,,\"%.*s\",\"%.*s\"", n, pt_str.len, pt_str.s, at_str.len, at_str.s);
     }

@@ -83,8 +83,8 @@ void OwlModemAT::spinProcessTime() {
 
     case modem_state_t::send_data:
       if (send_data_ts_ == 0 || owl_time() > send_data_ts_ + AT_DATA_SEND_INTERVAL) {
-        int to_send = (command_data_.len > AT_DATA_CHUNK_SIZE) ? AT_DATA_CHUNK_SIZE : command_data_.len;
-        str chunk   = {.s = command_data_.s, .len = to_send};
+        unsigned int to_send = (command_data_.len > AT_DATA_CHUNK_SIZE) ? AT_DATA_CHUNK_SIZE : command_data_.len;
+        str chunk            = {.s = command_data_.s, .len = to_send};
         sendData(chunk);
         send_data_ts_ = owl_time();
         command_data_.len -= to_send;
@@ -202,7 +202,7 @@ bool OwlModemAT::processURC() {
     return false;
   }
 
-  int urc_len = (int)(colon_pos - line_buffer_.s);
+  unsigned int urc_len = (int)(colon_pos - line_buffer_.s);
 
   // Response format: "+<COMMAND>: <data>" (space after colon is required)
   if (urc_len > line_buffer_.len - 2 || line_buffer_.s[urc_len + 1] != ' ') {
@@ -273,7 +273,7 @@ at_result_code_e OwlModemAT::tryParseCode() {
       {.value = {.s = "BUSY", .len = 4}, .code = AT_Result_Code__BUSY},
       {.value = {.s = "NO ANSWER", .len = 9}, .code = AT_Result_Code__NO_ANSWER}};
 
-  for (int i = 0; i < sizeof(at_result_codes) / sizeof(at_code_entry); ++i) {
+  for (unsigned int i = 0; i < sizeof(at_result_codes) / sizeof(at_code_entry); ++i) {
     if (str_equal(line_buffer_, at_result_codes[i].value)) {
       return at_result_codes[i].code;
     }
@@ -391,7 +391,7 @@ void OwlModemAT::filterResponse(str prefix, str response, str *filtered) {
 }
 
 bool OwlModemAT::sendData(str data) {
-  int32_t written = 0;
+  uint32_t written = 0;
   int32_t cnt;
 
   do {

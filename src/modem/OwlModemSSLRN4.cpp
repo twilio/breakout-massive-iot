@@ -151,7 +151,7 @@ int OwlModemSSLRN4::calculateMD5ForCert(char *output, int max_len, str input) {
   unsigned char digest[16];
 
   if (isPEM(input)) {
-    char *start = strstr(input.s, "MII");
+    const char *start = strstr(input.s, "MII");
     owl_base64decode_md5(digest, start);
   } else {
     struct MD5Context context;
@@ -169,13 +169,11 @@ bool OwlModemSSLRN4::shouldWriteCertificate(usecmng_certificate_type_e type, str
   bool should_write = true;
 
   char md5_buf[33];  // 33 to accomodate 32 characters plus null termination sprintf adds that strstr below needs
-  str md5 = {.s = md5_buf, .len = 0};
-  md5.len = calculateMD5ForCert(md5_buf, 33, new_value);
 
   atModem_->commandSprintf("AT+USECMNG=%d,%d,\"%.*s\"", USECMNG_OPERATION_Calculate_MD5, type, name.len, name.s);
 
   if (atModem_->doCommandBlocking(10 * 1000, &ssl_response) == AT_Result_Code__OK) {
-    char *match = strstr(ssl_response.s, md5_buf);
+    const char *match = strstr(ssl_response.s, md5_buf);
     if (match != NULL) {
       should_write = false;
     } else {

@@ -292,7 +292,7 @@ void OwlModemSocketRN4::handleWaitingData() {
   LOG(L_MEM, "Starting handleWaitingData\r\n");
 
   char buf[64];
-  str remote_ip        = {.s = buf, .len = 0};
+  str_mut remote_ip    = {.s = buf, .len = 0};
   uint16_t remote_port = 0;
   int data_len         = 0;
 
@@ -537,7 +537,7 @@ int OwlModemSocketRN4::sendUDP(uint8_t socket, str data, int *out_bytes_sent) {
   int bytes_sent = this->send(socket, data);
   if (out_bytes_sent) *out_bytes_sent = bytes_sent;
   LOG(L_INFO, "Sent data over UDP on socket %u %d bytes\r\n", socket, bytes_sent);
-  return bytes_sent == data.len;
+  return (bytes_sent >= 0) && (static_cast<unsigned int>(bytes_sent) == data.len);
 }
 
 int OwlModemSocketRN4::sendTCP(uint8_t socket, str data, int *out_bytes_sent) {
@@ -606,7 +606,7 @@ int OwlModemSocketRN4::sendToUDP(uint8_t socket, str remote_ip, uint16_t remote_
         break;
     }
   LOG(L_INFO, "Sent data over UDP on socket %u %d bytes\r\n", socket, bytes_sent);
-  return bytes_sent == data.len;
+  return (bytes_sent >= 0) && (static_cast<unsigned int>(bytes_sent) == data.len);
 }
 
 int OwlModemSocketRN4::getQueuedForReceive(uint8_t socket, int *out_receive_tcp, int *out_receive_udp,
@@ -634,7 +634,7 @@ int OwlModemSocketRN4::getQueuedForReceive(uint8_t socket, int *out_receive_tcp,
 
 static str s_usord = STRDECL("+USORD: ");
 
-int OwlModemSocketRN4::receive(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
+int OwlModemSocketRN4::receive(uint8_t socket, uint16_t len, str_mut *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
 
   atModem_->commandSprintf("AT+USORD=%u,%u", socket, len);
@@ -686,7 +686,7 @@ error:
   return 0;
 }
 
-int OwlModemSocketRN4::receiveUDP(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
+int OwlModemSocketRN4::receiveUDP(uint8_t socket, uint16_t len, str_mut *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket);
@@ -713,7 +713,7 @@ int OwlModemSocketRN4::receiveUDP(uint8_t socket, uint16_t len, str *out_data, i
   return this->receive(socket, len, out_data, max_data_len);
 }
 
-int OwlModemSocketRN4::receiveTCP(uint8_t socket, uint16_t len, str *out_data, int max_data_len) {
+int OwlModemSocketRN4::receiveTCP(uint8_t socket, uint16_t len, str_mut *out_data, int max_data_len) {
   if (out_data) out_data->len = 0;
   if (socket >= MODEM_MAX_SOCKETS) {
     LOG(L_ERR, "Bad socket %d >= %d\r\n", socket);
@@ -742,8 +742,8 @@ int OwlModemSocketRN4::receiveTCP(uint8_t socket, uint16_t len, str *out_data, i
 
 static str s_usorf = STRDECL("+USORF: ");
 
-int OwlModemSocketRN4::receiveFromUDP(uint8_t socket, uint16_t len, str *out_remote_ip, uint16_t *out_remote_port,
-                                      str *out_data, int max_data_len) {
+int OwlModemSocketRN4::receiveFromUDP(uint8_t socket, uint16_t len, str_mut *out_remote_ip, uint16_t *out_remote_port,
+                                      str_mut *out_data, int max_data_len) {
   if (out_remote_ip) out_remote_ip->len = 0;
   if (out_remote_port) *out_remote_port = 0;
   if (out_data) out_data->len = 0;
