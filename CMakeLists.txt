@@ -21,6 +21,7 @@ set(SDK_SOURCES
 	src/modem/enums.cpp
 	src/modem/OwlModemAT.cpp
 	src/modem/OwlModemBG96.cpp
+	src/modem/OwlModemCall.cpp
 	src/modem/OwlModemGNSS.cpp
 	src/modem/OwlModemInformation.cpp
 	src/modem/OwlModemMQTTBG96.cpp

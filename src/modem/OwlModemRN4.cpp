@@ -38,7 +38,8 @@ OwlModemRN4::OwlModemRN4(IOwlSerial *modem_port_in, IOwlSerial *debug_port_in, I
       network_rn4(&AT),
       pdn(&AT),
       ssl(&AT),
-      socket(&AT) {
+      socket(&AT),
+      call(&AT) {
   if (!modem_port_in) {
     LOG(L_ERR, "OwlModemRN4 initialized without modem port. That is not going to work\r\n");
   }

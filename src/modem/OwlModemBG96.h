@@ -29,6 +29,7 @@
 #include "OwlModemSIM.h"
 #include "OwlModemMQTTBG96.h"
 #include "OwlModemSSLBG96.h"
+#include "OwlModemCall.h"
 
 #include <stdio.h>
 
@@ -105,6 +106,9 @@ class OwlModemBG96 {
 
   /** MQTT client */
   OwlModemMQTTBG96 mqtt;
+
+  /** Call/PPP commands */
+  OwlModemCall call;
 
  private:
   bool has_modem_port{false};

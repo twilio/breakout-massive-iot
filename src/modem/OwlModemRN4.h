@@ -32,6 +32,7 @@
 #include "OwlModemPDN.h"
 #include "OwlModemSIM.h"
 #include "OwlModemSocketRN4.h"
+#include "OwlModemCall.h"
 #include "OwlModemGNSS.h"
 #include "OwlModemSSLRN4.h"
 
@@ -165,6 +166,9 @@ class OwlModemRN4 {
 
   /** TCP/UDP communication over sockets */
   OwlModemSocketRN4 socket;
+
+  /** Call/PPP commands */
+  OwlModemCall call;
 
   /** GNSS to get position, date, time, etc */
   OwlModemGNSS gnss = OwlModemGNSS(this);

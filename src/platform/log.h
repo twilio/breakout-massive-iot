@@ -28,6 +28,9 @@
 
 #include "../utils/str.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /*
  * Log levels
  */
@@ -48,6 +51,12 @@ typedef int8_t log_level_t;
 /**
  * Functions declared below are to be implemented in ports
  */
+
+/**
+ * Initialize the log
+ */
+
+void owl_log_init();
 
 /**
  * Retrieve the current log level
@@ -78,6 +87,13 @@ int owl_log_is_printable(log_level_t level);
 void owl_log(log_level_t, const char *format, ...);
 
 /**
+ * Print to log regardless of the current loglevel
+ * @param format - printf format
+ * @param ... - parameters for the printf format
+ */
+void owl_log_unconditional(const char *format, ...);
+
+/**
  * Log something out, without the time/level/etc prefix. Use the LOGE() macros instead, to also get the function and
  * line information from the code.
  * @param level - level to output on
@@ -93,5 +109,9 @@ void owl_log_empty(log_level_t level, const char *format, ...);
  * @param x - the str to log
  */
 void owl_log_str(log_level_t level, str x);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

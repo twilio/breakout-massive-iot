@@ -31,7 +31,8 @@ OwlModemBG96::OwlModemBG96(IOwlSerial* modem_port_in)
       network(&AT),
       pdn(&AT),
       ssl(&AT),
-      mqtt(&AT) {
+      mqtt(&AT),
+      call(&AT) {
   if (!modem_port_in) {
     LOG(L_ERR, "OwlModemBG96 initialized without modem port. That is not going to work\r\n");
   }
@@ -123,7 +124,8 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
       LOG(L_WARN, "Error directing URCs to the main UART\r\n");
     }
 
-    AT.commandSprintf("AT+QICSGP=1,1,\"%s\"", apn);
+    //AT.commandSprintf("AT+QICSGP=1,1,\"%s\"", apn);
+    AT.commandSprintf("AT+CGDCONT=1,\"IP\",\"%s\"", apn);
     if (AT.doCommandBlocking(1000, nullptr) != AT_Result_Code__OK) {
       LOG(L_WARN, "Error setting custom APN\r\n");
     }
@@ -190,11 +192,11 @@ int OwlModemBG96::initModem(const char* apn, const char* cops, at_cops_format_e 
     LOG(L_WARN, "Error checking PIN status\r\n");
   }
 
-  AT.doCommandBlocking("AT+QIACT=1", 5000, nullptr);  // ignore the result, which will be an error if already activated
+  //AT.doCommandBlocking("AT+QIACT=1", 5000, nullptr);  // ignore the result, which will be an error if already activated
 
-  if (AT.doCommandBlocking("AT+QIDNSCFG=1,\"8.8.8.8\"", 2000, nullptr) != AT_Result_Code__OK) {
-    LOG(L_WARN, "Potential error setting DNS server\n");
-  }
+  //if (AT.doCommandBlocking("AT+QIDNSCFG=1,\"8.8.8.8\"", 2000, nullptr) != AT_Result_Code__OK) {
+  //  LOG(L_WARN, "Potential error setting DNS server\n");
+  //}
 
   LOG(L_DBG, "Modem correctly initialized\r\n");
   return 1;
