@@ -59,21 +59,20 @@ static str s_ccid = STRDECL("+CCID: ");
 int OwlModemSIM::getICCID(str *out_response) {
   str command_response;
 
-  int result = atModem_->doCommandBlocking("AT+CCID", 1000, &command_response) == AT_Result_Code__OK;
+  int result = atModem_->doCommandBlocking("AT+CCID", 1000, &command_response) == at_result_code::OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_ccid, command_response, out_response);
   return 1;
 }
 
 int OwlModemSIM::getIMSI(str *out_response) {
-  int result = atModem_->doCommandBlocking("AT+CIMI", 1000, out_response);
+  auto result = atModem_->doCommandBlocking("AT+CIMI", 1000, out_response);
   str_strip(out_response);
-  return (result == AT_Result_Code__OK);
+  return (result == at_result_code::OK);
 }
 
 int OwlModemSIM::getPINStatus() {
-  int result = 0;
-  result     = atModem_->doCommandBlocking("AT+CPIN?", 10 * 1000, nullptr) == AT_Result_Code__OK;
+  auto result = atModem_->doCommandBlocking("AT+CPIN?", 10 * 1000, nullptr) == at_result_code::OK;
   return result;
 }
 

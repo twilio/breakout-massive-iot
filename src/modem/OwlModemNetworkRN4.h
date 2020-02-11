@@ -40,14 +40,14 @@ class OwlModemNetworkRN4 {
    * @param out_profile - Modem MNO profile
    * @return 1 on success, 0 on failure
    */
-  int getModemMNOProfile(at_umnoprof_mno_profile_e *out_profile);
+  int getModemMNOProfile(umnoprof_mno_profile *out_profile);
 
   /**
    * Set the current modem MNO profile selection.
    * @param profile - Modem MNO profile to set
    * @return 1 on success, 0 on failure
    */
-  int setModemMNOProfile(at_umnoprof_mno_profile_e profile);
+  int setModemMNOProfile(umnoprof_mno_profile profile);
 
  private:
   OwlModemAT *atModem_ = 0;

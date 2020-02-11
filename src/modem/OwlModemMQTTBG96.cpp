@@ -345,11 +345,11 @@ void OwlModemMQTTBG96::processURCQmtrecv(str data) {
 
 bool OwlModemMQTTBG96::openConnection(const char* host_addr, uint16_t port) {
   if (use_tls_) {
-    if (atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,1,0", 1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,1,0", 1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   } else {
-    if (atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,0,0", 1 * 1000, nullptr) != AT_Result_Code__OK) {
+    if (atModem_->doCommandBlocking("AT+QMTCFG=\"ssl\",0,0,0", 1 * 1000, nullptr) != at_result_code::OK) {
       return false;
     }
   }
@@ -358,7 +358,7 @@ bool OwlModemMQTTBG96::openConnection(const char* host_addr, uint16_t port) {
 
   wait_for_command_[qmtopen] = true;
 
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
     wait_for_command_[qmtopen] = false;
     return false;
   }
@@ -373,7 +373,7 @@ bool OwlModemMQTTBG96::openConnection(const char* host_addr, uint16_t port) {
 bool OwlModemMQTTBG96::closeConnection() {
   wait_for_command_[qmtclose] = true;
 
-  if (atModem_->doCommandBlocking("AT+QMTCLOSE=0", 1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking("AT+QMTCLOSE=0", 1 * 1000, nullptr) != at_result_code::OK) {
     wait_for_command_[qmtclose] = false;
     return false;
   }
@@ -390,7 +390,7 @@ bool OwlModemMQTTBG96::login(const char* client_id, const char* uname, const cha
 
   wait_for_command_[qmtconn] = true;
 
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
     wait_for_command_[qmtconn] = false;
     return false;
   }
@@ -401,7 +401,7 @@ bool OwlModemMQTTBG96::login(const char* client_id, const char* uname, const cha
 bool OwlModemMQTTBG96::logout() {
   wait_for_command_[qmtdisc] = true;
 
-  if (atModem_->doCommandBlocking("AT+QMTDISC=0", 1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking("AT+QMTDISC=0", 1 * 1000, nullptr) != at_result_code::OK) {
     wait_for_command_[qmtdisc] = false;
     return false;
   }
@@ -418,7 +418,7 @@ bool OwlModemMQTTBG96::publish(const char* topic, str data, bool retain, qos_t q
 
   wait_for_command_[qmtpub] = true;
 
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr, data, 0x1A) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr, data, 0x1A) != at_result_code::OK) {
     wait_for_command_[qmtpub] = false;
     return false;
   }
@@ -431,7 +431,7 @@ bool OwlModemMQTTBG96::subscribe(const char* topic_filter, uint16_t msg_id, qos_
 
   wait_for_command_[qmtsub] = true;
 
-  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != AT_Result_Code__OK) {
+  if (atModem_->doCommandBlocking(1 * 1000, nullptr) != at_result_code::OK) {
     wait_for_command_[qmtsub] = false;
     return false;
   }

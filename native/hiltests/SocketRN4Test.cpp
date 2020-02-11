@@ -34,7 +34,7 @@ constexpr uint16_t IN_PORT  = 2222;
 
 class TestSocketGuard {
  public:
-  TestSocketGuard(at_uso_protocol_e protocol, uint16_t local_port) {
+  TestSocketGuard(uso_protocol protocol, uint16_t local_port) {
     REQUIRE(rn4->socket.open(protocol, local_port, &sock) == 1);
   }
 
@@ -118,11 +118,10 @@ TEST_CASE("UDP", "[SocketRN4]") {
   std::string addr_str;
   wait_for_ip(addr_str);
 
-  str addr_s = {(char*)addr_str.c_str(), addr_str.size()};
+  str addr_s = {(char*)addr_str.c_str(), (unsigned int)addr_str.size()};
 
-  uint8_t s_id;
-  TestSocketGuard s_out(AT_USO_Protocol__UDP, OUT_PORT);
-  TestSocketGuard s_in(AT_USO_Protocol__UDP, IN_PORT);
+  TestSocketGuard s_out(uso_protocol::UDP, OUT_PORT);
+  TestSocketGuard s_in(uso_protocol::UDP, IN_PORT);
   REQUIRE(rn4->socket.connect(s_out.get_id(), addr_s, IN_PORT, nullptr, nullptr) == 1);
 
   str udp_data      = {"Hello!", 6};
@@ -134,7 +133,7 @@ TEST_CASE("UDP", "[SocketRN4]") {
 
   for (;;) {
     char udp_in_data_buf[16];
-    str udp_in_data{udp_in_data_buf, 0};
+    str_mut udp_in_data{udp_in_data_buf, 0};
     REQUIRE(rn4->socket.receiveFromUDP(s_in.get_id(), 6, nullptr, nullptr, &udp_in_data, 16) == 1);
 
     if (udp_in_data.len == 6) {
@@ -157,11 +156,10 @@ TEST_CASE("TCP", "[SocketRN4]") {
   std::string addr_str;
   wait_for_ip(addr_str);
 
-  str addr_s = {(char*)addr_str.c_str(), addr_str.size()};
+  str addr_s = {(char*)addr_str.c_str(), (unsigned int)addr_str.size()};
 
-  uint8_t s_id;
-  TestSocketGuard s_out(AT_USO_Protocol__TCP, OUT_PORT);
-  TestSocketGuard s_in(AT_USO_Protocol__TCP, 0);
+  TestSocketGuard s_out(uso_protocol::TCP, OUT_PORT);
+  TestSocketGuard s_in(uso_protocol::TCP, 0);
   REQUIRE(rn4->socket.acceptTCP(s_in.get_id(), IN_PORT, accept_handler, nullptr, nullptr, nullptr, nullptr, nullptr) ==
           1);
   REQUIRE(rn4->socket.connect(s_out.get_id(), addr_s, IN_PORT, nullptr, nullptr) == 1);
@@ -179,7 +177,7 @@ TEST_CASE("TCP", "[SocketRN4]") {
     } else {
       char tcp_in_data_buf[16];
       str tcp_in_data{tcp_in_data_buf, 0};
-      str tcp_in_data_chunk{tcp_in_data_buf, 0};
+      str_mut tcp_in_data_chunk{tcp_in_data_buf, 0};
       REQUIRE(rn4->socket.receiveTCP(accepted_sock, 6 - tcp_in_data.len, &tcp_in_data_chunk, 16 - tcp_in_data.len) ==
               1);
       tcp_in_data.len += tcp_in_data_chunk.len;

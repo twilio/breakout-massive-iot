@@ -12,7 +12,7 @@ void owl_log_set_level(log_level_t level) {
 }
 
 int owl_log_is_printable(log_level_t level) {
-  level <= log_level;
+  return level <= log_level;
 }
 
 void owl_log(log_level_t loglevel, const char *format, ...) {

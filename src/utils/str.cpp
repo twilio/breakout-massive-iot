@@ -26,15 +26,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-void str_remove_prefix(str *x, char *prefix) {
-  if (!x) return;
-  int len = strlen(prefix);
-  if (str_equal_prefix_char(*x, prefix)) {
-    x->len -= len;
-    memmove(x->s, x->s + len, x->len);
-  }
-}
-
 void str_skipover_prefix(str *x, str prefix) {
   if (!x) return;
   if (str_equal_prefix(*x, (prefix))) {
@@ -43,9 +34,9 @@ void str_skipover_prefix(str *x, str prefix) {
   }
 }
 
-int str_tok(str src, char *sep, str *dst) {
-  int i, j, is_sep, sep_len;
-  int start;
+int str_tok(str src, const char *sep, str *dst) {
+  unsigned int i, j, is_sep, sep_len;
+  unsigned int start;
   if (!src.len || !sep || !dst) return 0;
   sep_len = strlen(sep);
   if (!sep_len) return 0;
@@ -84,9 +75,9 @@ int str_tok(str src, char *sep, str *dst) {
   return 0;
 }
 
-int str_tok_with_empty_tokens(str src, char *sep, str *dst) {
-  int i, j, is_sep, sep_len;
-  int start;
+int str_tok_with_empty_tokens(str src, const char *sep, str *dst) {
+  unsigned int i, j, is_sep, sep_len;
+  unsigned int start;
   if (!src.len || !sep || !dst) return 0;
   sep_len = strlen(sep);
   if (!sep_len) return 0;
@@ -182,7 +173,7 @@ double str_to_double(str x) {
   return strtod(buf, 0);
 }
 
-void uint8_t_to_binary_str(uint8_t x, str *dst, uint8_t precision) {
+void uint8_t_to_binary_str(uint8_t x, str_mut *dst, uint8_t precision) {
   int ndx = 0;
   if (precision == 0 || precision > 8) precision = 8;
   for (ndx = 0; ndx <= (precision - 1); ndx++) {
@@ -237,10 +228,10 @@ int hex_to_int(char c) {
   return -1;
 }
 
-int hex_to_str(char *dst, int max_dst_len, str src) {
-  int len = 0;
+unsigned int hex_to_str(char *dst, unsigned int max_dst_len, str src) {
+  unsigned int len = 0;
   int hn, ln;
-  int i;
+  unsigned int i;
   if (src.len % 2 != 0) return 0;
   for (i = 0; i < src.len && i < max_dst_len * 2; i += 2) {
     hn = hex_to_int(src.s[i]) * 16;
@@ -257,9 +248,9 @@ error:
 
 static char hex_char[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-int str_to_hex(char *dst, int max_dst_len, str src) {
-  int len = 0;
-  int i;
+unsigned int str_to_hex(char *dst, unsigned int max_dst_len, str src) {
+  unsigned int len = 0;
+  unsigned int i;
   for (i = 0; i < src.len && len < max_dst_len; i++) {
     dst[len++] = hex_char[(*((uint8_t *)src.s + i) >> 4) & 0x0F];
     dst[len++] = hex_char[(*((uint8_t *)src.s + i)) & 0x0F];
@@ -268,15 +259,15 @@ int str_to_hex(char *dst, int max_dst_len, str src) {
 }
 
 int str_find(str x, str y) {
-  int i;
+  unsigned int i;
   if (!y.len) return -1;
   for (i = 0; i <= x.len - y.len; i++)
     if (memcmp(x.s + i, y.s, y.len) == 0) return i;
   return -1;
 }
 
-int str_find_char(str x, char *y) {
-  int i;
+int str_find_char(str x, const char *y) {
+  unsigned int i;
   int len = strlen(y);
   if (!len) return -1;
   for (i = 0; i <= x.len - len; i++)

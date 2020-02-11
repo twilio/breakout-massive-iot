@@ -36,8 +36,8 @@
  * @param ci - cell id
  * @param act - access technology
  */
-typedef void (*OwlModem_NetworkRegistrationStatusChangeHandler_f)(at_creg_stat_e stat, uint16_t lac, uint32_t ci,
-                                                                  at_creg_act_e act);
+typedef void (*OwlModem_NetworkRegistrationStatusChangeHandler_f)(creg_stat stat, uint16_t lac, uint32_t ci,
+                                                                  creg_act act);
 
 /**
  * Handler function signature for GPRS Registration events (2G/3G)
@@ -47,8 +47,8 @@ typedef void (*OwlModem_NetworkRegistrationStatusChangeHandler_f)(at_creg_stat_e
  * @param act - access technology
  * @param rac - routing area code
  */
-typedef void (*OwlModem_GPRSRegistrationStatusChangeHandler_f)(at_cgreg_stat_e stat, uint16_t lac, uint32_t ci,
-                                                               at_cgreg_act_e act, uint8_t rac);
+typedef void (*OwlModem_GPRSRegistrationStatusChangeHandler_f)(cgreg_stat stat, uint16_t lac, uint32_t ci,
+                                                               cgreg_act act, uint8_t rac);
 
 /**
  * Handler function signature for EPS Registration events (EPC - 2G/3G/LTE/WiFi/etc)
@@ -59,9 +59,8 @@ typedef void (*OwlModem_GPRSRegistrationStatusChangeHandler_f)(at_cgreg_stat_e s
  * @param cause_type
  * @param reject_cause
  */
-typedef void (*OwlModem_EPSRegistrationStatusChangeHandler_f)(at_cereg_stat_e stat, uint16_t lac, uint32_t ci,
-                                                              at_cereg_act_e act, at_cereg_cause_type_e cause_type,
-                                                              uint32_t reject_cause);
+typedef void (*OwlModem_EPSRegistrationStatusChangeHandler_f)(cereg_stat stat, uint16_t lac, uint32_t ci, cereg_act act,
+                                                              cereg_cause_type cause_type, uint32_t reject_cause);
 
 /**
  * Handler function signature for eDRX change events
@@ -70,10 +69,9 @@ typedef void (*OwlModem_EPSRegistrationStatusChangeHandler_f)(at_cereg_stat_e st
  * @param provided_value - Network provided eDRX cycle length
  * @param paging_time_window - Network provided Paging Time Window
  */
-typedef void (*OwlModem_EDRXStatusChangeHandler_f)(at_edrx_access_technology_e network,
-                                                   at_edrx_cycle_length_e requested_value,
-                                                   at_edrx_cycle_length_e provided_value,
-                                                   at_edrx_paging_time_window_e paging_time_window);
+typedef void (*OwlModem_EDRXStatusChangeHandler_f)(edrx_act network, edrx_cycle_length requested_value,
+                                                   edrx_cycle_length provided_value,
+                                                   edrx_paging_time_window paging_time_window);
 
 
 /**
@@ -96,17 +94,16 @@ class OwlModemNetwork {
   /**
    * Retrieve the current modem functionality mode.
    * @param out_power_mode - Modem power mode
-   * @param out_stk_mode - SIM-Toolkit mode
    * @return 1 on success, 0 on failure
    */
-  int getModemFunctionality(at_cfun_power_mode_e *out_power_mode, at_cfun_stk_mode_e *out_stk_mode);
+  int getModemFunctionality(cfun_power_mode *out_power_mode);
 
   /**
    * Set the modem functionality mode.
    * @param mode - mode to set
    * @return 1 on success, 0 on failure
    */
-  int setModemFunctionality(at_cfun_fun_e fun, at_cfun_rst_e *reset);
+  int setModemFunctionality(cfun_fun fun, cfun_rst *reset);
 
   /**
    * Retrieve the current Operator Selection Mode and selected Operator, Radio Access Technology
@@ -117,8 +114,8 @@ class OwlModemNetwork {
    * @param out_act - output radio access technology type
    * @return 1 on success, 0 on failure
    */
-  int getOperatorSelection(at_cops_mode_e *out_mode, at_cops_format_e *out_format, str *out_oper, int max_oper_len,
-                           at_cops_act_e *out_act);
+  int getOperatorSelection(cops_mode *out_mode, cops_format *out_format, str_mut *out_oper, unsigned int max_oper_len,
+                           cops_act *out_act);
 
   /**
    * Set operator selection mode and/or select manually operator/access technology
@@ -129,7 +126,7 @@ class OwlModemNetwork {
    * @param opt_act - optional radio access technology code - must also provide format and oper parameters with this
    * @return 1 on success, 0 on failure
    */
-  int setOperatorSelection(at_cops_mode_e mode, at_cops_format_e *opt_format, str *opt_oper, at_cops_act_e *opt_act);
+  int setOperatorSelection(cops_mode mode, cops_format *opt_format, str *opt_oper, cops_act *opt_act);
 
   /**
    * Get operator list (a.i. do a scan and provide possible values for setting Operator Selection to Manual
@@ -153,19 +150,19 @@ class OwlModemNetwork {
    * @param out_act - output Radio Access Technology (AcT)
    * @return 1 on success, 0 on failure
    */
-  int getNetworkRegistrationStatus(at_creg_n_e *out_n, at_creg_stat_e *out_stat, uint16_t *out_lac, uint32_t *out_ci,
-                                   at_creg_act_e *out_act);
+  int getNetworkRegistrationStatus(creg_n *out_n, creg_stat *out_stat, uint16_t *out_lac, uint32_t *out_ci,
+                                   creg_act *out_act);
 
   /**
    * Set the current style of Unsolicited Response Code (URC) asynchronous reporting for Network Registration Status.
    * @param n - mode to set
    * @return 1 on success, 0 on failure
    */
-  int setNetworkRegistrationURC(at_creg_n_e n);
+  int setNetworkRegistrationURC(creg_n n);
 
   /**
-   * When setting the Network Registration Unsolicited Response Code to AT_CREG__N__Network_Registration_URC
-   * or AT_CREG__N__Network_Registration_and_Location_Information_URC, reports will be generated. This handler
+   * When setting the Network Registration Unsolicited Response Code to creg_n::Network_Registration_URC
+   * or creg_n::Network_Registration_and_Location_Information_URC, reports will be generated. This handler
    * will be called when that happens, so that you can handle the event.
    *
    * Note: This will happen asynchronously, so don't forget to call the OwlModem->handleRx() method on an interrupt
@@ -186,19 +183,19 @@ class OwlModemNetwork {
    * @param out_rac - output Routing Area Code
    * @return 1 on success, 0 on failure
    */
-  int getGPRSRegistrationStatus(at_cgreg_n_e *out_n, at_cgreg_stat_e *out_stat, uint16_t *out_lac, uint32_t *out_ci,
-                                at_cgreg_act_e *out_act, uint8_t *out_rac);
+  int getGPRSRegistrationStatus(cgreg_n *out_n, cgreg_stat *out_stat, uint16_t *out_lac, uint32_t *out_ci,
+                                cgreg_act *out_act, uint8_t *out_rac);
 
   /**
    * Set the current style of Unregistered Response Code (URC) asynchronous reporting for GPRS Registration Status.
    * @param n - mode to set
    * @return 1 on success, 0 on failure
    */
-  int setGPRSRegistrationURC(at_cgreg_n_e n);
+  int setGPRSRegistrationURC(cgreg_n n);
 
   /**
-   * When setting the GPRS Registration Unsolicited Response Code to AT_CREG__N__GPRS_Registration_URC
-   * or AT_CREG__N__GPRS_Registration_and_Location_Information_URC, reports will be generated. This handler
+   * When setting the GPRS Registration Unsolicited Response Code to creg_n::GPRS_Registration_URC
+   * or creg_n::GPRS_Registration_and_Location_Information_URC, reports will be generated. This handler
    * will be called when that happens, so that you can handle the event.
    *
    * Note: This will happen asynchronously, so don't forget to call the OwlModem->handleRx() method on an interrupt
@@ -220,20 +217,19 @@ class OwlModemNetwork {
    * @param out_reject_cause - output reject cause
    * @return 1 on success, 0 on failure
    */
-  int getEPSRegistrationStatus(at_cereg_n_e *out_n, at_cereg_stat_e *out_stat, uint16_t *out_lac, uint32_t *out_ci,
-                               at_cereg_act_e *out_act, at_cereg_cause_type_e *out_cause_type,
-                               uint32_t *out_reject_cause);
+  int getEPSRegistrationStatus(cereg_n *out_n, cereg_stat *out_stat, uint16_t *out_lac, uint32_t *out_ci,
+                               cereg_act *out_act, cereg_cause_type *out_cause_type, uint32_t *out_reject_cause);
 
   /**
    * Set the current style of Unregistered Response Code (URC) asynchronous reporting for EPS Registration Status.
    * @param n - mode to set
    * @return 1 on success, 0 on failure
    */
-  int setEPSRegistrationURC(at_cereg_n_e n);
+  int setEPSRegistrationURC(cereg_n n);
 
   /**
-   * When setting the EPS Registration Unsolicited Response Code to AT_CREG__N__EPS_Registration_URC
-   * or AT_CREG__N__EPS_Registration_and_Location_Information_URC, reports will be generated. This handler
+   * When setting the EPS Registration Unsolicited Response Code to creg_n::EPS_Registration_URC
+   * or creg_n::EPS_Registration_and_Location_Information_URC, reports will be generated. This handler
    * will be called when that happens, so that you can handle the event.
    *
    * Note: This will happen asynchronously, so don't forget to call the OwlModem->handleRx() method on an interrupt
@@ -246,11 +242,11 @@ class OwlModemNetwork {
 
   /**
    * Retrieve the Signal Quality at the moment
-   * @param out_rssi - output RSSI - see at_csq_rssi_e for special values
+   * @param out_rssi - output RSSI - see csq_rssi for special values
    * @param out_qual - output Signal Quality (aka channel Bit Error Rate)
    * @return 1 on success, 0 on failure
    */
-  int getSignalQuality(at_csq_rssi_e *out_rssi, at_csq_qual_e *out_qual);
+  int getSignalQuality(csq_rssi *out_rssi, csq_qual *out_qual);
 
 
   /**
@@ -260,8 +256,8 @@ class OwlModemNetwork {
    * @param v - (optional) requested eDRX value (ignored for disabling modes)
    * @return 1 on success, 0 on failure
    */
-  int setEDRXMode(at_edrx_mode_e n, at_edrx_access_technology_e t = AT_EDRX_Access_Technology__Unspecified,
-                  at_edrx_cycle_length_e v = AT_EDRX_Cycle_Length__Unspecified);
+  int setEDRXMode(edrx_mode n, edrx_act t = edrx_act::Unspecified,
+                  edrx_cycle_length v = edrx_cycle_length::Unspecified);
 
   /**
    * When setting the eDRX mode to AT_EDRX_Mode__Enabled_With_URC, reports will be generated.  These
@@ -290,10 +286,8 @@ class OwlModemNetwork {
    * @param at - (optional) requested active time (only values from 0 to 31 are valid)
    * @return 1 on success, 0 on failure
    */
-  int setPSMMode(at_psm_mode_e n, at_psm_tau_interval pt_interval = AT_PSM_TAU_Interval__Timer_Unspecified,
-                 uint8_t pt                              = 0,
-                 at_psm_active_time_interval at_interval = AT_PSM_Active_Time_Interval__Timer_Unspecified,
-                 uint8_t at                              = 0);
+  int setPSMMode(psm_mode n, psm_tau_interval pt_interval = psm_tau_interval::Timer_Unspecified, uint8_t pt = 0,
+                 psm_active_time_interval at_interval = psm_active_time_interval::Timer_Unspecified, uint8_t at = 0);
 
 
  private:
@@ -312,83 +306,82 @@ class OwlModemNetwork {
   bool processURCEDRXResult(str urc, str data);
 
 
-  void parseNetworkRegistrationStatus(str response, at_creg_n_e *out_n, at_creg_stat_e *out_stat, uint16_t *out_lac,
-                                      uint32_t *out_ci, at_creg_act_e *out_act);
-  void parseGPRSRegistrationStatus(str response, at_cgreg_n_e *out_n, at_cgreg_stat_e *out_stat, uint16_t *out_lac,
-                                   uint32_t *out_ci, at_cgreg_act_e *out_act, uint8_t *out_rac);
-  void parseEPSRegistrationStatus(str response, at_cereg_n_e *out_n, at_cereg_stat_e *out_stat, uint16_t *out_lac,
-                                  uint32_t *out_ci, at_cereg_act_e *out_act, at_cereg_cause_type_e *out_cause_type,
+  void parseNetworkRegistrationStatus(str response, creg_n *out_n, creg_stat *out_stat, uint16_t *out_lac,
+                                      uint32_t *out_ci, creg_act *out_act);
+  void parseGPRSRegistrationStatus(str response, cgreg_n *out_n, cgreg_stat *out_stat, uint16_t *out_lac,
+                                   uint32_t *out_ci, cgreg_act *out_act, uint8_t *out_rac);
+  void parseEPSRegistrationStatus(str response, cereg_n *out_n, cereg_stat *out_stat, uint16_t *out_lac,
+                                  uint32_t *out_ci, cereg_act *out_act, cereg_cause_type *out_cause_type,
                                   uint32_t *out_reject_cause);
-  void parseEDRXStatus(str response, at_edrx_access_technology_e *out_network,
-                       at_edrx_cycle_length_e *out_requested_value, at_edrx_cycle_length_e *out_provided_value,
-                       at_edrx_paging_time_window_e *out_paging_time_window);
+  void parseEDRXStatus(str response, edrx_act *out_network, edrx_cycle_length *out_requested_value,
+                       edrx_cycle_length *out_provided_value, edrx_paging_time_window *out_paging_time_window);
 
   typedef struct {
-    at_creg_n_e n;
-    at_creg_stat_e stat;
+    creg_n n;
+    creg_stat stat;
     uint16_t lac;
     uint32_t ci;
-    at_creg_act_e act;
+    creg_act act;
   } owl_network_status_t;
 
   owl_network_status_t last_network_status = {
-      .n    = AT_CREG__N__URC_Disabled,
-      .stat = AT_CREG__Stat__Not_Registered,
+      .n    = creg_n::URC_Disabled,
+      .stat = creg_stat::Not_Registered,
       .lac  = 0,
       .ci   = 0xFFFFFFFFu,
-      .act  = AT_CREG__AcT__invalid,
+      .act  = creg_act::invalid,
   };
 
   typedef struct {
-    at_cgreg_n_e n;
-    at_cgreg_stat_e stat;
+    cgreg_n n;
+    cgreg_stat stat;
     uint16_t lac;
     uint32_t ci;
-    at_cgreg_act_e act;
+    cgreg_act act;
     uint8_t rac;
   } owl_last_gprs_status_t;
 
   owl_last_gprs_status_t last_gprs_status = {
-      .n    = AT_CGREG__N__URC_Disabled,
-      .stat = AT_CGREG__Stat__Not_Registered,
+      .n    = cgreg_n::URC_Disabled,
+      .stat = cgreg_stat::Not_Registered,
       .lac  = 0,
       .ci   = 0xFFFFFFFFu,
-      .act  = AT_CGREG__AcT__invalid,
+      .act  = cgreg_act::invalid,
       .rac  = 0,
   };
 
   typedef struct {
-    at_cereg_n_e n;
-    at_cereg_stat_e stat;
+    cereg_n n;
+    cereg_stat stat;
     uint16_t lac;
     uint32_t ci;
-    at_cereg_act_e act;
-    at_cereg_cause_type_e cause_type;
+    cereg_act act;
+    cereg_cause_type cause_type;
     uint32_t reject_cause;
   } owl_last_eps_status_t;
 
   owl_last_eps_status_t last_eps_status = {
-      .n            = AT_CEREG__N__URC_Disabled,
-      .stat         = AT_CEREG__Stat__Not_Registered,
+      .n            = cereg_n::URC_Disabled,
+      .stat         = cereg_stat::Not_Registered,
       .lac          = 0,
       .ci           = 0xFFFFFFFFu,
-      .act          = AT_CEREG__AcT__invalid,
-      .cause_type   = AT_CEREG__Cause_Type__EMM_Cause,
+      .act          = cereg_act::invalid,
+      .cause_type   = cereg_cause_type::EMM_Cause,
       .reject_cause = 0,
   };
 
   typedef struct {
-    at_edrx_access_technology_e network;
-    at_edrx_cycle_length_e requested_value;
-    at_edrx_cycle_length_e provided_value;
-    at_edrx_paging_time_window_e paging_time_window;
+    edrx_act network;
+    edrx_cycle_length requested_value;
+    edrx_cycle_length provided_value;
+    edrx_paging_time_window paging_time_window;
   } owl_edrx_status_t;
 
   owl_edrx_status_t last_edrx_status = {
-      .network            = AT_EDRX_Access_Technology__Unspecified,
-      .requested_value    = AT_EDRX_Cycle_Length__Unspecified,
-      .provided_value     = AT_EDRX_Cycle_Length__Unspecified,
-      .paging_time_window = AT_EDRX_Paging_Time_Window__Unspecified,
+      .network            = edrx_act::Unspecified,
+      .requested_value    = edrx_cycle_length::Unspecified,
+      .provided_value     = edrx_cycle_length::Unspecified,
+      .paging_time_window = edrx_paging_time_window::Unspecified,
   };
 };
 

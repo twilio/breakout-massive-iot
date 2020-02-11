@@ -35,9 +35,8 @@ static str s_rmc = STRDECL("RMC,");
 
 int OwlModemGNSS::getGNSSData(gnss_data_t *out_data) {
   owl_time_t timeout = owl_time() + 5 * 1000;
-  int available, received, total = 0;
-  str line  = {0};
-  str token = {0};
+  str line           = {0};
+  str token          = {0};
 
   if (!out_data) {
     LOG(L_ERR, "Null parameter\r\n");
@@ -73,7 +72,7 @@ int OwlModemGNSS::getGNSSData(gnss_data_t *out_data) {
             out_data->time.minutes = (token.s[2] - '0') * 10 + token.s[3] - '0';
             out_data->time.seconds = (token.s[4] - '0') * 10 + token.s[5] - '0';
             //.
-            for (int k = 7; k < token.len; k++)
+            for (unsigned int k = 7; k < token.len; k++)
               out_data->time.millis = (token.s[k] - '0') * pow(10, 9 - k);
             break;
           case 1:

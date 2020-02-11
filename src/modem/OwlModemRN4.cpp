@@ -79,7 +79,7 @@ void OwlModemRN4::powerOff() {
 }
 
 int OwlModemRN4::isPoweredOn() {
-  return AT.doCommandBlocking("AT", 1000, nullptr) == AT_Result_Code__OK;
+  return AT.doCommandBlocking("AT", 1000, nullptr) == at_result_code::OK;
 }
 
 
@@ -95,13 +95,12 @@ void initCheckPIN(str message) {
   }
 }
 
-int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cops, at_cops_format_e cops_format) {
-  at_result_code_e rc;
+int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cops, cops_format cops_format) {
   OwlModem_PINHandler_f saved_handler = 0;
-  at_umnoprof_mno_profile_e current_profile;
-  at_umnoprof_mno_profile_e expected_profile = (testing_variant & Testing__Set_MNO_Profile_to_Default) == 0 ?
-                                                   AT_UMNOPROF__MNO_PROFILE__TMO :
-                                                   AT_UMNOPROF__MNO_PROFILE__SW_Default;
+  umnoprof_mno_profile current_profile;
+  umnoprof_mno_profile expected_profile = (testing_variant & Testing__Set_MNO_Profile_to_Default) == 0 ?
+                                              umnoprof_mno_profile::TMO :
+                                              umnoprof_mno_profile::SW_Default;
 
   if (!AT.initTerminal()) {
     return 0;
@@ -109,7 +108,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
 
   if (cops != nullptr) {
     // deregister from the network before the modem hangs
-    if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
+    if (!network.setOperatorSelection(cops_mode::Deregister_From_Network, nullptr, nullptr, nullptr)) {
       LOG(L_ERR, "Potential deregistering from network\r\n");
     }
   }
@@ -123,12 +122,10 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
   if (current_profile != expected_profile || (testing_variant & Testing__Set_APN_Bands_to_Berlin) != 0 ||
       (testing_variant & Testing__Set_APN_Bands_to_US) != 0) {
     /* A modem reset is required */
-    if (!network.setModemFunctionality(AT_CFUN__FUN__Minimum_Functionality, 0))
-      LOG(L_WARN, "Error turning modem off\r\n");
+    if (!network.setModemFunctionality(cfun_fun::Minimum_Functionality, 0)) LOG(L_WARN, "Error turning modem off\r\n");
 
     if (current_profile != expected_profile) {
-      LOG(L_WARN, "Updating MNO Profile to %d - %s\r\n", expected_profile,
-          at_umnoprof_mno_profile_text(expected_profile));
+      LOG(L_WARN, "Updating MNO Profile to %d - %s\r\n", expected_profile, at_enum_stringify(expected_profile));
       if (!network_rn4.setModemMNOProfile(expected_profile)) {
         LOG(L_ERR, "Error re-setting MNO Profile from %d to %d\r\n", current_profile, expected_profile);
         return 0;
@@ -136,28 +133,28 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
     }
 
     if ((testing_variant & Testing__Set_APN_Bands_to_Berlin) != 0) {
-      if (AT.doCommandBlocking("AT+URAT=8", 5000, nullptr) != AT_Result_Code__OK)
+      if (AT.doCommandBlocking("AT+URAT=8", 5000, nullptr) != at_result_code::OK)
         LOG(L_WARN, "Error setting RAT to NB1\r\n");
       // This is a bitmask, LSB meaning Band1, MSB meaning Band64
-      if (AT.doCommandBlocking("AT+UBANDMASK=0,0", 5000, nullptr) != AT_Result_Code__OK)
+      if (AT.doCommandBlocking("AT+UBANDMASK=0,0", 5000, nullptr) != at_result_code::OK)
         LOG(L_WARN, "Error setting band mask for Cat-M1 to none\r\n");
-      if (AT.doCommandBlocking("AT+UBANDMASK=1,168761503", 5000, nullptr) != AT_Result_Code__OK)
+      if (AT.doCommandBlocking("AT+UBANDMASK=1,168761503", 5000, nullptr) != at_result_code::OK)
         LOG(L_WARN, "Error setting band mask for NB1 to 168761503 (manual default\r\n");
 
       AT.commandSprintf("AT+CGDCONT=1,\"IP\",\"%s\"", apn);
-      if (AT.doCommandBlocking(5000, nullptr) != AT_Result_Code__OK) LOG(L_WARN, "Error setting custom APN\r\n");
+      if (AT.doCommandBlocking(5000, nullptr) != at_result_code::OK) LOG(L_WARN, "Error setting custom APN\r\n");
     }
     if ((testing_variant & Testing__Set_APN_Bands_to_US) != 0) {
-      if (AT.doCommandBlocking("AT+URAT=8", 5000, nullptr) != AT_Result_Code__OK)
+      if (AT.doCommandBlocking("AT+URAT=8", 5000, nullptr) != at_result_code::OK)
         LOG(L_WARN, "Error setting RAT to NB1\r\n");
       // This is a bitmask, LSB meaning Band1, MSB meaning Band64
-      if (AT.doCommandBlocking("AT+UBANDMASK=0,0", 5000, nullptr) != AT_Result_Code__OK)
+      if (AT.doCommandBlocking("AT+UBANDMASK=0,0", 5000, nullptr) != at_result_code::OK)
         LOG(L_WARN, "Error setting band mask for Cat-M1 to 2/4/5/12\r\n");
-      if (AT.doCommandBlocking("AT+UBANDMASK=1,2074", 5000, nullptr) != AT_Result_Code__OK)
+      if (AT.doCommandBlocking("AT+UBANDMASK=1,2074", 5000, nullptr) != at_result_code::OK)
         LOG(L_WARN, "Error setting band mask for NB1 to 2/4/5/12 (manual default)\r\n");
     }
 
-    if (!network.setModemFunctionality(AT_CFUN__FUN__Modem_Silent_Reset__No_SIM_Reset, 0))
+    if (!network.setModemFunctionality(cfun_fun::Modem_Silent_Reset_No_SIM_Reset, 0))
       LOG(L_WARN, "Error resetting modem\r\n");
     // wait for the modem to come back
     while (!isPoweredOn()) {
@@ -171,7 +168,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
 
     if (cops != nullptr) {
       // deregister from the network before the modem hangs
-      if (!network.setOperatorSelection(AT_COPS__Mode__Deregister_from_Network, nullptr, nullptr, nullptr)) {
+      if (!network.setOperatorSelection(cops_mode::Deregister_From_Network, nullptr, nullptr, nullptr)) {
         LOG(L_ERR, "Potential deregistering from network\r\n");
       }
     }
@@ -179,38 +176,38 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
 
 
   if (cops != nullptr) {
-    at_cops_act_e cops_act = AT_COPS__Access_Technology__LTE_NB_S1;
-    str oper               = STRDECL(cops);
+    cops_act cops_act = cops_act::LTE_NB_S1;
+    str oper          = STRDECL(cops);
     LOG(L_INFO, "Selecting network operator \"%s\", it can take a while.\r\n", cops);
-    if (!network.setOperatorSelection(AT_COPS__Mode__Manual_Selection, &cops_format, &oper, &cops_act)) {
+    if (!network.setOperatorSelection(cops_mode::Manual_Selection, &cops_format, &oper, &cops_act)) {
       LOG(L_ERR, "Error selecting mobile operator\r\n");
       return 0;
     }
   }
 
-  if (AT.doCommandBlocking("AT+CSCS=\"GSM\"", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CSCS=\"GSM\"", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Potential error setting character set to GSM\r\n");
   }
 
   /* Set the on-board LEDs */
-  if (AT.doCommandBlocking("AT+UGPIOC=23,10", 5000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+UGPIOC=23,10", 5000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "..  - failed to map pin 23 (yellow led)  to \"module operating status indication\"\r\n");
   }
-  if (AT.doCommandBlocking("AT+UGPIOC=16,2", 5000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+UGPIOC=16,2", 5000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "..  - failed to map pin 16 (blue led) to \"network status indication\"\r\n");
   }
 
   /* TODO - decide if to keep this in */
-  if (AT.doCommandBlocking("AT+CREG=2", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CREG=2", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN,
         "Potential error setting URC to Registration and Location Updates for Network Registration Status events\r\n");
   }
-  if (AT.doCommandBlocking("AT+CGREG=2", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CGREG=2", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN,
         "Potential error setting GPRS URC to Registration and Location Updates for Network Registration Status "
         "events\r\n");
   }
-  if (AT.doCommandBlocking("AT+CEREG=2", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CEREG=2", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN,
         "Potential error setting EPS URC to Registration and Location Updates for Network Registration Status "
         "events\r\n");
@@ -218,12 +215,12 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
 
   if (SIM.handler_cpin) saved_handler = SIM.handler_cpin;
   SIM.setHandlerPIN(initCheckPIN);
-  if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Error checking PIN status\r\n");
   }
   SIM.setHandlerPIN(saved_handler);
 
-  if (AT.doCommandBlocking("AT+UDCONF=1,1", 1000, nullptr) != AT_Result_Code__OK) {
+  if (AT.doCommandBlocking("AT+UDCONF=1,1", 1000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Potential error setting ublox HEX mode for socket ops send/receive\r\n");
   }
 
@@ -231,16 +228,16 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
   return 1;
 }
 
-int OwlModemRN4::waitForNetworkRegistration(char *purpose, int testing_variant) {
+int OwlModemRN4::waitForNetworkRegistration(const char *purpose, int testing_variant) {
   bool network_ready = false;
   bool needs_reset   = false;
   owl_time_t timeout = owl_time() + 30 * 1000;
   while (true) {
-    at_cereg_stat_e stat;
+    cereg_stat stat;
     if (network.getEPSRegistrationStatus(0, &stat, 0, 0, 0, 0, 0)) {
-      network_ready = (stat == AT_CEREG__Stat__Registered_Home_Network || stat == AT_CEREG__Stat__Registered_Roaming);
+      network_ready = (stat == cereg_stat::Registered_Home_Network || stat == cereg_stat::Registered_Roaming);
       if (network_ready) break;
-      if (stat == AT_CEREG__Stat__Registration_Denied || stat == AT_CREG__Stat__Not_Registered) needs_reset = true;
+      if (stat == cereg_stat::Registration_Denied || stat == cereg_stat::Not_Registered) needs_reset = true;
     }
     if ((testing_variant & Testing__Timeout_Network_Registration_30_Sec) != 0 && owl_time() > timeout) {
       LOG(L_ERR, "Bailing out from network registration - for testing purposes only\r\n");
@@ -249,7 +246,7 @@ int OwlModemRN4::waitForNetworkRegistration(char *purpose, int testing_variant) 
     if (needs_reset && owl_time() > timeout) {
       LOG(L_INFO, "Failed to connect to network, resetting\r\n");
       needs_reset = false;
-      if (!network.setModemFunctionality(AT_CFUN__FUN__Modem_Silent_Reset__No_SIM_Reset, 0))
+      if (!network.setModemFunctionality(cfun_fun::Modem_Silent_Reset_No_SIM_Reset, 0))
         LOG(L_WARN, "Error resetting modem\r\n");
       // wait for the modem to come back
       while (!isPoweredOn()) {
@@ -283,7 +280,7 @@ void OwlModemRN4::bypassCLI() {
   // TODO - set echo on/off - maybe with parameter to this function? but that will mess with other code
   in_bypass = 1;
   uint8_t c;
-  int index = 0;
+  unsigned int index = 0;
   while (1) {
     if (modem_port->available()) {
       modem_port->read(&c, 1);
@@ -311,7 +308,7 @@ void OwlModemRN4::bypassGNSSCLI() {
   }
   // TODO - set echo on/off - maybe with parameter to this function? but that will mess with other code
   uint8_t c;
-  int index = 0;
+  unsigned int index = 0;
   while (1) {
     if (gnss_port->available()) {
       gnss_port->read(&c, 1);
@@ -363,7 +360,7 @@ void OwlModemRN4::bypassGNSS() {
 
 static str s_dev_kit = STRDECL("devkit");
 
-int OwlModemRN4::setHostDeviceInformation(char *purpose) {
+int OwlModemRN4::setHostDeviceInformation(const char *purpose) {
   str s_purpose;
   if (purpose) {
     s_purpose.s   = purpose;
@@ -376,10 +373,10 @@ int OwlModemRN4::setHostDeviceInformation(char *purpose) {
 }
 
 void OwlModemRN4::computeHostDeviceInformation(str purpose) {
-  char *hostDeviceID      = "Twilio-Alfa";
-  char *hostDeviceIDShort = "alfa";
-  char *board_name        = "WioLTE-Cat-NB1";
-  char *sdk_ver           = "0.1.0";
+  const char *hostDeviceID      = "Twilio-Alfa";
+  const char *hostDeviceIDShort = "alfa";
+  const char *board_name        = "WioLTE-Cat-NB1";
+  const char *sdk_ver           = "0.1.0";
 
   // Param 2: Twilio_Seeed_(AT+CGMI -> u-blox) // OwlModemInformation::getManufacturer()
   char module_mfgr_buffer[64];
@@ -433,7 +430,7 @@ int OwlModemRN4::setHostDeviceInformation(str purpose) {
 
   for (int attempts = 10; attempts > 0; attempts--) {
     AT.commandSprintf("AT+UHOSTDEV=%.*s", hostdevice_information.len, hostdevice_information.s);
-    if (AT.doCommandBlocking(1000, nullptr) == AT_Result_Code__OK) {
+    if (AT.doCommandBlocking(1000, nullptr) == at_result_code::OK) {
       LOG(L_INFO, ".. setting HostDeviceInformation successful.\r\n");
       registered = true;
       break;
@@ -462,7 +459,7 @@ str OwlModemRN4::getShortHostDeviceInformation() {
 }
 
 
-int OwlModemRN4::drainGNSSRx(str *gnss_buffer, int gnss_buffer_len) {
+int OwlModemRN4::drainGNSSRx(str_mut *gnss_buffer, unsigned int gnss_buffer_len) {
   if (gnss_buffer == nullptr || !has_gnss_port) {
     return 0;
   }
@@ -470,9 +467,8 @@ int OwlModemRN4::drainGNSSRx(str *gnss_buffer, int gnss_buffer_len) {
   LOG(L_MEM, "Trying to drain GNSS data\r\n");
   int available, received, total = 0, full = 0;
   while ((available = gnss_port->available()) > 0) {
-    if (available > gnss_buffer_len) available = gnss_buffer_len;
-    //    LOG(L_DBG, "Available %d bytes\r\n", available);
-    if (available > gnss_buffer_len - gnss_buffer->len) {
+    if (static_cast<unsigned int>(available) > gnss_buffer_len) available = gnss_buffer_len;
+    if (static_cast<unsigned int>(available) > gnss_buffer_len - gnss_buffer->len) {
       int shift = available - (gnss_buffer_len - gnss_buffer->len);
       LOG(L_WARN, "GNSS buffer full with %d bytes. Dropping oldest %d bytes.\r\n", gnss_buffer->len, shift);
       gnss_buffer->len -= shift;

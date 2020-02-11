@@ -39,7 +39,7 @@ int OwlModemPDN::getAPNIPAddress(uint8_t cid, uint8_t ipv4[4], uint8_t ipv6[16])
   if (ipv4) memset(ipv4, 0, 4);
   if (ipv6) memset(ipv6, 0, 16);
   atModem_->commandSprintf("AT+CGPADDR=%d", cid);
-  int result = atModem_->doCommandBlocking(3000, &pdn_response) == AT_Result_Code__OK;
+  int result = atModem_->doCommandBlocking(3000, &pdn_response) == at_result_code::OK;
   if (!result) return 0;
   OwlModemAT::filterResponse(s_cgpaddr, pdn_response, &pdn_response);
   while (str_tok(pdn_response, ",\r\n", &token)) {

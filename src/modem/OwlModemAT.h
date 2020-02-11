@@ -70,11 +70,11 @@ class OwlModemAT {
  public:
   /*
    *  Response handler
-   *  @param at_result_code_e - result code
+   *  @param at_result_code - result code
    *  @param str - result data
    *  @return whether result was processed and modem can return to idle state
    */
-  using ResponseHandler = bool (*)(at_result_code_e, str, void *);
+  using ResponseHandler = bool (*)(at_result_code, str, void *);
   using UrcHandler      = bool (*)(str, str, void *);  // code, data, private (pointer to the instance normally)
   using PrefixHandler   = void (*)(str, void *);       // input string, private (pointer to the instance normally)
   static constexpr int MaxUrcHandlers = 8;
@@ -98,8 +98,8 @@ class OwlModemAT {
    * @return success status
    */
   bool sendData(str data);
-  bool sendData(char *data) {
-    return sendData({.s = data, .len = static_cast<int>(strlen(data))});
+  bool sendData(const char *data) {
+    return sendData({.s = data, .len = static_cast<unsigned int>(strlen(data))});
   }
 
   /**
@@ -136,7 +136,7 @@ class OwlModemAT {
    * @param out_response - last response data
    * @return last result code or AT_Result_Code__none if no command was processed.
    */
-  at_result_code_e getLastCommandResponse(str *out_response);
+  at_result_code getLastCommandResponse(str *out_response);
 
   bool registerUrcHandler(const char *unique_id, UrcHandler handler, void *priv);
   void registerPrefixHandler(PrefixHandler handler, void *priv, const str *prefixes, int num_prefixes);
@@ -154,10 +154,10 @@ class OwlModemAT {
    * @return the AT result code, or AT_Result_Code__failure on failure to send the data, or AT_Result_Code__timeout in
    * case of timeout while waiting for one of the standard AT result codes.
    */
-  at_result_code_e doCommandBlocking(owl_time_t timeout_millis, str *out_response, str command_data = {nullptr, 0},
-                                     uint16_t data_term = 0xFFFF);
-  at_result_code_e doCommandBlocking(const char *command, owl_time_t timeout_millis, str *out_response,
-                                     str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF) {
+  at_result_code doCommandBlocking(owl_time_t timeout_millis, str *out_response, str command_data = {nullptr, 0},
+                                   uint16_t data_term = 0xFFFF);
+  at_result_code doCommandBlocking(const char *command, owl_time_t timeout_millis, str *out_response,
+                                   str command_data = {nullptr, 0}, uint16_t data_term = 0xFFFF) {
     commandStrcpy(command);
     return doCommandBlocking(timeout_millis, out_response, command_data, data_term);
   }
@@ -214,20 +214,20 @@ class OwlModemAT {
   owl_time_t send_data_ts_{0};
   bool ignore_first_line_{false};
 
-  at_result_code_e last_response_code_{AT_Result_Code__unknown};
+  at_result_code last_response_code_{at_result_code::unknown};
 
   char command_buffer_c_[AT_COMMAND_BUFFER_SIZE];
-  str command_buffer_ = {.s = command_buffer_c_, .len = 0};
+  str_mut command_buffer_ = {.s = command_buffer_c_, .len = 0};
   bool command_valid_{false};
 
   char input_buffer_c_[AT_INPUT_BUFFER_SIZE];
-  str input_buffer_ = {.s = input_buffer_c_, .len = 0};
+  str_mut input_buffer_ = {.s = input_buffer_c_, .len = 0};
 
   char line_buffer_c_[AT_LINE_BUFFER_SIZE];
-  str line_buffer_ = {.s = line_buffer_c_, .len = 0};
+  str_mut line_buffer_ = {.s = line_buffer_c_, .len = 0};
 
   char response_buffer_c_[AT_RESPONSE_BUFFER_SIZE];
-  str response_buffer_ = {.s = response_buffer_c_, .len = 0};
+  str_mut response_buffer_ = {.s = response_buffer_c_, .len = 0};
 
   UrcHandler urc_handlers_[MaxUrcHandlers];
   const char *urc_handler_ids_[MaxUrcHandlers];
@@ -251,7 +251,7 @@ class OwlModemAT {
   void processPrefix();
   void processInputPrompt();
 
-  at_result_code_e tryParseCode();
+  at_result_code tryParseCode();
 };
 
 #endif  // __OWL_MODEM_AT_H__

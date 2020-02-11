@@ -3,7 +3,7 @@
 #define RN4_PAHO_LOCAL_PORT 8883
 
 bool RN4PahoIPStack::connect(const char* hostname, int port, bool use_tls, int tls_id) {
-  if (!modem_->open(AT_USO_Protocol__TCP, RN4_PAHO_LOCAL_PORT, &socket_id_)) {
+  if (!modem_->open(uso_protocol::TCP, RN4_PAHO_LOCAL_PORT, &socket_id_)) {
     LOG(L_ERR, "failed to open socket\r\n");
     return false;
   }
@@ -58,7 +58,7 @@ int RN4PahoIPStack::read(unsigned char* buffer, int len, int timeout_ms) {
     return -1;
   }
 
-  str out_data;
+  str_mut out_data;
   out_data.s   = (char*)buffer;
   out_data.len = 0;
   if (!modem_->receiveTCP(socket_id_, len, &out_data, len)) {

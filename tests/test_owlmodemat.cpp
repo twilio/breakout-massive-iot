@@ -187,7 +187,7 @@ TEST_CASE("OwlModemAT processes simple commands correctly", "[command]") {
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 }
@@ -237,7 +237,7 @@ TEST_CASE("OwlModemAT processes URC while command is running", "[command-urc]") 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
 
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 }
@@ -280,7 +280,7 @@ TEST_CASE("Command response data is not affected by previous responses", "[comma
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
 
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 
@@ -305,7 +305,7 @@ TEST_CASE("Command response data is not affected by previous responses", "[comma
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
 
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "+COPS: 1\n");
 }
@@ -323,7 +323,7 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
       "of his pursuit will reward his pains with some delight; and he will have reason to think his time not ill "
       "spent, even when he cannot much boast of any great acquisition.";
   std::string command_string = "AT_QFUPL=\"file\"," + std::to_string(data_string.length());
-  str data                   = {.s = (char*)data_string.c_str(), .len = static_cast<int>(data_string.length())};
+  str data                   = {.s = data_string.c_str(), .len = static_cast<unsigned int>(data_string.length())};
 
   REQUIRE(modem.startATCommand(command_string.c_str(), 1000, data));
   REQUIRE(serial.te_to_mt == (command_string + "\r\n"));
@@ -356,7 +356,7 @@ TEST_CASE("OwlModemAT processes commands with data", "[command-data]") {
 
   REQUIRE(modem.getModemState() == OwlModemAT::modem_state_t::response_ready);
   str response;
-  REQUIRE(modem.getLastCommandResponse(&response) == AT_Result_Code__OK);
+  REQUIRE(modem.getLastCommandResponse(&response) == at_result_code::OK);
 
   REQUIRE(std::string(response.s, response.len) == "");
 }
@@ -433,7 +433,7 @@ TEST_CASE("MD5 hash on base64-encoded data is calculated correctly", "[md5][base
 
 TEST_CASE("Ensure conversion from uint8_t to binary string occurs correctly", "[binary_str]") {
   char output_[8];
-  str output = {.s = output_, .len = 0};
+  str_mut output = {.s = output_, .len = 0};
 
   str zero_8      = STRDECL("00000000");
   str zero_4      = STRDECL("0000");
