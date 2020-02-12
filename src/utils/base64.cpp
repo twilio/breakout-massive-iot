@@ -39,8 +39,8 @@ static const unsigned char pr2six[256] = {
 
 int owl_base64decode_len(const char *bufcoded) {
   int nbytesdecoded;
-  register const unsigned char *bufin;
-  register int nprbytes;
+  const unsigned char *bufin;
+  int nprbytes;
 
   bufin = (const unsigned char *)bufcoded;
   while (pr2six[*(bufin++)] <= 63)
@@ -54,9 +54,9 @@ int owl_base64decode_len(const char *bufcoded) {
 
 int owl_base64decode(unsigned char *bufplain, const char *bufcoded) {
   int nbytesdecoded;
-  register const unsigned char *bufin;
-  register unsigned char *bufout;
-  register int nprbytes;
+  const unsigned char *bufin;
+  unsigned char *bufout;
+  int nprbytes;
 
   bufin = (const unsigned char *)bufcoded;
   while (pr2six[*(bufin++)] <= 63)
@@ -94,9 +94,9 @@ int owl_base64decode_md5(unsigned char digest[16], const char *bufcoded) {
   unsigned char bufplain[3];
 
   int nbytesdecoded;
-  register const unsigned char *bufin;
-  register unsigned char *bufout;
-  register int nprbytes;
+  const unsigned char *bufin;
+  unsigned char *bufout;
+  int nprbytes;
 
   struct MD5Context context;
   MD5Init(&context);

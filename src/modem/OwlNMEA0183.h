@@ -26,10 +26,10 @@ class OwlNMEA0183 {
   IOwlSerial *serial_{nullptr};
 
   char input_buffer_c_[NMEA_INPUT_BUFFER_SIZE];
-  str input_buffer_ = {.s = input_buffer_c_, .len = 0};
+  str_mut input_buffer_ = {.s = input_buffer_c_, .len = 0};
 
   char line_buffer_c_[NMEA_LINE_BUFFER_SIZE];
-  str line_buffer_ = {.s = line_buffer_c_, .len = 0};
+  str_mut line_buffer_ = {.s = line_buffer_c_, .len = 0};
 
   nmea_state_t nmea_state_{nmea_state_t::idle};
 };

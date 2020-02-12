@@ -22,7 +22,7 @@ set(MODEM_SOURCES
 
 set(NMEA_SOURCES
 	${MODEM_DIR}/enums.cpp
-	${MODEM_DIR}/../utils/str.c
+	${MODEM_DIR}/../utils/str.cpp
 	${MODEM_DIR}/OwlNMEA0183.cpp
 	)
 

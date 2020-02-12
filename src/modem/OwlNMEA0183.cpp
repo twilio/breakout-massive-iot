@@ -36,7 +36,7 @@ str OwlNMEA0183::getLine() {
 
       case nmea_state_t::in_line: {
         int end_idx = -1;
-        for (int i = 0; i < input_buffer_slice.len; i++) {
+        for (unsigned int i = 0; i < input_buffer_slice.len; i++) {
           if (input_buffer_slice.s[i] == '\r' || input_buffer_slice.s[i] == '\n') {
             end_idx = i;
             break;
@@ -91,7 +91,7 @@ bool OwlNMEA0183::checksumOk() {
     return false;
   }
 
-  int ast_idx = (int)(ast_pos - line_buffer_.s);
+  unsigned int ast_idx = (unsigned int)(ast_pos - line_buffer_.s);
 
   if (ast_idx != line_buffer_.len - 3) {
     return false;
@@ -99,15 +99,15 @@ bool OwlNMEA0183::checksumOk() {
 
   int cs = 0;
 
-  for (int i = 0; i < ast_idx; i++) {
+  for (unsigned int i = 0; i < ast_idx; i++) {
     cs ^= line_buffer_.s[i];
   }
 
-  if (cs & 0xF0 != (hex_to_int(line_buffer_.s[ast_idx + 1]) << 4)) {
+  if ((cs & 0xF0) != (hex_to_int(line_buffer_.s[ast_idx + 1]) << 4)) {
     return false;
   }
 
-  if (cs & 0x0F != hex_to_int(line_buffer_.s[ast_idx + 2])) {
+  if ((cs & 0x0F) != hex_to_int(line_buffer_.s[ast_idx + 2])) {
     return false;
   }
 
