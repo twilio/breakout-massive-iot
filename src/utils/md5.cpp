@@ -162,7 +162,7 @@ void MD5Final(unsigned char digest[16], struct MD5Context *ctx) {
  * the data and converts bytes into longwords for this routine.
  */
 void MD5Transform(uint32 buf[4], const unsigned char inraw[64]) {
-  register uint32 a, b, c, d;
+  uint32 a, b, c, d;
   uint32 in[16];
   int i;
 

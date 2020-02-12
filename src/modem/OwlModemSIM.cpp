@@ -76,7 +76,7 @@ int OwlModemSIM::getPINStatus() {
   return result;
 }
 
-void OwlModemSIM::setHandlerPIN(OwlModem_PINHandler_f cb, void* priv) {
-  this->handler_cpin = cb;
+void OwlModemSIM::setHandlerPIN(OwlModem_PINHandler_f cb, void *priv) {
+  this->handler_cpin      = cb;
   this->handler_cpin_priv = priv;
 }

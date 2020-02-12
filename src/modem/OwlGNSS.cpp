@@ -64,7 +64,7 @@ int OwlGNSS::getGNSSData(gnss_data_t *out_data) {
           lastdata_.time.minutes = (token.s[2] - '0') * 10 + token.s[3] - '0';
           lastdata_.time.seconds = (token.s[4] - '0') * 10 + token.s[5] - '0';
           //.
-          for (int k = 7; k < token.len; k++)
+          for (unsigned int k = 7; k < token.len; k++)
             lastdata_.time.millis = (token.s[k] - '0') * pow(10, 9 - k);
           break;
         case 1:

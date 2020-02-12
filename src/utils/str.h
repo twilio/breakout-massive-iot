@@ -49,7 +49,7 @@ typedef struct {
 #define STRDEF(_string_, _value_) ((_string_).s = (_value_), (_string_).len = strlen(_value_))
 
 #define STRDECL(_value_)                                                                                               \
-  { .s = (char *)(_value_), .len = (int)strlen(_value_) }
+  { .s = (char *)(_value_), .len = (unsigned int)strlen(_value_) }
 
 #define str_equal(a, b) ((a).len == (b).len && memcmp((a).s, (b).s, (a).len) == 0)
 #define str_equal_char(a, c) ((a).len == strlen(c) && memcmp((a).s, (c), (a).len) == 0)

@@ -35,8 +35,8 @@ void str_skipover_prefix(str *x, str prefix) {
 }
 
 int str_tok(str src, const char *sep, str *dst) {
-  int i, j, is_sep, sep_len;
-  int start;
+  unsigned int i, j, is_sep, sep_len;
+  unsigned int start;
   if (!src.len || !sep || !dst) return 0;
   sep_len = strlen(sep);
   if (!sep_len) return 0;
@@ -75,8 +75,8 @@ int str_tok(str src, const char *sep, str *dst) {
 }
 
 int str_tok_with_empty_tokens(str src, const char *sep, str *dst) {
-  int i, j, is_sep, sep_len;
-  int start;
+  unsigned int i, j, is_sep, sep_len;
+  unsigned int start;
   if (!src.len || !sep || !dst) return 0;
   sep_len = strlen(sep);
   if (!sep_len) return 0;
