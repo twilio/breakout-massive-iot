@@ -51,8 +51,6 @@ typedef struct {
 #define STRDECL(_value_)                                                                                               \
   { .s = (char *)(_value_), .len = (unsigned int)strlen(_value_) }
 
-
-
 #define str_equal(a, b) ((a).len == (b).len && memcmp((a).s, (b).s, (a).len) == 0)
 #define str_equal_char(a, c) ((a).len == strlen(c) && memcmp((a).s, (c), (a).len) == 0)
 #define str_equal_prefix(a, p) ((a).len >= (p).len && memcmp((a).s, (p).s, (p).len) == 0)

@@ -30,7 +30,8 @@ bool got_cpin_urc = false;
 
 extern OwlModemRN4* rn4;
 
-static void cpin_handler(str urc) {
+static void cpin_handler(str urc, void* priv) {
+  (void) priv;
   got_cpin_urc = true;
 
   auto urc_string = std::string(urc.s, urc.len);

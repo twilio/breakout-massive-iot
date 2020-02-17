@@ -2,6 +2,7 @@
 
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
+#include "test_platform.h"
 #include "modem/OwlModemAT.h"
 #include "utils/md5.h"
 #include "utils/base64.h"
@@ -14,31 +15,6 @@ std::vector<std::string> received_strings;
 void spinProcessLineTestpoint(str line) {
   received_strings.push_back(std::string(line.s, line.len));
 }
-
-class TestSerial : public IOwlSerial {
- public:
-  int32_t available() {
-    return mt_to_te.length();
-  }
-  int32_t read(uint8_t* buf, uint32_t count) {
-    uint32_t to_read = (count > mt_to_te.length()) ? mt_to_te.length() : count;
-
-    memcpy(buf, mt_to_te.c_str(), to_read);
-    mt_to_te = mt_to_te.substr(to_read);
-
-    return to_read;
-  }
-
-  int32_t write(const uint8_t* buf, uint32_t count) {
-    std::string data = std::string((char*)buf, count);
-
-    te_to_mt += data;
-
-    return count;
-  }
-  std::string mt_to_te;
-  std::string te_to_mt;
-};
 
 TEST_CASE("OwlModemAT breaks input into lines correctly", "[linesplit]") {
   SECTION("simple case") {

@@ -42,7 +42,6 @@ int str_tok(str src, const char *sep, str *dst) {
   if (!sep_len) return 0;
   if (dst->s) {
     if (dst->s < src.s || dst->s > src.s + src.len || dst->s + dst->len > src.s + src.len) {
-      //      LOG(L_ERR, "The token parameter must either be an empty string on first call, or the last token!");
       return 0;
     }
   }
@@ -83,7 +82,6 @@ int str_tok_with_empty_tokens(str src, const char *sep, str *dst) {
   if (!sep_len) return 0;
   if (dst->s) {
     if (dst->s < src.s || dst->s > src.s + src.len || dst->s + dst->len > src.s + src.len) {
-      //      LOG(L_ERR, "The token parameter must either be an empty string on first call, or the last token!");
       return 0;
     }
   }
@@ -133,7 +131,6 @@ int str_tok_with_empty_tokens(str src, const char *sep, str *dst) {
 long int str_to_long_int(str x, int base) {
   char buf[65];
   if (x.len > 64) {
-    //    LOG(L_ERR, "The give string is too long to convert - %d > 64\r\n", x.len);
     return 0;
   }
   if (x.len > 1 && x.s[0] == '"' && x.s[x.len - 1] == '"') {
@@ -149,7 +146,6 @@ long int str_to_long_int(str x, int base) {
 uint32_t str_to_uint32_t(str x, int base) {
   char buf[33];
   if (x.len > 32) {
-    //    LOG(L_ERR, "The give string is too long to convert - %d > 32\r\n", x.len);
     return 0;
   }
   if (x.len > 1 && x.s[0] == '"' && x.s[x.len - 1] == '"') {
@@ -165,7 +161,6 @@ uint32_t str_to_uint32_t(str x, int base) {
 double str_to_double(str x) {
   char buf[65];
   if (x.len > 64) {
-    //    LOG(L_ERR, "The give string is too long to convert - %d > 64\n", x.len);
     return 0;
   }
   memcpy(buf, x.s, x.len);
@@ -183,49 +178,15 @@ void uint8_t_to_binary_str(uint8_t x, str_mut *dst, uint8_t precision) {
 }
 
 int hex_to_int(char c) {
-  switch (c) {
-    case '0':
-      return 0;
-    case '1':
-      return 1;
-    case '2':
-      return 2;
-    case '3':
-      return 3;
-    case '4':
-      return 4;
-    case '5':
-      return 5;
-    case '6':
-      return 6;
-    case '7':
-      return 7;
-    case '8':
-      return 8;
-    case '9':
-      return 9;
-    case 'A':
-    case 'a':
-      return 10;
-    case 'B':
-    case 'b':
-      return 11;
-    case 'C':
-    case 'c':
-      return 12;
-    case 'D':
-    case 'd':
-      return 13;
-    case 'E':
-    case 'e':
-      return 14;
-    case 'F':
-    case 'f':
-      return 15;
-    default:
-      return -1;
+  if (c >= '0' && c <= '9') {
+    return c - '0';
+  } else if (c >= 'a' && c <= 'f') {
+    return c - 'a' + 10;
+  } else if (c >= 'A' && c <= 'F') {
+    return c - 'A' + 10;
+  } else {
+    return -1;
   }
-  return -1;
 }
 
 unsigned int hex_to_str(char *dst, unsigned int max_dst_len, str src) {

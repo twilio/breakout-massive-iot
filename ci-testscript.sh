@@ -18,6 +18,7 @@ fi
 
 ../tests/scripts/test_runner.py ${HEDWIG_LOCATION} ${MODEMS_CSV_FILE} ./native/hiltests/test_modem
 ./tests/test_owlmodemat
+./tests/test_nmea
 make twilio_massive_sdk-gcov
 
 export CODECOV_TOKEN="${1}"

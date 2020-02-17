@@ -27,10 +27,9 @@
 #include <stdio.h>
 
 
-OwlModemRN4::OwlModemRN4(IOwlSerial *modem_port_in, IOwlSerial *debug_port_in, IOwlSerial *gnss_port_in)
+OwlModemRN4::OwlModemRN4(IOwlSerial *modem_port_in, IOwlSerial *debug_port_in)
     : modem_port(modem_port_in),
       debug_port(debug_port_in),
-      gnss_port(gnss_port_in),
       AT(modem_port),
       information(&AT),
       SIM(&AT),
@@ -46,7 +45,6 @@ OwlModemRN4::OwlModemRN4(IOwlSerial *modem_port_in, IOwlSerial *debug_port_in, I
 
   has_modem_port = (modem_port_in != nullptr);
   has_debug_port = (debug_port_in != nullptr);
-  has_gnss_port  = (gnss_port_in != nullptr);
 }
 
 OwlModemRN4::~OwlModemRN4() {
@@ -87,7 +85,9 @@ int OwlModemRN4::isPoweredOn() {
  * Handler for PIN, used during initialization
  * @param message
  */
-void initCheckPIN(str message) {
+void initCheckPIN(str message, void *priv) {
+  (void)priv;
+
   if (!str_equal_prefix_char(message, "READY")) {
     LOG(L_ERR,
         "PIN status [%.*s] != READY and PIN handler not set. Please disable the SIM card PIN, or set a handler.\r\n",
@@ -214,7 +214,7 @@ int OwlModemRN4::initModem(int testing_variant, const char *apn, const char *cop
   }
 
   if (SIM.handler_cpin) saved_handler = SIM.handler_cpin;
-  SIM.setHandlerPIN(initCheckPIN);
+  SIM.setHandlerPIN(initCheckPIN, nullptr);
   if (AT.doCommandBlocking("AT+CPIN?", 5000, nullptr) != at_result_code::OK) {
     LOG(L_WARN, "Error checking PIN status\r\n");
   }
@@ -302,33 +302,6 @@ void OwlModemRN4::bypassCLI() {
   }
 }
 
-void OwlModemRN4::bypassGNSSCLI() {
-  if (!has_gnss_port || !has_debug_port) {
-    return;
-  }
-  // TODO - set echo on/off - maybe with parameter to this function? but that will mess with other code
-  uint8_t c;
-  unsigned int index = 0;
-  while (1) {
-    if (gnss_port->available()) {
-      gnss_port->read(&c, 1);
-      debug_port->write(&c, 1);
-    }
-    if (debug_port->available()) {
-      debug_port->read(&c, 1);
-      gnss_port->write(&c, 1);
-      if (s_exitbypass.s[index] == c)
-        index++;
-      else
-        index = 0;
-      if (index == s_exitbypass.len) {
-        gnss_port->write((uint8_t *)"\r\n", 2);
-        return;
-      }
-    }
-  }
-}
-
 void OwlModemRN4::bypass() {
   if (!has_modem_port || !has_debug_port) {
     return;
@@ -342,20 +315,6 @@ void OwlModemRN4::bypass() {
   while (debug_port->available())
     debug_port->read(&c, 1);
   modem_port->write(&c, 1);
-}
-
-void OwlModemRN4::bypassGNSS() {
-  if (!has_gnss_port || !has_debug_port) {
-    return;
-  }
-
-  uint8_t c;
-  while (gnss_port->available())
-    gnss_port->read(&c, 1);
-  debug_port->write(&c, 1);
-  while (debug_port->available())
-    debug_port->read(&c, 1);
-  gnss_port->write(&c, 1);
 }
 
 static str s_dev_kit = STRDECL("devkit");
@@ -456,45 +415,4 @@ str OwlModemRN4::getHostDeviceInformation() {
 str OwlModemRN4::getShortHostDeviceInformation() {
   if (!short_hostdevice_information.len) computeHostDeviceInformation(s_dev_kit);
   return short_hostdevice_information;
-}
-
-
-int OwlModemRN4::drainGNSSRx(str_mut *gnss_buffer, unsigned int gnss_buffer_len) {
-  if (gnss_buffer == nullptr || !has_gnss_port) {
-    return 0;
-  }
-
-  LOG(L_MEM, "Trying to drain GNSS data\r\n");
-  int available, received, total = 0, full = 0;
-  while ((available = gnss_port->available()) > 0) {
-    if (static_cast<unsigned int>(available) > gnss_buffer_len) available = gnss_buffer_len;
-    if (static_cast<unsigned int>(available) > gnss_buffer_len - gnss_buffer->len) {
-      int shift = available - (gnss_buffer_len - gnss_buffer->len);
-      LOG(L_WARN, "GNSS buffer full with %d bytes. Dropping oldest %d bytes.\r\n", gnss_buffer->len, shift);
-      gnss_buffer->len -= shift;
-      memmove(gnss_buffer->s, gnss_buffer->s + shift, gnss_buffer->len);
-      full = 1;
-    }
-    received = gnss_port->read((uint8_t *)gnss_buffer->s + gnss_buffer->len, available);
-    //    LOG(L_WARN, "Rx %d bytes\r\n", received);
-    if (received != available) {
-      LOG(L_ERR, "gnss_port said %d bytes available, but received %d.\r\n", available, received);
-      if (received < 0) goto error;
-    }
-
-    gnss_buffer->len += received;
-    total += received;
-
-    if (gnss_buffer->len > gnss_buffer_len) {
-      LOG(L_ERR, "Bug in the gnss_buffer_len calculation %d > %d\r\n", gnss_buffer->len, gnss_buffer_len);
-      goto error;
-    }
-
-    LOG(L_DBG, "GNSS Rx - size changed from %d to %d bytes\r\n", gnss_buffer->len - received, gnss_buffer->len);
-    LOGSTR(L_DBG, *gnss_buffer);
-    if (full) return total;
-  }
-error:
-  LOG(L_MEM, "Done draining GNSS %d\r\n", total);
-  return total;
 }

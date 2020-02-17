@@ -20,7 +20,6 @@ The library consist of the following parts arranged in respective directories un
   * power.h - powering on and off certain modules
   * time.h - measuring time and sleeping
   * mem.h - allocating and freeing memory
-  * random.h - generating random numbers
 
 Depending on what your target application is you might not need to implement all of these functions, let linker errors guide you.
 

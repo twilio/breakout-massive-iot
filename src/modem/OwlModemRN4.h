@@ -32,7 +32,6 @@
 #include "OwlModemPDN.h"
 #include "OwlModemSIM.h"
 #include "OwlModemSocketRN4.h"
-#include "OwlModemGNSS.h"
 #include "OwlModemSSLRN4.h"
 
 /*
@@ -51,7 +50,7 @@ class OwlModemRN4 {
    * @param modem_port - mandatory modem port
    * @param debug_port - optional debug port, to use in the bypass functions
    */
-  OwlModemRN4(IOwlSerial *modem_port_in, IOwlSerial *debug_port_in = 0, IOwlSerial *gnss_port_in = 0);
+  OwlModemRN4(IOwlSerial *modem_port_in, IOwlSerial *debug_port_in = 0);
 
   /**
    * Destructror of OwlModemRN4
@@ -102,20 +101,9 @@ class OwlModemRN4 {
   void bypass();
 
   /**
-   * Bypass the GNSS serial to the debug serial, so that you can directly issue AT commands yourself.
-   * This is for debug purposes. Drains current buffers, then returns, so call it again in a loop.
-   */
-  void bypassGNSS();
-
-  /**
    * Similar to bypass(), but with a loop that watches for a magic word "exitbypass" to quit.
    */
   void bypassCLI();
-
-  /**
-   * Similar to bypassGNSS(), but with a loop that watches for a magic word "exitbypass" to quit.
-   */
-  void bypassGNSSCLI();
 
   /**
    * Retrieve the full HostDevice Information
@@ -138,7 +126,6 @@ class OwlModemRN4 {
  private:
   IOwlSerial *modem_port;
   IOwlSerial *debug_port;
-  IOwlSerial *gnss_port;
 
  public:
   /*
@@ -166,9 +153,6 @@ class OwlModemRN4 {
   /** TCP/UDP communication over sockets */
   OwlModemSocketRN4 socket;
 
-  /** GNSS to get position, date, time, etc */
-  OwlModemGNSS gnss = OwlModemGNSS(this);
-
  private:
   /** The execution is now in the modem bypass mode */
   volatile uint8_t in_bypass = 0;  // volatile might not do much here, as we're not multi-threaded, but just marking it
@@ -177,7 +161,6 @@ class OwlModemRN4 {
 
   bool has_modem_port{false};
   bool has_debug_port{false};
-  bool has_gnss_port{false};
 
   char c_hostdevice_information[MODEM_HOSTDEVICE_INFORMATION_SIZE + 1];
   str_mut hostdevice_information = {.s = c_hostdevice_information, .len = 0};
@@ -205,9 +188,6 @@ class OwlModemRN4 {
    * @param purpose - input string naming the purpose
    */
   void computeHostDeviceInformation(str purpose);
-
- public:  // These things are not part of the API. TODO - make them private
-  int drainGNSSRx(str_mut *gnss_buffer, unsigned int gnss_buffer_len);
 };
 
 /**

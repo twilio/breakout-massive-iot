@@ -42,7 +42,7 @@ int OwlModemSIM::handleCPIN(str urc, str data) {
         "in your application\r\n",
         data.len, data.s);
   } else {
-    (this->handler_cpin)(data);
+    (this->handler_cpin)(data, this->handler_cpin_priv);
   }
   return 1;
 }
@@ -76,6 +76,7 @@ int OwlModemSIM::getPINStatus() {
   return result;
 }
 
-void OwlModemSIM::setHandlerPIN(OwlModem_PINHandler_f cb) {
-  this->handler_cpin = cb;
+void OwlModemSIM::setHandlerPIN(OwlModem_PINHandler_f cb, void *priv) {
+  this->handler_cpin      = cb;
+  this->handler_cpin_priv = priv;
 }
