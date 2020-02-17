@@ -61,7 +61,7 @@ int RN4PahoIPStack::read(unsigned char* buffer, int len, int timeout_ms) {
   str_mut out_data;
   out_data.s   = (char*)buffer;
   out_data.len = 0;
-  if (!modem_->receiveTCP(socket_id_, len, &out_data, len)) {
+  if (!modem_->receive(socket_id_, len, &out_data, len)) {
     return -1;
   }
 
@@ -77,7 +77,7 @@ int RN4PahoIPStack::write(unsigned char* buffer, int len, int timeout_ms) {
     return -1;
   }
 
-  if (!modem_->sendTCP(socket_id_, data, &bytes_sent)) {
+  if (!modem_->send(socket_id_, data, &bytes_sent)) {
     return -1;
   }
 

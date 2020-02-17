@@ -235,15 +235,17 @@ unsigned int hex_to_str(char *dst, unsigned int max_dst_len, str src) {
   if (src.len % 2 != 0) return 0;
   for (i = 0; i < src.len && i < max_dst_len * 2; i += 2) {
     hn = hex_to_int(src.s[i]) * 16;
-    if (hn < 0) goto error;
+    if (hn < 0) {
+      return 0;
+    }
     ln = hex_to_int(src.s[i + 1]);
-    if (ln < 0) goto error;
+    if (ln < 0) {
+      return 0;
+    }
     *((uint8_t *)(dst + len)) = hn + ln;
     len++;
   }
   return len;
-error:
-  return 0;
 }
 
 static char hex_char[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
